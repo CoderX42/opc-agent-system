@@ -1,0 +1,6 @@
+node_modules/
+out/
+package-lock.json
+*.log
+.DS_Store
+preview-pixel-office.html

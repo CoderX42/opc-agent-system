@@ -1,0 +1,25 @@
+{
+  "name": "opc-agent-promo-video",
+  "version": "1.0.0",
+  "description": "OPC Agent System 抖音宣传视频 - 基于 Remotion",
+  "scripts": {
+    "start": "remotion studio",
+    "build": "remotion render OpcPromo out/opc-promo.mp4",
+    "build:preview": "remotion render OpcPromo out/opc-promo.gif --codec=gif",
+    "upgrade": "remotion upgrade",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.242",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.242"
+  },
+  "devDependencies": {
+    "@remotion/eslint-config": "4.0.242",
+    "@types/react": "18.3.3",
+    "@types/web": "0.0.166",
+    "eslint": "8.57.0",
+    "typescript": "5.4.5"
+  }
+}
