@@ -211,10 +211,18 @@ async function handleUserCommand(command: string) {
           cancelButtonText: '取消',
           type: 'warning',
         })
-        await userStore.logout()
-        router.push('/login')
       } catch {
-        // 用户取消
+        // 用户取消 → 不执行任何登出动作
+        break
+      }
+      // 用户确认 → 强制走完登出流程（即使接口失败也要跳到登录页）
+      try {
+        await userStore.logout()
+      } catch (err) {
+        console.error('[Logout] API failed:', err)
+      } finally {
+        userStore.resetState()
+        router.push('/login')
       }
       break
   }

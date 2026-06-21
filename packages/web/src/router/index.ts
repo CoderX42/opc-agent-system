@@ -189,7 +189,7 @@ router.beforeEach(async (to, _from, next) => {
 
   const token = getToken()
 
-  if (token || true /* SCREENSHOT_BYPASS */) {
+  if (token) {
     if (to.path === '/login') {
       // 已登录，跳转到首页
       next({ path: '/' })
@@ -199,8 +199,15 @@ router.beforeEach(async (to, _from, next) => {
       if (userStore.user) {
         next()
       } else {
-        userStore.user = { id: 1, username: 'demo', nickname: 'Demo', role: 'ADMIN', avatar: '' } as any
-        next()
+        try {
+          await userStore.fetchUserInfo()
+          next()
+        } catch {
+          // 获取用户信息失败 → 强制登出
+          userStore.resetState()
+          next(`/login?redirect=${to.path}`)
+          NProgress.done()
+        }
       }
     }
   } else {
