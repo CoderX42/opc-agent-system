@@ -119,15 +119,16 @@ const nameMap = {
   --skin: #f2c79f;
   --hair: #5b3424;
   --uniform: #397bff;
-  --dark: #171411;
+  --dark: #1a1411;
   --sole: #2d2926;
   display: block;
   overflow: visible;
   image-rendering: pixelated;
   shape-rendering: crispEdges;
-  filter: drop-shadow(0 8px 0 rgba(58, 38, 22, 0.12));
+  filter: drop-shadow(0 8px 0 rgba(26, 20, 17, 0.18));
   pointer-events: none;
   transform-origin: center bottom;
+  transition: filter 220ms ease;
 }
 
 .agent-avatar.is-finance {
@@ -150,6 +151,10 @@ const nameMap = {
   --uniform: #d95951;
 }
 
+.agent-avatar.is-idle {
+  animation: pixel-idle 4s ease-in-out infinite;
+}
+
 .agent-avatar.is-working {
   animation: pixel-work 0.78s steps(2, end) infinite;
 }
@@ -164,8 +169,8 @@ const nameMap = {
 
 .agent-avatar.is-error {
   filter:
-    drop-shadow(0 8px 0 rgba(58, 38, 22, 0.12))
-    drop-shadow(0 0 10px rgba(217, 89, 81, 0.72));
+    drop-shadow(0 8px 0 rgba(26, 20, 17, 0.18))
+    drop-shadow(0 0 12px rgba(217, 89, 81, 0.78));
 }
 
 .agent-avatar.is-offline {
@@ -219,6 +224,11 @@ const nameMap = {
 @keyframes pixel-work {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
+}
+
+@keyframes pixel-idle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
 }
 
 @keyframes pixel-think {
