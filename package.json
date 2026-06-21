@@ -1,0 +1,26 @@
+{
+  "name": "opc-agent-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OPC一人有限责任公司 AI Agent 数字员工系统",
+  "scripts": {
+    "dev:server": "pnpm --filter opc-agent-server dev",
+    "dev:web": "pnpm --filter opc-agent-web dev",
+    "dev": "pnpm -r --parallel --if-present dev",
+    "build:server": "pnpm --filter opc-agent-server build",
+    "build:web": "pnpm --filter opc-agent-web build",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r run lint",
+    "test": "pnpm -r --if-present test",
+    "test:e2e": "pnpm --filter opc-agent-server test:e2e",
+    "test:cov": "pnpm --filter opc-agent-server test:cov",
+    "api:generate": "pnpm --filter opc-agent-web api:generate",
+    "db:migrate": "pnpm --filter opc-agent-server db:migrate",
+    "db:revert": "pnpm --filter opc-agent-server db:revert",
+    "db:seed": "pnpm --filter opc-agent-server db:seed"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}
