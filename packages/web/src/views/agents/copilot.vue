@@ -6,12 +6,6 @@
         <!-- 左：Agent 选择 + 命令清单 -->
         <aside class="copilot-rail">
           <div class="rail-block">
-            <div class="rail-head">
-              <span class="rail-num">A</span>
-              <h2>选择 Agent</h2>
-              <span class="rail-hint">在岗 · {{ agents.length }}</span>
-            </div>
-
             <div class="agent-rail">
               <button
                 v-for="(agent, i) in agents"
