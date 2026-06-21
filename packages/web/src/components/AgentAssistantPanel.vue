@@ -1,41 +1,43 @@
 <template>
-  <section class="agent-assistant" :style="{ '--agent-color': color }">
-    <div class="assistant-header">
-      <div class="assistant-title">
-        <span class="assistant-icon">
-          <el-icon><component :is="icon" /></el-icon>
+  <section class="agent-console" :style="{ '--agent-accent': color }">
+    <header class="console-bar">
+      <div class="console-meta">
+        <span class="console-led">
+          <i></i><i></i><i></i>
         </span>
-        <div>
-          <span class="assistant-kicker">AGENT COPILOT</span>
-          <h3>{{ title }}</h3>
-        </div>
+        <span class="console-path">
+          ~/opc/{{ shortCode }}/<em>copilot</em>
+        </span>
       </div>
-      <span class="assistant-status"><i></i> 可交互</span>
-    </div>
-
-    <div class="assistant-prompts">
-      <button
-        v-for="prompt in suggestions"
-        :key="prompt"
-        type="button"
-        @click="sendMessage(prompt)"
-      >
-        {{ prompt }}
-      </button>
-    </div>
+      <div class="console-counters">
+        <span class="counter">
+          <span class="counter-label">TX</span>
+          <span class="counter-value">{{ String(txCount).padStart(3, '0') }}</span>
+        </span>
+        <span class="counter-sep">/</span>
+        <span class="counter">
+          <span class="counter-label">RX</span>
+          <span class="counter-value">{{ String(rxCount).padStart(3, '0') }}</span>
+        </span>
+        <span class="counter-status">
+          {{ loading ? 'STREAMING…' : 'READY' }}
+        </span>
+      </div>
+    </header>
 
     <ChatPanel
-      class="assistant-chat"
+      class="console-chat"
       :messages="messages"
       :typing="loading"
       :placeholder="placeholder"
+      :accent="color"
       @send="sendMessage"
     />
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import ChatPanel from '@/components/ChatPanel.vue'
 import { chatWithAgentType, type AgentChatType } from '@/api/agent'
 
@@ -46,28 +48,43 @@ interface Message {
   timestamp: string
 }
 
-const props = withDefaults(defineProps<{
-  type: AgentChatType
-  title: string
-  icon: string
-  color?: string
-  placeholder?: string
-  suggestions?: string[]
-}>(), {
-  color: '#155e52',
-  placeholder: '直接向这个 Agent 描述你要处理的事情...',
-  suggestions: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    type: AgentChatType
+    title: string
+    icon: string
+    color?: string
+    placeholder?: string
+    suggestions?: string[]
+  }>(),
+  {
+    color: '#155e52',
+    placeholder: '直接向这个 Agent 描述你要处理的事情...',
+    suggestions: () => [],
+  },
+)
 
 const loading = ref(false)
 const messages = ref<Message[]>([
   {
     id: crypto.randomUUID(),
     role: 'system',
-    content: `${props.title} 已就绪。你可以直接提问，也可以点击上方快捷问题。`,
+    content: `${props.title} 已就绪。可以直接提问，也可以从左侧快捷命令发送。`,
     timestamp: currentTime(),
   },
 ])
+
+const txCount = computed(() => messages.value.filter((m) => m.role === 'user').length)
+const rxCount = computed(() => messages.value.filter((m) => m.role === 'agent').length)
+const shortCode = computed(() => {
+  const map: Partial<Record<AgentChatType, string>> = {
+    FINANCE: 'finance',
+    CUSTOMER_SERVICE: 'service',
+    LEGAL: 'legal',
+    ADMIN: 'admin',
+  }
+  return map[props.type] || 'agent'
+})
 
 function currentTime() {
   return new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
@@ -104,114 +121,154 @@ async function sendMessage(content: string) {
     loading.value = false
   }
 }
+
+// 暴露给父组件（Quick commands 触发）
+function receivePrompt(prompt: string) {
+  void sendMessage(prompt)
+}
+defineExpose({ receivePrompt })
 </script>
 
 <style lang="scss" scoped>
-.agent-assistant {
-  margin-bottom: 20px;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--agent-color) 9%, white), rgba(255, 255, 255, 0.9)),
-    $bg-white;
-  border: 1px solid color-mix(in srgb, var(--agent-color) 16%, $border-light);
+@use '@/styles/variables.scss' as *;
+
+.agent-console {
+  --agent-accent: #{$primary-color};
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(26, 36, 33, 0.1);
   border-radius: $border-radius-lg;
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-md;
+  overflow: hidden;
+  height: 560px;
+  animation: consoleIn 0.7s 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
-.assistant-header {
-  @include flex-between;
+.console-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   gap: 16px;
-  padding: 18px 20px 12px;
+  padding: 12px 18px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--agent-accent) 7%, white), rgba(255, 255, 255, 0.4)),
+    rgba(247, 247, 243, 0.92);
+  border-bottom: 1px solid rgba(26, 36, 33, 0.1);
 }
 
-.assistant-title {
+.console-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  h3 {
-    color: $text-primary;
-    font-size: 17px;
-    font-weight: 760;
-  }
+  gap: 14px;
 }
 
-.assistant-icon {
-  width: 40px;
-  height: 40px;
-  display: grid;
-  place-items: center;
-  color: color-mix(in srgb, var(--agent-color) 78%, #0d211c);
-  background: color-mix(in srgb, var(--agent-color) 12%, white);
-  border-radius: 12px;
-}
-
-.assistant-kicker {
-  display: block;
-  margin-bottom: 2px;
-  color: $text-secondary;
-  font-size: 10px;
-  font-weight: 760;
-  letter-spacing: 0.1em;
-}
-
-.assistant-status {
+.console-led {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  color: $text-secondary;
-  font-size: 12px;
-  font-weight: 700;
+  gap: 6px;
 
   i {
-    width: 8px;
-    height: 8px;
-    background: $success-color;
+    width: 9px;
+    height: 9px;
     border-radius: 50%;
-    box-shadow: 0 0 0 4px rgba(47, 143, 103, 0.1);
-  }
-}
+    background: color-mix(in srgb, var(--agent-accent) 30%, white);
+    box-shadow: inset 0 0 0 1px rgba(26, 36, 33, 0.1);
 
-.assistant-prompts {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 0 20px 14px;
-
-  button {
-    padding: 7px 10px;
-    color: color-mix(in srgb, var(--agent-color) 74%, $text-primary);
-    background: rgba(255, 255, 255, 0.72);
-    border: 1px solid color-mix(in srgb, var(--agent-color) 14%, $border-light);
-    border-radius: 999px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 680;
-    transition: background-color $transition-duration, transform $transition-duration;
-
-    &:hover {
-      background: color-mix(in srgb, var(--agent-color) 10%, white);
-      transform: translateY(-1px);
+    &:first-child {
+      background: #d95951;
+    }
+    &:nth-child(2) {
+      background: #d9a441;
+    }
+    &:last-child {
+      background: #2f8f67;
     }
   }
 }
 
-.assistant-chat {
-  height: 360px;
-  border-right: 0;
-  border-bottom: 0;
-  border-left: 0;
+.console-path {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11.5px;
+  color: $text-secondary;
+  letter-spacing: 0.04em;
+
+  em {
+    font-style: normal;
+    color: color-mix(in srgb, var(--agent-accent) 80%, $text-primary);
+    font-weight: 700;
+  }
+}
+
+.console-counters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: $text-secondary;
+  letter-spacing: 0.06em;
+}
+
+.counter-label {
+  font-weight: 700;
+  color: $text-placeholder;
+}
+
+.counter-value {
+  color: $text-primary;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.counter-sep {
+  color: rgba(26, 36, 33, 0.25);
+}
+
+.counter-status {
+  margin-left: 4px;
+  padding: 3px 8px;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--agent-accent) 78%, $text-primary);
+  background: color-mix(in srgb, var(--agent-accent) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 22%, transparent);
+  border-radius: 4px;
+}
+
+.console-chat {
+  flex: 1;
+  border: none;
   border-radius: 0;
+  background: transparent;
+}
+
+@keyframes consoleIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 900px) {
-  .assistant-header {
-    align-items: flex-start;
-    flex-direction: column;
+  .agent-console {
+    height: 520px;
   }
 
-  .assistant-chat {
-    height: 420px;
+  .console-bar {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 }
 </style>
