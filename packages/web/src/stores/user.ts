@@ -48,13 +48,12 @@ export const useUserStore = defineStore('user', () => {
   async function logout() {
     try {
       await logoutApi()
-    } catch {
-      // 忽略登出接口错误
-    } finally {
-      token.value = ''
-      user.value = null
-      removeToken()
+    } catch (err) {
+      // 接口失败也要抛出，让调用方知道
+      console.warn('[Logout] API call failed:', err)
     }
+    // 无条件清空本地状态（不论接口是否成功）
+    resetState()
   }
 
   /** 重置状态 */
