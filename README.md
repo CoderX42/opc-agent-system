@@ -2,6 +2,7 @@
 
 > 一人有限责任公司（OPC）AI Agent 数字员工系统
 
+![alt text](asset/image.png)
 ## 技术栈
 
 - **前端**: Vue 3 + Vite + Element Plus + Pinia
