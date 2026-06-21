@@ -24,6 +24,11 @@
             <template #title>工作台</template>
           </el-menu-item>
 
+          <el-menu-item index="/office">
+            <el-icon><OfficeBuilding /></el-icon>
+            <template #title>办公区</template>
+          </el-menu-item>
+
           <el-menu-item index="/agents/copilot">
             <el-icon><MagicStick /></el-icon>
             <template #title>Agent 助手</template>

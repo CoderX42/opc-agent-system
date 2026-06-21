@@ -8,6 +8,11 @@ export function getAgentList(params?: PaginationParams) {
   return get<ApiResponse<PaginatedResult<Agent>>>('/agents', { params })
 }
 
+/** 获取当前在线的 Agent 列表（办公区顶部使用） */
+export function getActiveAgents() {
+  return get<ApiResponse<Agent[]>>('/agents/active')
+}
+
 /** 获取Agent详情 */
 export function getAgentDetail(id: string) {
   return get<ApiResponse<Agent>>(`/agents/${id}`)

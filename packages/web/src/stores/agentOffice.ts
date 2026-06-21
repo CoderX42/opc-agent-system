@@ -1,0 +1,276 @@
+import { computed, ref } from 'vue'
+import { defineStore } from 'pinia'
+
+export type OfficeAgentStatus = 'running' | 'waiting' | 'error' | 'idle' | 'paused' | 'completed'
+export type TaskPriority = 'high' | 'medium' | 'low'
+
+export interface OfficeAgentLog {
+  id: string
+  time: string
+  type: 'system' | 'task' | 'tool' | 'command' | 'error'
+  content: string
+}
+
+export interface OfficeAgent {
+  id: string
+  type: 'finance' | 'service' | 'legal' | 'admin'
+  name: string
+  shortName: string
+  department: string
+  roleDescription: string
+  status: OfficeAgentStatus
+  previousStatus?: OfficeAgentStatus
+  currentTask: string
+  progress: number
+  completedToday: number
+  pendingItems: number
+  inputData: string[]
+  outputResults: string[]
+  accent: string
+  roomName: string
+  logs: OfficeAgentLog[]
+}
+
+export interface OfficeTask {
+  id: string
+  agentId: string
+  name: string
+  priority: TaskPriority
+  status: OfficeAgentStatus
+  progress: number
+  updatedAt: string
+}
+
+const nowTime = (offsetMinutes = 0) => {
+  return new Date(Date.now() - offsetMinutes * 60_000).toLocaleTimeString('zh-CN', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+const initialAgents: OfficeAgent[] = [
+  {
+    id: 'finance-agent',
+    type: 'finance',
+    name: '财务 Agent · 小账',
+    shortName: '小账',
+    department: '财务室',
+    roleDescription: '负责账务核算、发票归集、利润分析与报税资料准备。',
+    status: 'running',
+    currentTask: '正在核算本月现金流',
+    progress: 72,
+    completedToday: 6,
+    pendingItems: 3,
+    inputData: ['本月银行流水 168 条', '待核验发票 24 张', '成本中心预算表'],
+    outputResults: ['现金流分析草稿', '异常支出 3 项', '利润预测 +8.4%'],
+    accent: '#4B8FCB',
+    roomName: '财务室 FIN-01',
+    logs: [
+      { id: 'f-1', time: nowTime(1), type: 'tool', content: '调用 cashflow_reporter 汇总银行流水' },
+      { id: 'f-2', time: nowTime(4), type: 'task', content: '现金流核算进度更新至 72%' },
+      { id: 'f-3', time: nowTime(8), type: 'tool', content: '完成 24 张发票字段校验' },
+      { id: 'f-4', time: nowTime(12), type: 'system', content: '经营数据快照已同步' },
+      { id: 'f-5', time: nowTime(18), type: 'task', content: '开始生成本月利润分析报告' },
+    ],
+  },
+  {
+    id: 'service-agent',
+    type: 'service',
+    name: '客服 Agent · 小应',
+    shortName: '小应',
+    department: '客服室',
+    roleDescription: '负责客户邮件、工单分类、售后回复与升级问题跟踪。',
+    status: 'waiting',
+    currentTask: '正在回复售后邮件',
+    progress: 58,
+    completedToday: 5,
+    pendingItems: 12,
+    inputData: ['售后邮件 12 封', '客户历史会话', '赔付政策知识库'],
+    outputResults: ['回复草稿 9 封', '需人工确认 3 封', '高风险客户 1 位'],
+    accent: '#D9A441',
+    roomName: '客服室 CUS-02',
+    logs: [
+      { id: 's-1', time: nowTime(2), type: 'task', content: '3 封赔付邮件等待人工确认' },
+      { id: 's-2', time: nowTime(5), type: 'tool', content: '调用 reply_drafter 生成回复草稿' },
+      { id: 's-3', time: nowTime(9), type: 'system', content: '客户情绪标签已刷新' },
+      { id: 's-4', time: nowTime(14), type: 'task', content: '售后邮件处理进度更新至 58%' },
+      { id: 's-5', time: nowTime(21), type: 'tool', content: '完成工单优先级分类' },
+    ],
+  },
+  {
+    id: 'legal-agent',
+    type: 'legal',
+    name: '法务 Agent · 小律',
+    shortName: '小律',
+    department: '法务室',
+    roleDescription: '负责合同条款审查、合规扫描、风险标注与法律文本起草。',
+    status: 'error',
+    currentTask: '正在审查租赁合同',
+    progress: 41,
+    completedToday: 3,
+    pendingItems: 4,
+    inputData: ['屋顶光伏租赁合同', '公司合同模板', '风险审查规则 42 条'],
+    outputResults: ['高风险条款 2 项', '待确认责任边界', '合同修改建议草稿'],
+    accent: '#D66B52',
+    roomName: '法务室 LAW-03',
+    logs: [
+      { id: 'l-1', time: nowTime(1), type: 'error', content: '第 8 条责任边界存在歧义，任务已挂起' },
+      { id: 'l-2', time: nowTime(6), type: 'tool', content: '风险扫描命中 2 项高风险条款' },
+      { id: 'l-3', time: nowTime(11), type: 'task', content: '合同审查进度更新至 41%' },
+      { id: 'l-4', time: nowTime(17), type: 'system', content: '已载入租赁合同审查规则' },
+      { id: 'l-5', time: nowTime(25), type: 'task', content: '开始审查屋顶光伏租赁合同' },
+    ],
+  },
+  {
+    id: 'admin-agent',
+    type: 'admin',
+    name: '行政 Agent · 小行',
+    shortName: '小行',
+    department: '行政室',
+    roleDescription: '负责日程同步、会议纪要、待办整理与内部文件流转。',
+    status: 'idle',
+    currentTask: '正在整理本周待办',
+    progress: 100,
+    completedToday: 4,
+    pendingItems: 2,
+    inputData: ['本周会议日历', '会议录音转写', '部门待办清单'],
+    outputResults: ['会议纪要 4 份', '待办事项 11 条', '日程冲突 0 项'],
+    accent: '#4F8F68',
+    roomName: '行政室 ADM-04',
+    logs: [
+      { id: 'a-1', time: nowTime(3), type: 'task', content: '本周待办整理完成' },
+      { id: 'a-2', time: nowTime(7), type: 'tool', content: '调用 calendar_sync 校验日程冲突' },
+      { id: 'a-3', time: nowTime(13), type: 'task', content: '生成 4 份会议纪要' },
+      { id: 'a-4', time: nowTime(20), type: 'system', content: '部门待办清单已同步' },
+      { id: 'a-5', time: nowTime(28), type: 'task', content: '开始整理本周会议材料' },
+    ],
+  },
+]
+
+const initialTasks: OfficeTask[] = [
+  { id: 'task-1', agentId: 'finance-agent', name: '生成本月利润分析报告', priority: 'high', status: 'running', progress: 72, updatedAt: nowTime(2) },
+  { id: 'task-2', agentId: 'service-agent', name: '回复 12 封售后邮件', priority: 'high', status: 'waiting', progress: 58, updatedAt: nowTime(3) },
+  { id: 'task-3', agentId: 'legal-agent', name: '审查屋顶光伏租赁合同', priority: 'high', status: 'error', progress: 41, updatedAt: nowTime(1) },
+  { id: 'task-4', agentId: 'admin-agent', name: '整理本周会议纪要', priority: 'medium', status: 'completed', progress: 100, updatedAt: nowTime(8) },
+  { id: 'task-5', agentId: 'finance-agent', name: '生成报税资料清单', priority: 'medium', status: 'running', progress: 35, updatedAt: nowTime(10) },
+  { id: 'task-6', agentId: 'service-agent', name: '起草客户赔付说明', priority: 'medium', status: 'waiting', progress: 64, updatedAt: nowTime(12) },
+]
+
+export const useAgentOfficeStore = defineStore('agentOffice', () => {
+  const agents = ref<OfficeAgent[]>(structuredClone(initialAgents))
+  const tasks = ref<OfficeTask[]>(structuredClone(initialTasks))
+  const selectedAgentId = ref('finance-agent')
+  const loading = ref(false)
+  const error = ref('')
+  const commandSubmitting = ref(false)
+
+  const selectedAgent = computed(() => {
+    return agents.value.find((agent) => agent.id === selectedAgentId.value) ?? agents.value[0]
+  })
+
+  const stats = computed(() => ({
+    completedToday: 18,
+    running: 4,
+    waiting: 3,
+    errors: 1,
+    savedHours: '7.5h',
+    savedCost: '¥3,860',
+  }))
+
+  async function initialize() {
+    loading.value = true
+    error.value = ''
+    try {
+      await new Promise((resolve) => window.setTimeout(resolve, 240))
+    } catch {
+      error.value = '办公区状态加载失败，请重试。'
+    } finally {
+      loading.value = false
+    }
+  }
+
+  function selectAgent(agentId: string) {
+    if (agents.value.some((agent) => agent.id === agentId)) selectedAgentId.value = agentId
+  }
+
+  function addLog(agentId: string, type: OfficeAgentLog['type'], content: string) {
+    const agent = agents.value.find((item) => item.id === agentId)
+    if (!agent) return
+    agent.logs.unshift({
+      id: `log-${Date.now()}-${Math.round(Math.random() * 1000)}`,
+      time: nowTime(),
+      type,
+      content,
+    })
+  }
+
+  async function appendCommand(agentId: string, command: string) {
+    const agent = agents.value.find((item) => item.id === agentId)
+    if (!agent) throw new Error('Agent 不存在')
+
+    commandSubmitting.value = true
+    error.value = ''
+    addLog(agentId, 'command', `已追加指令：${command}`)
+    try {
+      agent.currentTask = command
+      agent.status = 'running'
+      if (agent.progress >= 100) agent.progress = 5
+    } finally {
+      commandSubmitting.value = false
+    }
+  }
+
+  function togglePause(agentId: string) {
+    const agent = agents.value.find((item) => item.id === agentId)
+    if (!agent) return
+
+    if (agent.status === 'paused') {
+      agent.status = agent.previousStatus && agent.previousStatus !== 'paused' ? agent.previousStatus : 'running'
+      agent.previousStatus = undefined
+      addLog(agentId, 'system', '任务已继续运行')
+      return
+    }
+
+    agent.previousStatus = agent.status
+    agent.status = 'paused'
+    addLog(agentId, 'system', '任务已暂停')
+  }
+
+  function rerun(agentId: string) {
+    const agent = agents.value.find((item) => item.id === agentId)
+    if (!agent) return
+    agent.status = 'running'
+    agent.previousStatus = undefined
+    agent.progress = 5
+    addLog(agentId, 'task', '任务已重新运行')
+
+    tasks.value.forEach((task) => {
+      if (task.agentId === agentId && task.status !== 'completed') {
+        task.status = 'running'
+        task.progress = 5
+        task.updatedAt = nowTime()
+      }
+    })
+  }
+
+  function retryInitialize() {
+    void initialize()
+  }
+
+  return {
+    agents,
+    tasks,
+    selectedAgentId,
+    selectedAgent,
+    stats,
+    loading,
+    error,
+    commandSubmitting,
+    initialize,
+    retryInitialize,
+    selectAgent,
+    appendCommand,
+    togglePause,
+    rerun,
+  }
+})

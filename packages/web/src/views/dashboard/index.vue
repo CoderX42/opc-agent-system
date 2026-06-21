@@ -7,6 +7,7 @@
         <p>四位数字员工正在协同工作。当前有 {{ totalPending }} 项待处理，其中 {{ totalUrgent }} 项需要你的确认。</p>
         <div class="hero-actions">
           <el-button type="primary" size="large" icon="Plus" @click="$router.push('/admin/task')">创建新任务</el-button>
+          <el-button size="large" plain icon="OfficeBuilding" @click="$router.push('/office')">进入办公区</el-button>
           <button class="text-action" type="button" @click="goTo('/admin/meeting')">查看今日简报 <span>↗</span></button>
         </div>
       </div>
