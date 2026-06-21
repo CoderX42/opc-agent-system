@@ -55,7 +55,7 @@
             @click="handleSend"
           >
             <span class="send-bracket">[</span>
-            <span class="send-label">SEND</span>
+            <span class="send-label">发 送</span>
             <span class="send-bracket">]</span>
           </button>
         </div>

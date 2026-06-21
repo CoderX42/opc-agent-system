@@ -20,7 +20,7 @@
           <span class="counter-value">{{ String(rxCount).padStart(3, '0') }}</span>
         </span>
         <span class="counter-status">
-          {{ loading ? 'STREAMING…' : 'READY' }}
+          {{ loading ? '响应中…' : '就绪' }}
         </span>
       </div>
     </header>

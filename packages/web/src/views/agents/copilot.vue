@@ -1,46 +1,6 @@
 <template>
   <div class="copilot-page">
     <div class="copilot-stage">
-      <!-- ============ 编辑式 Hero 头 ============ -->
-      <header class="copilot-hero">
-        <div class="hero-meta">
-          <span class="hero-kicker">VOL.&nbsp;01 · OPERATIONS&nbsp;FIELD&nbsp;MANUAL</span>
-          <span class="hero-session">
-            SESSION&nbsp;<em>{{ sessionId }}</em>
-            <span class="hero-dot">·</span>
-            {{ sessionDate }}
-          </span>
-        </div>
-
-        <h1 class="hero-title">
-          Talk to your
-          <em>digital&nbsp;workforce.</em>
-        </h1>
-
-        <p class="hero-lede">
-          四位 Agent 同时在岗。用一份简报切换工作台，把对话、待办和决策留在同一个控制台。
-        </p>
-
-        <div class="hero-stats" aria-hidden="true">
-          <div class="stat">
-            <span class="stat-num">{{ String(agentIndex + 1).padStart(2, '0') }}</span>
-            <span class="stat-label">ACTIVE&nbsp;AGENT</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">{{ String(totalAgents).padStart(2, '0') }}</span>
-            <span class="stat-label">ON&nbsp;DUTY</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">{{ activeAgent.actions.length.toString().padStart(2, '0') }}</span>
-            <span class="stat-label">SHORTCUTS</span>
-          </div>
-          <div class="stat">
-            <span class="stat-num">{{ activeAgent.suggestions.length.toString().padStart(2, '0') }}</span>
-            <span class="stat-label">COMMANDS</span>
-          </div>
-        </div>
-      </header>
-
       <!-- ============ 主体两列：左 rail / 右控制台 ============ -->
       <section class="copilot-grid">
         <!-- 左：Agent 选择 + 命令清单 -->
@@ -48,7 +8,8 @@
           <div class="rail-block">
             <div class="rail-head">
               <span class="rail-num">A</span>
-              <h2>Select&nbsp;your&nbsp;agent</h2>
+              <h2>选择 Agent</h2>
+              <span class="rail-hint">在岗 · {{ agents.length }}</span>
             </div>
 
             <div class="agent-rail">
@@ -62,24 +23,33 @@
                 @click="activeType = agent.type"
               >
                 <span class="tile-rail" aria-hidden="true"></span>
-                <span class="tile-index">{{ String(i + 1).padStart(2, '0') }}</span>
-                <span class="tile-mono" aria-hidden="true">{{ agent.mono }}</span>
-                <span class="tile-copy">
-                  <strong>{{ agent.name }}</strong>
-                  <small>{{ agent.description }}</small>
-                </span>
-                <span class="tile-arrow" aria-hidden="true">→</span>
+                <span class="tile-watermark" aria-hidden="true">{{ agent.mono }}</span>
+
+                <header class="tile-head">
+                  <span class="tile-mono" aria-hidden="true">{{ agent.mono }}</span>
+                  <span class="tile-status">
+                    <i></i> 在岗
+                  </span>
+                </header>
+
+                <div class="tile-body">
+                  <h3 class="tile-name">{{ agent.name }}</h3>
+                  <p class="tile-desc">{{ agent.description }}</p>
+                </div>
+
+                <footer class="tile-foot">
+                  <span class="tile-code">No.{{ String(i + 1).padStart(2, '0') }} · {{ agent.code }}</span>
+                  <span class="tile-meta">
+                    <span>{{ agent.suggestions.length }} 命令</span>
+                    <span class="tile-dot">·</span>
+                    <span>{{ agent.actions.length }} 跳转</span>
+                  </span>
+                </footer>
               </button>
             </div>
           </div>
 
           <div class="rail-block">
-            <div class="rail-head">
-              <span class="rail-num">B</span>
-              <h2>Quick&nbsp;commands</h2>
-              <span class="rail-hint">点击即发送</span>
-            </div>
-
             <ol class="cmd-list">
               <li
                 v-for="(prompt, i) in activeAgent.suggestions"
@@ -105,9 +75,9 @@
             :style="{ '--agent-accent': activeAgent.color }"
           >
             <div class="brief-top">
-              <span class="brief-kicker">TASK&nbsp;BRIEF · {{ activeAgent.code }}</span>
+              <span class="brief-kicker">任务简报 · {{ activeAgent.code }}</span>
               <span class="brief-live">
-                <i></i> LIVE
+                <i></i> 在线
               </span>
             </div>
 
@@ -118,15 +88,15 @@
 
             <div class="brief-meta">
               <div class="meta-col">
-                <span class="meta-label">CAPABILITY</span>
+                <span class="meta-label">能力</span>
                 <span class="meta-value">{{ activeAgent.capability }}</span>
               </div>
               <div class="meta-col">
-                <span class="meta-label">SLA</span>
+                <span class="meta-label">响应速度</span>
                 <span class="meta-value">{{ activeAgent.sla }}</span>
               </div>
               <div class="meta-col meta-actions">
-                <span class="meta-label">SHORTCUTS</span>
+                <span class="meta-label">快捷跳转</span>
                 <div class="meta-actions-row">
                   <button
                     v-for="action in activeAgent.actions"
@@ -290,22 +260,6 @@ const activeType = ref<AgentChatType>(normalizeAgentType(route.query.agent))
 const activeAgent = computed(
   () => agents.find((agent) => agent.type === activeType.value) || agents[0],
 )
-const agentIndex = computed(() => agents.findIndex((a) => a.type === activeType.value))
-const totalAgents = agents.length
-
-const sessionId = computed(() => {
-  // 基于 type + 当日生成一个稳定的展示 ID（同一会话刷新也保持）
-  const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, '')
-  return `${activeAgent.value.code.split('-')[0]}-${stamp}`
-})
-
-const sessionDate = computed(() =>
-  new Date().toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-  }),
-)
 
 watch(
   () => route.query.agent,
@@ -360,114 +314,6 @@ function sendPrompt(prompt: string) {
   position: relative;
   max-width: 1320px;
   margin: 0 auto;
-}
-
-// ============== Hero ==============
-.copilot-hero {
-  position: relative;
-  margin-bottom: 28px;
-  animation: rise 0.7s $transition-timing both;
-}
-
-.hero-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(26, 36, 33, 0.12);
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: $text-secondary;
-
-  em {
-    font-style: normal;
-    color: $text-primary;
-    font-weight: 700;
-  }
-
-  .hero-dot {
-    margin: 0 6px;
-    color: rgba(26, 36, 33, 0.3);
-  }
-}
-
-.hero-kicker {
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.hero-session {
-  white-space: nowrap;
-}
-
-.hero-title {
-  margin: 22px 0 14px;
-  font-family: 'Fraunces', 'Source Serif 4', Georgia, serif;
-  font-weight: 400;
-  font-size: clamp(48px, 6.4vw, 88px);
-  line-height: 0.98;
-  letter-spacing: -0.025em;
-  color: #1a2421;
-
-  em {
-    font-style: italic;
-    font-weight: 500;
-    background: linear-gradient(120deg, #155e52 0%, #2d7a6e 40%, #c9f27b 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-}
-
-.hero-lede {
-  max-width: 620px;
-  margin: 0 0 28px;
-  font-size: 16px;
-  line-height: 1.55;
-  color: $text-regular;
-}
-
-.hero-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0;
-  border-top: 1px solid rgba(26, 36, 33, 0.14);
-  border-bottom: 1px solid rgba(26, 36, 33, 0.14);
-}
-
-.stat {
-  padding: 14px 20px;
-  border-right: 1px solid rgba(26, 36, 33, 0.08);
-
-  &:last-child {
-    border-right: none;
-  }
-
-  &:first-child {
-    padding-left: 0;
-  }
-}
-
-.stat-num {
-  display: block;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 30px;
-  line-height: 1;
-  color: $text-primary;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-
-.stat-label {
-  display: block;
-  margin-top: 6px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.14em;
-  color: $text-secondary;
 }
 
 // ============== 主体两列 ==============
@@ -536,41 +382,64 @@ function sendPrompt(prompt: string) {
 .agent-rail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
 .agent-tile {
+  --agent-accent: #{$primary-color};
   position: relative;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px 12px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 14px 20px;
   text-align: left;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  transition: background-color 0.24s ease, border-color 0.24s ease, transform 0.24s ease;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(26, 36, 33, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 1px 2px rgba(20, 35, 30, 0.03);
+  overflow: hidden;
+  transition:
+    background-color 0.28s ease,
+    border-color 0.28s ease,
+    transform 0.28s ease,
+    box-shadow 0.28s ease;
 
+  // 左侧激活条
   .tile-rail {
     position: absolute;
-    left: 8px;
+    left: 6px;
     top: 50%;
     transform: translateY(-50%);
     width: 3px;
     height: 0;
     background: var(--agent-accent);
     border-radius: 2px;
-    transition: height 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transition: height 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
-  .tile-index {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: $text-placeholder;
-    font-variant-numeric: tabular-nums;
+  // 大号衬线水印（背景）
+  .tile-watermark {
+    position: absolute;
+    right: -10px;
+    bottom: -28px;
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 120px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--agent-accent);
+    opacity: 0.05;
+    pointer-events: none;
+    transition: opacity 0.32s ease, transform 0.4s ease;
+    user-select: none;
+  }
+
+  .tile-head {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
   }
 
   .tile-mono {
@@ -579,72 +448,175 @@ function sendPrompt(prompt: string) {
     display: grid;
     place-items: center;
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--agent-accent);
-    background: color-mix(in srgb, var(--agent-accent) 10%, white);
-    border-radius: 8px;
-    transition: background-color 0.24s ease, color 0.24s ease, transform 0.32s ease;
+    background: color-mix(in srgb, var(--agent-accent) 12%, white);
+    border: 1px solid color-mix(in srgb, var(--agent-accent) 22%, transparent);
+    border-radius: 9px;
+    transition:
+      background-color 0.28s ease,
+      color 0.28s ease,
+      transform 0.32s ease,
+      border-color 0.28s ease;
   }
 
-  .tile-copy {
-    min-width: 0;
+  .tile-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: $text-secondary;
+
+    i {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: $success-color;
+      box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.14);
+      animation: tilePulse 1.8s ease-in-out infinite;
+    }
+  }
+
+  .tile-body {
+    position: relative;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-
-    strong {
-      font-family: 'Inter Tight', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      color: $text-primary;
-    }
-
-    small {
-      font-size: 11.5px;
-      color: $text-secondary;
-      line-height: 1.3;
-    }
+    gap: 4px;
+    min-width: 0;
   }
 
-  .tile-arrow {
+  .tile-name {
+    margin: 0;
     font-family: 'Fraunces', Georgia, serif;
-    font-size: 16px;
+    font-size: 19px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: $text-primary;
+    transition: color 0.28s ease;
+  }
+
+  .tile-desc {
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.45;
+    color: $text-secondary;
+    transition: color 0.28s ease;
+  }
+
+  .tile-foot {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px dashed rgba(26, 36, 33, 0.12);
+  }
+
+  .tile-code {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
     color: $text-placeholder;
-    transition: transform 0.32s ease, color 0.24s ease;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .tile-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 10px;
+    color: $text-placeholder;
+  }
+
+  .tile-dot {
+    color: rgba(26, 36, 33, 0.25);
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--agent-accent) 5%, white);
-    border-color: color-mix(in srgb, var(--agent-accent) 18%, transparent);
+    border-color: color-mix(in srgb, var(--agent-accent) 32%, transparent);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--agent-accent) 10%, transparent);
 
-    .tile-arrow {
-      color: var(--agent-accent);
-      transform: translateX(3px);
+    .tile-watermark {
+      opacity: 0.09;
+      transform: translateX(-2px);
+    }
+
+    .tile-mono {
+      transform: scale(1.06);
     }
   }
 
   &.is-active {
-    background: color-mix(in srgb, var(--agent-accent) 9%, white);
-    border-color: color-mix(in srgb, var(--agent-accent) 28%, transparent);
+    background: var(--agent-accent);
+    border-color: var(--agent-accent);
+    box-shadow:
+      0 14px 36px color-mix(in srgb, var(--agent-accent) 28%, transparent),
+      0 1px 0 rgba(255, 255, 255, 0.18) inset;
 
     .tile-rail {
-      height: 60%;
+      height: 70%;
     }
 
-    .tile-index {
-      color: var(--agent-accent);
+    .tile-watermark {
+      opacity: 0.14;
+      color: white;
+      transform: translateX(-3px);
     }
 
     .tile-mono {
-      background: var(--agent-accent);
+      background: rgba(255, 255, 255, 0.18);
       color: white;
+      border-color: rgba(255, 255, 255, 0.32);
       transform: scale(1.06);
     }
 
-    .tile-copy strong {
-      color: var(--agent-accent);
+    .tile-status {
+      color: rgba(255, 255, 255, 0.92);
+
+      i {
+        background: white;
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+      }
     }
+
+    .tile-name,
+    .tile-desc {
+      color: white;
+    }
+
+    .tile-desc {
+      color: rgba(255, 255, 255, 0.78);
+    }
+
+    .tile-foot {
+      border-top-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .tile-code,
+    .tile-meta {
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .tile-dot {
+      color: rgba(255, 255, 255, 0.4);
+    }
+  }
+}
+
+@keyframes tilePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.14);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(47, 143, 103, 0.06);
   }
 }
 
