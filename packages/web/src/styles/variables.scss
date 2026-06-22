@@ -1,41 +1,56 @@
-// OPC Command Center — calm, editorial, operational.
-$primary-color: #155e52;
-$primary-light: #2d7a6e;
-$primary-dark: #0d443b;
-$accent-color: #c9f27b;
+$page-bg: #efe6d2;
+$page-bg-deep: #e5d8be;
+$cream: #faf3e2;
+$cream-warm: #f5ebd3;
+$ink: #1a221d;
+$forest: #1f2a24;
+$forest-soft: #2c3a32;
+$brass: #b7996e;
+$brass-deep: #8d704a;
+$rule: rgba(31, 42, 36, 0.18);
+$rule-strong: rgba(31, 42, 36, 0.42);
 
-$success-color: #2f8f67;
-$warning-color: #d9823d;
-$danger-color: #d95951;
-$info-color: #6e7a75;
+$primary-color: #1f2a24;
+$primary-light: #2c3a32;
+$primary-dark: #151d1a;
+$accent-color: #b7996e;
 
-$text-primary: #15221e;
-$text-regular: #4f5c57;
-$text-secondary: #7b8782;
-$text-placeholder: #a8b0ac;
+$success-color: #4f8f68;
+$warning-color: #d9a441;
+$danger-color: #b94c34;
+$info-color: #6e7a72;
 
-$bg-color: #f7f7f3;
-$bg-white: #ffffff;
-$bg-page: #efefe9;
-$bg-sidebar: #0d211c;
+$text-primary: #1a221d;
+$text-regular: #445049;
+$text-secondary: #6e7a72;
+$text-placeholder: #9ba5a0;
 
-$border-color: #d8ded9;
-$border-light: #e3e7e3;
-$border-lighter: #edf0ec;
+$bg-color: #efe6d2;
+$bg-white: #faf3e2;
+$bg-page: #efe6d2;
+$bg-sidebar: #1f2a24;
+
+$border-color: rgba(31, 42, 36, 0.18);
+$border-light: rgba(31, 42, 36, 0.12);
+$border-lighter: rgba(31, 42, 36, 0.08);
 
 $sidebar-width: 248px;
 $sidebar-collapsed-width: 76px;
 $header-height: 72px;
 $footer-height: 48px;
 
-$border-radius-sm: 8px;
-$border-radius-md: 14px;
-$border-radius-lg: 22px;
-$border-radius-xl: 28px;
+$border-radius-sm: 0;
+$border-radius-md: 0;
+$border-radius-lg: 0;
+$border-radius-xl: 0;
 
-$shadow-sm: 0 1px 2px rgba(20, 35, 30, 0.04), 0 8px 24px rgba(20, 35, 30, 0.04);
-$shadow-md: 0 14px 36px rgba(20, 35, 30, 0.09);
-$shadow-lg: 0 28px 70px rgba(10, 28, 23, 0.16);
+$shadow-sm: 4px 4px 0 rgba(31, 42, 36, 0.12);
+$shadow-md: 6px 8px 0 -1px rgba(31, 42, 36, 0.16), 12px 22px 40px -16px rgba(31, 42, 36, 0.32);
+$shadow-lg: 8px 12px 0 -2px rgba(31, 42, 36, 0.2), 16px 28px 60px -16px rgba(31, 42, 36, 0.42);
 
-$transition-duration: 0.24s;
-$transition-timing: cubic-bezier(0.2, 0.8, 0.2, 1);
+$transition-duration: 0.22s;
+$transition-timing: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+$font-display: 'Fraunces', 'STSong', 'Songti SC', 'Georgia', serif;
+$font-body: 'Bricolage Grotesque', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+$font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
