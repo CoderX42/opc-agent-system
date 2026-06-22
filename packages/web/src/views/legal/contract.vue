@@ -1,48 +1,80 @@
 <template>
-  <div class="page-container">
-    <div class="page-header">
-      <h2 class="page-title">合同管理</h2>
+  <div class="page-container legal-page contract-page">
+    <section class="contract-hero">
+      <div>
+        <span class="kicker">CONTRACT CONTROL</span>
+        <h2 class="page-title">合同管理</h2>
+        <p class="contract-hero-desc">用一个清晰的台账追踪合同状态、责任双方、金额与审查动作。</p>
+      </div>
       <div class="page-actions">
         <el-button type="primary" icon="Plus" @click="handleCreate">新建合同</el-button>
       </div>
-    </div>
+    </section>
 
-    <div class="filter-bar">
-      <div class="filter-items">
-        <el-select v-model="filters.status" placeholder="状态" clearable style="width: 130px;">
-          <el-option label="草稿" value="DRAFT" />
-          <el-option label="审核中" value="REVIEWING" />
-          <el-option label="已通过" value="APPROVED" />
-          <el-option label="已驳回" value="REJECTED" />
-          <el-option label="已签署" value="SIGNED" />
-          <el-option label="已过期" value="EXPIRED" />
-        </el-select>
-        <el-select v-model="filters.type" placeholder="类型" clearable style="width: 130px;">
-          <el-option label="销售" value="SALES" />
-          <el-option label="采购" value="PURCHASE" />
-          <el-option label="服务" value="SERVICE" />
-          <el-option label="保密" value="NDA" />
-          <el-option label="劳务" value="EMPLOYMENT" />
-          <el-option label="其他" value="OTHER" />
-        </el-select>
-        <el-input v-model="filters.keyword" placeholder="搜索合同..." prefix-icon="Search" clearable style="width: 200px;" @keyup.enter="handleSearch" />
+    <div class="filter-bar contract-filter-bar">
+      <div class="filter-copy">
+        <span>筛选检索</span>
+        <small>按状态、类型或合同名称快速定位</small>
       </div>
-      <el-button icon="Search" @click="handleSearch">搜索</el-button>
+      <div class="filter-controls">
+        <div class="filter-items">
+          <el-select v-model="filters.status" placeholder="状态" clearable class="filter-field">
+            <el-option label="草稿" value="DRAFT" />
+            <el-option label="审核中" value="REVIEWING" />
+            <el-option label="已通过" value="APPROVED" />
+            <el-option label="已驳回" value="REJECTED" />
+            <el-option label="已签署" value="SIGNED" />
+            <el-option label="已过期" value="EXPIRED" />
+          </el-select>
+          <el-select v-model="filters.type" placeholder="类型" clearable class="filter-field">
+            <el-option label="销售" value="SALES" />
+            <el-option label="采购" value="PURCHASE" />
+            <el-option label="服务" value="SERVICE" />
+            <el-option label="保密" value="NDA" />
+            <el-option label="劳务" value="EMPLOYMENT" />
+            <el-option label="其他" value="OTHER" />
+          </el-select>
+          <el-input v-model="filters.keyword" placeholder="搜索合同..." prefix-icon="Search" clearable class="keyword-field" @keyup.enter="handleSearch" />
+        </div>
+        <el-button icon="Search" @click="handleSearch">搜索</el-button>
+      </div>
     </div>
 
-    <div class="table-wrapper">
-      <el-table :data="contractList" v-loading="loading" stripe>
+    <div class="table-wrapper contract-table-wrapper">
+      <div class="table-toolbar">
+        <div>
+          <span class="table-title">合同台账</span>
+          <small>共 {{ pagination.total }} 份合同，当前显示 {{ displayedContractList.length }} 份</small>
+        </div>
+        <div class="table-chips">
+          <span v-if="filters.status">{{ getStatusText(filters.status) }}</span>
+          <span v-if="filters.type">{{ getTypeText(filters.type) }}</span>
+          <span v-if="filters.keyword">“{{ filters.keyword }}”</span>
+          <span v-if="!filters.status && !filters.type && !filters.keyword">全部合同</span>
+        </div>
+      </div>
+
+      <el-table :data="displayedContractList" v-loading="loading" stripe class="contract-table">
         <el-table-column type="selection" width="50" />
-        <el-table-column prop="title" label="合同名称" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="title" label="合同名称" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="contract-title-cell">
+              <span>{{ row.title }}</span>
+              <small>{{ row.id?.slice(0, 8) }}</small>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="type" label="类型" width="100">
           <template #default="{ row }">
-            <el-tag size="small">{{ getTypeText(row.type) }}</el-tag>
+            <el-tag size="small" class="legal-type-tag">{{ getTypeText(row.type) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="partyA" label="甲方" width="120" show-overflow-tooltip />
         <el-table-column prop="partyB" label="乙方" width="120" show-overflow-tooltip />
         <el-table-column prop="amount" label="金额" width="130" align="right">
-          <template #default="{ row }">¥{{ formatMoney(row.amount) }}</template>
+          <template #default="{ row }">
+            <span class="money-text">¥{{ formatMoney(row.amount) }}</span>
+          </template>
         </el-table-column>
         <el-table-column label="开始日期" width="120">
           <template #default="{ row }">{{ formatDate(row.signDate || row.startDate) }}</template>
@@ -52,20 +84,31 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
+            <el-tag :type="getStatusType(row.status)" size="small" class="status-pill">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="280" fixed="right">
+        <el-table-column label="操作" width="190" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)" :disabled="!['DRAFT', 'REJECTED'].includes(row.status)">编辑</el-button>
-            <el-button link type="warning" size="small" @click="handleSubmitReview(row)" :disabled="row.status !== 'DRAFT'">提交审核</el-button>
-            <el-button link type="success" size="small" @click="handleAiReview(row)" :disabled="row.status === 'EXPIRED'">AI审查</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <div class="row-actions">
+              <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
+              <el-button link type="primary" size="small" @click="handleEdit(row)" :disabled="!['DRAFT', 'REJECTED'].includes(row.status)">编辑</el-button>
+              <el-dropdown trigger="click" @command="(command) => handleRowCommand(command, row)">
+                <el-button link type="primary" size="small">
+                  更多<el-icon class="el-icon--right"><ArrowDown /></el-icon>
+                </el-button>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="submit" :disabled="row.status !== 'DRAFT'">提交审核</el-dropdown-item>
+                    <el-dropdown-item command="aiReview" :disabled="row.status === 'EXPIRED'">AI 审查</el-dropdown-item>
+                    <el-dropdown-item command="delete" divided>删除合同</el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
           </template>
         </el-table-column>
       </el-table>
-      <el-empty v-if="!loading && contractList.length === 0" description="暂无合同" />
+      <el-empty v-if="!loading && displayedContractList.length === 0" description="暂无合同" />
 
       <div class="pagination-wrapper">
         <el-pagination
@@ -80,7 +123,7 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="650px" destroy-on-close>
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="650px" destroy-on-close class="legal-dialog">
       <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
         <el-form-item label="合同名称" prop="title">
           <el-input v-model="form.title" placeholder="请输入合同名称" />
@@ -132,22 +175,38 @@
       </template>
     </el-dialog>
 
-    <el-dialog v-model="reviewVisible" title="AI 审查结果" width="600px" destroy-on-close>
+    <el-dialog v-model="reviewVisible" width="680px" destroy-on-close class="review-dialog">
+      <template #header>
+        <div class="review-dialog-header">
+          <span class="kicker">AI REVIEW REPORT</span>
+          <strong>AI 审查结果</strong>
+        </div>
+      </template>
       <div v-loading="reviewLoading" class="review-content">
         <div v-if="reviewResult" class="result-block">
-          <p><b>风险等级：</b>
-            <el-tag :type="reviewResult.riskLevel === 'HIGH' ? 'danger' : reviewResult.riskLevel === 'MEDIUM' ? 'warning' : 'success'">
-              {{ reviewResult.riskLevel }}
-            </el-tag>
-          </p>
-          <p><b>摘要：</b>{{ reviewResult.summary }}</p>
-          <div v-if="reviewResult.issues?.length">
-            <b>问题：</b>
-            <ul><li v-for="(it, i) in reviewResult.issues" :key="i">{{ it }}</li></ul>
+          <div class="risk-banner" :class="getRiskClass(reviewResult.riskLevel)">
+            <span>风险等级</span>
+            <strong>{{ getRiskText(reviewResult.riskLevel) }}</strong>
           </div>
-          <div v-if="reviewResult.suggestions?.length">
-            <b>建议：</b>
-            <ul><li v-for="(s, i) in reviewResult.suggestions" :key="i">{{ s }}</li></ul>
+          <div class="summary-box">
+            <span>审查摘要</span>
+            <p>{{ reviewResult.summary || '暂无摘要' }}</p>
+          </div>
+          <div class="review-grid">
+            <div class="review-section">
+              <b>风险问题</b>
+              <ul v-if="reviewResult.issues?.length">
+                <li v-for="(it, i) in reviewResult.issues" :key="i">{{ it }}</li>
+              </ul>
+              <p v-else>暂未发现明显风险。</p>
+            </div>
+            <div class="review-section">
+              <b>修改建议</b>
+              <ul v-if="reviewResult.suggestions?.length">
+                <li v-for="(s, i) in reviewResult.suggestions" :key="i">{{ s }}</li>
+              </ul>
+              <p v-else>暂无补充建议。</p>
+            </div>
           </div>
         </div>
         <el-empty v-else description="等待结果" />
@@ -160,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { computed, ref, reactive, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import {
   getContractList, createContract, updateContract, deleteContract,
@@ -201,6 +260,16 @@ const formRules: FormRules = {
 }
 
 const contractList = ref<Contract[]>([])
+
+const displayedContractList = computed(() => {
+  const keyword = filters.keyword.trim().toLowerCase()
+  if (!keyword) return contractList.value
+  return contractList.value.filter((item) => {
+    return [item.title, item.partyA, item.partyB, item.content]
+      .filter(Boolean)
+      .some((value) => String(value).toLowerCase().includes(keyword))
+  })
+})
 
 async function fetchList() {
   loading.value = true
@@ -307,6 +376,20 @@ async function handleAiReview(row: any) {
   }
 }
 
+function handleRowCommand(command: string | number | object, row: any) {
+  switch (command) {
+    case 'submit':
+      handleSubmitReview(row)
+      break
+    case 'aiReview':
+      handleAiReview(row)
+      break
+    case 'delete':
+      handleDelete(row)
+      break
+  }
+}
+
 async function handleSubmit() {
   if (!formRef.value) return
   try { await formRef.value.validate() } catch { return }
@@ -351,27 +434,362 @@ function getStatusText(status: string) {
   return map[status] || status
 }
 
+function getRiskText(level: string | undefined) {
+  const map: Record<string, string> = { HIGH: '高风险', MEDIUM: '中风险', LOW: '低风险' }
+  return map[level || ''] || level || '未分级'
+}
+
+function getRiskClass(level: string | undefined) {
+  const map: Record<string, string> = { HIGH: 'is-high', MEDIUM: 'is-medium', LOW: 'is-low' }
+  return map[level || ''] || 'is-unknown'
+}
+
 watch([() => filters.status, () => filters.type], () => { pagination.page = 1; fetchList() })
 onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.filter-bar { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 16px; 
+.contract-hero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+  padding: 20px 22px;
+  background:
+    linear-gradient(135deg, rgba(250, 243, 226, 0.95), rgba(245, 235, 211, 0.9)),
+    repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.045) 0 1px, transparent 1px 18px);
+  border: 2px solid $forest;
+  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.14);
+}
+
+.contract-hero-desc {
+  max-width: 560px;
+  margin-top: 8px;
+  line-height: 1.7;
+  color: $text-regular;
+}
+
+.contract-hero .page-title {
+  margin-top: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(26px, 2.6vw, 38px);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.08;
+  color: $forest;
+}
+
+.contract-filter-bar {
+  align-items: stretch;
+  padding: 0;
+  overflow: hidden;
+}
+
+.filter-copy {
+  min-width: 210px;
+  padding: 14px 16px;
+  color: $cream;
+  background: $forest;
+
+  span,
+  small {
+    display: block;
+  }
+
+  span {
+    font-family: var(--font-display);
+    font-size: 17px;
+    font-style: italic;
+    color: $cream;
+  }
+
+  small {
+    margin-top: 6px;
+    line-height: 1.5;
+    color: rgba(250, 243, 226, 0.72);
+  }
+}
+
+.filter-controls {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+}
+
+.filter-items {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-field {
+  width: 132px;
+}
+
+.keyword-field {
+  width: 240px;
+}
+
+.contract-table-wrapper {
+  background:
+    linear-gradient(180deg, rgba(250, 243, 226, 0.96), rgba(245, 235, 211, 0.92));
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
   align-items: center;
   padding: 14px 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  border-bottom: 1px solid $rule;
+  background: rgba(250, 243, 226, 0.72);
 }
-.filter-items { display: flex; gap: 12px; flex-wrap: wrap; }
-.review-content { 
-  line-height: 1.7; 
-  background: $cream-warm;
-  padding: 12px;
+
+.table-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 500;
+  color: $forest;
+}
+
+.table-toolbar small {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: $text-secondary;
+}
+
+.table-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+
+  span {
+    padding: 4px 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: $brass-deep;
+    background: rgba(183, 153, 110, 0.12);
+    border: 1px solid rgba(141, 112, 74, 0.32);
+  }
+}
+
+.contract-title-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  span {
+    font-weight: 700;
+    color: $forest;
+  }
+
+  small {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    color: $text-secondary;
+  }
+}
+
+.legal-type-tag {
+  background: color-mix(in srgb, $brass 10%, $cream) !important;
+  border-color: rgba(141, 112, 74, 0.38) !important;
+  color: $brass-deep !important;
+}
+
+.money-text {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: $forest;
+}
+
+.status-pill {
+  min-width: 54px;
+  justify-content: center;
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.review-dialog-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+    color: $forest;
+  }
+}
+
+.review-content {
+  min-height: 180px;
+  line-height: 1.7;
+  background:
+    linear-gradient(180deg, $cream-warm, $cream),
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(31, 42, 36, 0.04) 27px 28px);
+  padding: 14px;
   border: 1.5px solid $rule;
 }
-.review-content ul { margin: 4px 0 8px 16px; padding: 0; }
+
+.result-block {
+  display: grid;
+  gap: 12px;
+}
+
+.risk-banner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  color: $cream;
+  background: $forest;
+  border: 2px solid $forest;
+
+  span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(250, 243, 226, 0.72);
+  }
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 30px;
+    font-style: italic;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  &.is-high {
+    background: $danger-color;
+    border-color: color-mix(in srgb, $danger-color 80%, $forest);
+  }
+
+  &.is-medium {
+    color: $forest;
+    background: $warning-color;
+    border-color: color-mix(in srgb, $warning-color 70%, $forest);
+
+    span {
+      color: rgba(31, 42, 36, 0.66);
+    }
+  }
+
+  &.is-low {
+    background: $success-color;
+    border-color: color-mix(in srgb, $success-color 72%, $forest);
+  }
+}
+
+.summary-box,
+.review-section {
+  padding: 14px;
+  background: rgba(250, 243, 226, 0.72);
+  border: 1px solid $rule;
+}
+
+.summary-box span,
+.review-section b {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: $brass-deep;
+}
+
+.summary-box p,
+.review-section p {
+  color: $text-regular;
+}
+
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.review-section ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    position: relative;
+    padding-left: 16px;
+    color: $text-regular;
+
+    &::before {
+      position: absolute;
+      top: 0.72em;
+      left: 0;
+      width: 6px;
+      height: 6px;
+      content: '';
+      background: $brass;
+      transform: rotate(45deg);
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .contract-hero,
+  .filter-controls,
+  .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-copy {
+    width: 100%;
+  }
+
+  .filter-field,
+  .keyword-field {
+    width: 100%;
+  }
+
+  .filter-items {
+    width: 100%;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .contract-hero .page-actions,
+  .filter-controls > .el-button {
+    width: 100%;
+  }
+}
 </style>
