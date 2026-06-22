@@ -175,6 +175,22 @@ onMounted(fetchList)
 
 <style lang="scss" scoped>
 .stats-row { margin-bottom: 20px; }
-.card-title { font-weight: 600; font-size: 15px; }
-.filter-bar { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+.card-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 15px;
+  font-variation-settings: 'opsz' 96;
+  color: $forest;
+}
+.filter-bar { 
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  align-items: center;
+  padding: 14px 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+}
 </style>

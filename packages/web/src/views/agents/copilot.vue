@@ -272,22 +272,14 @@ function sendPrompt(prompt: string) {
 <style lang="scss" scoped>
 @use '@/styles/variables.scss' as *;
 
-// ============== 字体加载 ==============
-.copilot-page {
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,800;1,9..144,500&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@400;500;600;700&display=swap');
-}
-
 // ============== 页面底色 + 纸质网格 ==============
 .copilot-page {
   position: relative;
   min-height: calc(100vh - #{$header-height});
-  padding: 32px 36px 56px;
-  background:
-    radial-gradient(ellipse at 12% 0%, rgba(201, 242, 123, 0.08), transparent 50%),
-    radial-gradient(ellipse at 100% 100%, rgba(59, 91, 219, 0.04), transparent 45%),
-    #f4f2ec;
+  padding: 28px 32px 48px;
+  background: $page-bg;
   color: $text-primary;
-  font-family: 'Inter Tight', -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: var(--font-body);
   overflow: hidden;
 
   &::before {
@@ -295,8 +287,8 @@ function sendPrompt(prompt: string) {
     position: absolute;
     inset: 0;
     background-image:
-      linear-gradient(to right, rgba(26, 36, 33, 0.045) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(26, 36, 33, 0.045) 1px, transparent 1px);
+      linear-gradient(to right, rgba(31, 42, 36, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(31, 42, 36, 0.05) 1px, transparent 1px);
     background-size: 32px 32px;
     background-position: -1px -1px;
     pointer-events: none;
@@ -329,12 +321,10 @@ function sendPrompt(prompt: string) {
 }
 
 .rail-block {
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(26, 36, 33, 0.1);
-  border-radius: $border-radius-lg;
-  padding: 20px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, $shadow-sm;
+  background: $cream;
+  border: 2px solid $forest;
+  padding: 18px;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
 }
 
 .rail-head {
@@ -345,23 +335,25 @@ function sendPrompt(prompt: string) {
 
   h2 {
     margin: 0;
-    font-family: 'Fraunces', Georgia, serif;
-    font-weight: 600;
-    font-size: 19px;
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-style: italic;
+    font-size: 18px;
+    font-variation-settings: 'opsz' 96;
     letter-spacing: -0.01em;
-    color: $text-primary;
+    color: $forest;
   }
 }
 
 .rail-num {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: $text-secondary;
-  padding: 3px 7px;
-  border: 1px solid rgba(26, 36, 33, 0.2);
-  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: $brass-deep;
+  padding: 2px 6px;
+  border: 1px solid $brass;
+  background: $cream-warm;
 }
 
 .rail-hint {
@@ -388,16 +380,15 @@ function sendPrompt(prompt: string) {
   padding: 14px 16px 14px 20px;
   text-align: left;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(26, 36, 33, 0.1);
-  border-radius: 16px;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 1px 2px rgba(20, 35, 30, 0.03);
+  background: $cream;
+  border: 1.5px solid $forest;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.1);
   overflow: hidden;
   transition:
-    background-color 0.28s ease,
-    border-color 0.28s ease,
-    transform 0.28s ease,
-    box-shadow 0.28s ease;
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 
   // 左侧激活条
   .tile-rail {
@@ -408,7 +399,6 @@ function sendPrompt(prompt: string) {
     width: 3px;
     height: 0;
     background: var(--agent-accent);
-    border-radius: 2px;
     transition: height 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
 
@@ -417,9 +407,10 @@ function sendPrompt(prompt: string) {
     position: absolute;
     right: -10px;
     bottom: -28px;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-size: 120px;
-    font-weight: 600;
+    font-weight: 500;
+    font-style: italic;
     line-height: 1;
     color: var(--agent-accent);
     opacity: 0.05;
@@ -441,36 +432,35 @@ function sendPrompt(prompt: string) {
     height: 32px;
     display: grid;
     place-items: center;
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-size: 18px;
-    font-weight: 600;
-    color: var(--agent-accent);
-    background: color-mix(in srgb, var(--agent-accent) 12%, white);
-    border: 1px solid color-mix(in srgb, var(--agent-accent) 22%, transparent);
-    border-radius: 9px;
+    font-weight: 500;
+    font-style: italic;
+    color: $forest;
+    background: color-mix(in srgb, var(--agent-accent) 12%, $cream-warm);
+    border: 1.5px solid $forest;
     transition:
-      background-color 0.28s ease,
-      color 0.28s ease,
-      transform 0.32s ease,
-      border-color 0.28s ease;
+      background-color 0.2s ease,
+      color 0.2s ease,
+      transform 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .tile-status {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
     color: $text-secondary;
 
     i {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
+      width: 5px;
+      height: 5px;
       background: $success-color;
-      box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.14);
+      border: 1px solid $forest;
       animation: tilePulse 1.8s ease-in-out infinite;
     }
   }
@@ -485,12 +475,14 @@ function sendPrompt(prompt: string) {
 
   .tile-name {
     margin: 0;
-    font-family: 'Fraunces', Georgia, serif;
-    font-size: 19px;
-    font-weight: 600;
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 500;
+    font-style: italic;
+    font-variation-settings: 'opsz' 96;
     letter-spacing: -0.01em;
-    color: $text-primary;
-    transition: color 0.28s ease;
+    color: $forest;
+    transition: color 0.2s ease;
   }
 
   .tile-desc {
@@ -498,7 +490,7 @@ function sendPrompt(prompt: string) {
     font-size: 12px;
     line-height: 1.45;
     color: $text-secondary;
-    transition: color 0.28s ease;
+    transition: color 0.2s ease;
   }
 
   .tile-foot {
@@ -508,15 +500,15 @@ function sendPrompt(prompt: string) {
     align-items: center;
     gap: 8px;
     padding-top: 10px;
-    border-top: 1px dashed rgba(26, 36, 33, 0.12);
+    border-top: 1px solid $rule;
   }
 
   .tile-code {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    color: $text-placeholder;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: $text-secondary;
     font-variant-numeric: tabular-nums;
   }
 
@@ -524,19 +516,21 @@ function sendPrompt(prompt: string) {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 10px;
-    color: $text-placeholder;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: $text-secondary;
   }
 
   .tile-dot {
-    color: rgba(26, 36, 33, 0.25);
+    color: rgba(31, 42, 36, 0.3);
   }
 
   &:hover {
-    border-color: color-mix(in srgb, var(--agent-accent) 32%, transparent);
+    border-color: var(--agent-accent);
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px color-mix(in srgb, var(--agent-accent) 10%, transparent);
+    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.14);
 
     .tile-watermark {
       opacity: 0.09;
@@ -550,9 +544,9 @@ function sendPrompt(prompt: string) {
 
   &.is-active {
     background: var(--agent-accent);
-    border-color: var(--agent-accent);
+    border-color: $forest;
     box-shadow:
-      0 14px 36px color-mix(in srgb, var(--agent-accent) 28%, transparent),
+      6px 6px 0 rgba(31, 42, 36, 0.2),
       0 1px 0 rgba(255, 255, 255, 0.18) inset;
 
     .tile-rail {
@@ -577,7 +571,7 @@ function sendPrompt(prompt: string) {
 
       i {
         background: white;
-        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.3);
       }
     }
 
@@ -607,10 +601,10 @@ function sendPrompt(prompt: string) {
 
 @keyframes tilePulse {
   0%, 100% {
-    box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.14);
+    border-color: rgba(47, 143, 103, 0.5);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(47, 143, 103, 0.06);
+    border-color: rgba(47, 143, 103, 0.2);
   }
 }
 
@@ -635,38 +629,38 @@ function sendPrompt(prompt: string) {
   cursor: pointer;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 10px;
   transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 
   .cmd-no {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 11px;
-    font-weight: 700;
-    color: $text-placeholder;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: $text-secondary;
     font-variant-numeric: tabular-nums;
   }
 
   .cmd-text {
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.4;
     color: $text-regular;
   }
 
   .cmd-run {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
-    font-size: 9.5px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: $text-placeholder;
-    padding: 3px 6px;
-    border: 1px solid rgba(26, 36, 33, 0.15);
-    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    color: $text-secondary;
+    padding: 2px 6px;
+    border: 1px solid rgba(31, 42, 36, 0.2);
+    background: $cream-warm;
     transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--agent-accent) 6%, white);
-    border-color: color-mix(in srgb, var(--agent-accent) 18%, transparent);
+    background: $cream-warm;
+    border-color: color-mix(in srgb, var(--agent-accent) 25%, transparent);
     transform: translateX(2px);
 
     .cmd-no {
@@ -676,7 +670,7 @@ function sendPrompt(prompt: string) {
     .cmd-run {
       color: var(--agent-accent);
       border-color: var(--agent-accent);
-      background: color-mix(in srgb, var(--agent-accent) 8%, white);
+      background: color-mix(in srgb, var(--agent-accent) 10%, $cream-warm);
     }
   }
 }
@@ -693,13 +687,10 @@ function sendPrompt(prompt: string) {
 .brief-card {
   --agent-accent: #{$primary-color};
   position: relative;
-  padding: 22px 24px 20px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--agent-accent) 6%, white), rgba(255, 255, 255, 0.96)),
-    $bg-white;
-  border: 1px solid color-mix(in srgb, var(--agent-accent) 18%, $border-light);
-  border-radius: $border-radius-lg;
-  box-shadow: $shadow-sm;
+  padding: 20px 22px 18px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
   overflow: hidden;
   transition: border-color 0.4s ease, box-shadow 0.4s ease;
 
@@ -710,8 +701,7 @@ function sendPrompt(prompt: string) {
     bottom: -40px;
     width: 180px;
     height: 180px;
-    border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--agent-accent) 14%, transparent), transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--agent-accent) 10%, transparent), transparent 70%);
     pointer-events: none;
   }
 }
@@ -724,10 +714,11 @@ function sendPrompt(prompt: string) {
 }
 
 .brief-kicker {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
   color: color-mix(in srgb, var(--agent-accent) 78%, $text-secondary);
 }
 
@@ -735,38 +726,39 @@ function sendPrompt(prompt: string) {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   color: $success-color;
 
   i {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
+    width: 5px;
+    height: 5px;
     background: $success-color;
-    box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.18);
+    border: 1px solid $forest;
     animation: pulse 1.6s ease-in-out infinite;
   }
 }
 
 .brief-main {
-  margin-bottom: 18px;
+  margin-bottom: 16px;
 }
 
 .brief-name {
   margin: 0 0 6px;
-  font-family: 'Fraunces', Georgia, serif;
-  font-weight: 600;
-  font-size: 28px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-variation-settings: 'opsz' 96;
+  font-size: 26px;
   letter-spacing: -0.01em;
-  color: $text-primary;
+  color: $forest;
 }
 
 .brief-desc {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.6;
   color: $text-regular;
   max-width: 640px;
@@ -775,9 +767,9 @@ function sendPrompt(prompt: string) {
 .brief-meta {
   display: grid;
   grid-template-columns: 1fr 1fr 1.4fr;
-  gap: 18px;
-  padding-top: 16px;
-  border-top: 1px dashed rgba(26, 36, 33, 0.14);
+  gap: 16px;
+  padding-top: 14px;
+  border-top: 1px solid $rule;
 }
 
 .meta-col {
@@ -788,17 +780,18 @@ function sendPrompt(prompt: string) {
 }
 
 .meta-label {
-  font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: $text-placeholder;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: $text-secondary;
 }
 
 .meta-value {
   font-size: 13px;
   font-weight: 600;
-  color: $text-primary;
+  color: $forest;
 }
 
 .meta-actions-row {
@@ -812,22 +805,23 @@ function sendPrompt(prompt: string) {
   align-items: center;
   gap: 5px;
   padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--agent-accent) 80%, $text-primary);
-  background: color-mix(in srgb, var(--agent-accent) 8%, white);
-  border: 1px solid color-mix(in srgb, var(--agent-accent) 18%, transparent);
-  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  font-style: italic;
+  color: color-mix(in srgb, var(--agent-accent) 80%, $forest);
+  background: color-mix(in srgb, var(--agent-accent) 8%, $cream-warm);
+  border: 1.5px solid $forest;
   cursor: pointer;
   transition: background-color 0.2s ease, transform 0.2s ease;
 
   .meta-action-arrow {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: var(--font-display);
     font-size: 11px;
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--agent-accent) 14%, white);
+    background: color-mix(in srgb, var(--agent-accent) 14%, $cream-warm);
     transform: translateY(-1px);
   }
 }
@@ -846,10 +840,10 @@ function sendPrompt(prompt: string) {
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 3px rgba(47, 143, 103, 0.18);
+    border-color: rgba(47, 143, 103, 0.6);
   }
   50% {
-    box-shadow: 0 0 0 6px rgba(47, 143, 103, 0.08);
+    border-color: rgba(47, 143, 103, 0.2);
   }
 }
 

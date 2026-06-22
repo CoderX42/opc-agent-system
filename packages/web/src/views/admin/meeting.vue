@@ -253,6 +253,22 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.filter-bar { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
-.meeting-content { line-height: 1.8; white-space: pre-wrap; color: $text-regular; padding: 12px; background: $bg-color; border-radius: $border-radius-sm; }
+.filter-bar { 
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  align-items: center;
+  padding: 14px 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+}
+.meeting-content { 
+  line-height: 1.8; 
+  white-space: pre-wrap; 
+  color: $text-regular; 
+  padding: 12px; 
+  background: $cream-warm;
+  border: 1.5px solid $rule;
+}
 </style>

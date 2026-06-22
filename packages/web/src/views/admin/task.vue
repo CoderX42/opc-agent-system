@@ -241,7 +241,16 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.filter-bar { display: flex; gap: 12px; margin-bottom: 12px; align-items: center; }
+.filter-bar { 
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  align-items: center;
+  padding: 14px 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+}
 .view-switch { margin-bottom: 16px; }
 
 .kanban-board {
@@ -254,24 +263,33 @@ onMounted(fetchList)
 .kanban-column {
   flex: 1;
   min-width: 280px;
-  background: $bg-color;
-  border-radius: $border-radius-md;
+  background: $cream;
+  border: 2px solid $forest;
   display: flex;
   flex-direction: column;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
 }
 
 .kanban-column-header {
-  padding: 16px;
+  padding: 14px 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 3px solid;
+  border-bottom: 1.5px solid $rule;
+  background: $cream-warm;
 }
 
-.column-title { font-weight: 600; font-size: 15px; }
+.column-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 14px;
+  font-variation-settings: 'opsz' 96;
+  color: $forest;
+}
 
 .kanban-column-body {
-  padding: 0 12px 12px;
+  padding: 10px;
   flex: 1;
   min-height: 200px;
   overflow-y: auto;
@@ -279,18 +297,29 @@ onMounted(fetchList)
 }
 
 .kanban-card {
-  background: $bg-white;
-  border-radius: $border-radius-sm;
+  background: $bg-page;
+  border: 1.5px solid $forest;
   padding: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   cursor: pointer;
-  box-shadow: $shadow-sm;
-  transition: box-shadow $transition-duration;
-  &:hover { box-shadow: $shadow-md; }
+  box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.08);
+  transition: all $transition-duration;
+  
+  &:hover { 
+    transform: translateY(-2px);
+    box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.16);
+  }
 }
 
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.card-date { font-size: 11px; color: $text-placeholder; }
-.card-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: $text-primary; }
+.card-date { font-size: 11px; color: $text-placeholder; font-family: var(--font-mono); }
+.card-title { 
+  font-family: var(--font-display);
+  font-size: 14px; 
+  font-weight: 500; 
+  font-style: italic;
+  margin-bottom: 4px; 
+  color: $forest; 
+}
 .card-desc { font-size: 12px; color: $text-secondary; margin-bottom: 0; @include text-ellipsis(2); }
 </style>

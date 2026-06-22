@@ -378,6 +378,16 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
+.filter-bar { 
+  display: flex; 
+  gap: 12px; 
+  margin-bottom: 16px; 
+  align-items: center;
+  padding: 14px 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+}
 .filter-items { display: flex; gap: 12px; flex-wrap: wrap; }
 .invoice-upload {
   width: 100%;
@@ -390,9 +400,10 @@ onMounted(fetchList)
   margin-top: 10px;
 
   a {
-    color: $primary-color;
+    color: $forest;
     font-size: 13px;
-    font-weight: 650;
+    font-weight: 600;
+    text-decoration: underline;
   }
 }
 </style>

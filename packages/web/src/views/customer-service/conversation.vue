@@ -220,13 +220,16 @@ onMounted(fetchConversations)
 }
 
 .conversation-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid $border-lighter;
+  padding: 14px 16px;
+  border-bottom: 1px solid $rule;
   cursor: pointer;
-  transition: background-color $transition-duration;
+  transition: all $transition-duration;
 
-  &:hover { background-color: $bg-color; }
-  &.active { background-color: #ecf5ff; }
+  &:hover { background-color: $cream-warm; }
+  &.active { 
+    background-color: color-mix(in srgb, $brass 10%, $cream);
+    border-left: 3px solid $forest;
+  }
 }
 
 .conv-header {
@@ -236,9 +239,15 @@ onMounted(fetchConversations)
   margin-bottom: 4px;
 }
 
-.conv-name { font-weight: 600; font-size: 14px; }
+.conv-name { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 14px;
+  color: $forest;
+}
 .conv-summary { font-size: 12px; color: $text-secondary; margin-bottom: 4px; @include text-ellipsis(1); }
-.conv-time { font-size: 11px; color: $text-placeholder; }
+.conv-time { font-size: 11px; color: $text-placeholder; font-family: var(--font-mono); }
 
 .chat-card {
   height: 100%;
@@ -259,19 +268,26 @@ onMounted(fetchConversations)
   align-items: center;
 }
 
-.chat-title { font-weight: 600; font-size: 15px; }
+.chat-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 15px;
+  color: $forest;
+}
 
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 16px;
+  background: $bg-page;
   @include custom-scrollbar;
 }
 
 .message-item {
   display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 18px;
 
   &.user { flex-direction: row-reverse; }
   &.system { justify-content: center; }
@@ -280,31 +296,41 @@ onMounted(fetchConversations)
 .message-content { max-width: 70%; }
 
 .message-bubble {
-  padding: 10px 14px;
-  border-radius: $border-radius-md;
-  background-color: $bg-color;
+  padding: 12px 16px;
+  background-color: $cream;
+  border: 1.5px solid $forest;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+  box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.08);
 }
 
-.user .message-bubble { background-color: #409eff; color: #fff; }
-.agent .message-bubble { background-color: #f0f9eb; }
+.user .message-bubble { 
+  background-color: $forest; 
+  color: $cream;
+  border-color: $forest;
+}
+.agent .message-bubble { 
+  background-color: $cream;
+  border-color: $forest;
+}
 
 .message-time {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   color: $text-placeholder;
   margin-top: 4px;
+  font-family: var(--font-mono);
 }
 
 .user .message-time { text-align: right; }
 
 .chat-input {
-  padding: 12px 16px;
-  border-top: 1px solid $border-lighter;
+  padding: 14px 16px;
+  border-top: 2px solid $forest;
   display: flex;
   gap: 12px;
   align-items: flex-end;
+  background: $cream;
 }
 </style>

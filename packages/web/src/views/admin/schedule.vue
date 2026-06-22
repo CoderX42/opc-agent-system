@@ -218,7 +218,14 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.card-title { font-weight: 600; font-size: 15px; }
+.card-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 15px;
+  font-variation-settings: 'opsz' 96;
+  color: $forest;
+}
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 
 .calendar-cell { height: 100%; padding: 4px; }
@@ -226,17 +233,17 @@ onMounted(fetchList)
 .calendar-event {
   font-size: 11px;
   padding: 1px 4px;
-  border-radius: 2px;
   margin-top: 2px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background-color: #ecf5ff;
-  color: #409eff;
+  background-color: color-mix(in srgb, $info-color 10%, $cream);
+  color: $info-color;
+  border: 1px solid currentColor;
 
-  &.MEETING { background-color: #ecf5ff; color: #409eff; }
-  &.DEADLINE { background-color: #fef0f0; color: #f56c6c; }
-  &.WORK { background-color: #fdf6ec; color: #e6a23c; }
-  &.PERSONAL { background-color: #f0f9eb; color: #67c23a; }
+  &.MEETING { background-color: color-mix(in srgb, $primary-color 8%, $cream); color: $primary-color; }
+  &.DEADLINE { background-color: color-mix(in srgb, $danger-color 10%, $cream); color: $danger-color; }
+  &.WORK { background-color: color-mix(in srgb, $warning-color 10%, $cream); color: $warning-color; }
+  &.PERSONAL { background-color: color-mix(in srgb, $success-color 10%, $cream); color: $success-color; }
 }
 </style>

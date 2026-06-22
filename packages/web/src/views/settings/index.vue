@@ -181,12 +181,44 @@ function handleSaveNotification() { ElMessage.success('通知设置已保存') }
   :deep(.el-tabs__content) {
     padding: 0;
   }
+  :deep(.el-tabs__header) {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid $forest;
+  }
+  :deep(.el-tabs__nav-wrap::after) {
+    display: none;
+  }
+  :deep(.el-tabs__item) {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 500;
+    font-style: italic;
+    color: $text-secondary;
+    padding: 8px 20px;
+    margin-right: 2px;
+    background: $cream-warm;
+    border: 2px solid $forest;
+    border-bottom: none;
+    transition: all $transition-duration;
+
+    &:hover {
+      color: $forest;
+      background: $cream;
+    }
+
+    &.is-active {
+      color: $forest;
+      background: $cream;
+      box-shadow: 0 -2px 0 $brass;
+    }
+  }
 }
 
 .agent-config-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .agent-config-item {
@@ -194,26 +226,42 @@ function handleSaveNotification() { ElMessage.success('通知设置已保存') }
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border: 1px solid $border-lighter;
-  border-radius: $border-radius-md;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.08);
+  transition: all $transition-duration;
 
   &:hover {
-    background-color: $bg-color;
+    background-color: $cream-warm;
+    box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.16);
+    transform: translateY(-1px);
   }
 }
 
 .agent-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 
-  h4 { font-size: 15px; margin-bottom: 4px; }
-  p { font-size: 12px; color: $text-secondary; }
+  h4 { 
+    font-family: var(--font-display);
+    font-size: 15px; 
+    font-weight: 500;
+    font-style: italic;
+    font-variation-settings: 'opsz' 96;
+    color: $forest;
+    margin-bottom: 4px; 
+  }
+  p { 
+    font-size: 12px; 
+    color: $text-secondary; 
+    font-family: var(--font-body);
+  }
 }
 
 .agent-actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 </style>

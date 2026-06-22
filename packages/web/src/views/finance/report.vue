@@ -196,6 +196,13 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .stats-row { margin-bottom: 20px; }
-.card-title { font-weight: 600; font-size: 15px; }
+.card-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 15px;
+  font-variation-settings: 'opsz' 96;
+  color: $forest;
+}
 .chart-container { height: 320px; width: 100%; }
 </style>

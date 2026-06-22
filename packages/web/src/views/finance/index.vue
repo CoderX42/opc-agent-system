@@ -198,8 +198,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.stats-row { margin-bottom: 20px; }
-.card-title { font-weight: 600; font-size: 15px; }
+.stats-row { margin-bottom: 16px; }
+.card-title { 
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  font-size: 15px;
+  font-variation-settings: 'opsz' 96;
+  color: $forest;
+}
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .chart-container { height: 320px; width: 100%; }
 </style>
