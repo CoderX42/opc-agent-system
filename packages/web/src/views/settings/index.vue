@@ -68,7 +68,7 @@
               </div>
               <div class="agent-actions">
                 <el-switch v-model="agent.enabled" active-text="启用" inactive-text="禁用" />
-                <el-button link type="primary" size="small">配置</el-button>
+                <el-button type="primary" plain size="small" @click="handleConfigAgent(agent)">配置</el-button>
               </div>
             </div>
           </div>
@@ -101,6 +101,38 @@
         </el-card>
       </el-tab-pane>
     </el-tabs>
+
+    <!-- Agent 配置弹窗 -->
+    <el-dialog v-model="configDialogVisible" :title="`配置 ${currentConfigAgent?.name || ''}`" width="560px" destroy-on-close class="agent-config-dialog">
+      <template v-if="currentConfigAgent">
+        <el-form :model="configForm" label-width="100px">
+          <el-form-item label="基础模型">
+            <el-select v-model="configForm.model" style="width: 100%;">
+              <el-option label="GPT-4o" value="gpt-4o" />
+              <el-option label="GPT-4o Mini" value="gpt-4o-mini" />
+              <el-option label="Claude 3.5 Sonnet" value="claude-3.5-sonnet" />
+              <el-option label="通义千问 Max" value="qwen-max" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="温度参数">
+            <el-slider v-model="configForm.temperature" :min="0" :max="1" :step="0.1" show-input />
+          </el-form-item>
+          <el-form-item label="系统提示词">
+            <el-input v-model="configForm.systemPrompt" type="textarea" :rows="5" placeholder="请输入系统提示词" />
+          </el-form-item>
+          <el-form-item label="启用记忆">
+            <el-switch v-model="configForm.enableMemory" />
+          </el-form-item>
+          <el-form-item label="启用工具">
+            <el-switch v-model="configForm.enableTools" />
+          </el-form-item>
+        </el-form>
+      </template>
+      <template #footer>
+        <el-button @click="configDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="saveAgentConfig">保存配置</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -174,6 +206,31 @@ async function handleChangePassword() {
 }
 
 function handleSaveNotification() { ElMessage.success('通知设置已保存') }
+
+const configDialogVisible = ref(false)
+const currentConfigAgent = ref<any>(null)
+const configForm = reactive({
+  model: 'gpt-4o-mini',
+  temperature: 0.7,
+  systemPrompt: '',
+  enableMemory: true,
+  enableTools: true,
+})
+
+function handleConfigAgent(agent: any) {
+  currentConfigAgent.value = agent
+  configForm.model = 'gpt-4o-mini'
+  configForm.temperature = 0.7
+  configForm.systemPrompt = `你是${agent.name}，请按照既定职责为团队提供专业、可靠的协助。`
+  configForm.enableMemory = true
+  configForm.enableTools = true
+  configDialogVisible.value = true
+}
+
+function saveAgentConfig() {
+  ElMessage.success(`${currentConfigAgent.value?.name || ''} 配置已保存`)
+  configDialogVisible.value = false
+}
 </script>
 
 <style lang="scss" scoped>
