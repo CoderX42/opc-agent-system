@@ -32,13 +32,52 @@ export interface Agent {
   name: string
   type: AgentType
   status: AgentStatus
-  config: Record<string, unknown>
+  config: AgentModelConfig
   createdAt: string
   updatedAt: string
 }
 
 export type AgentType = 'FINANCE' | 'CUSTOMER_SERVICE' | 'LEGAL' | 'ADMIN'
 export type AgentStatus = 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE'
+
+export type AgentModelProvider =
+  | 'deepseek'
+  | 'openai'
+  | 'anthropic'
+  | 'minimax'
+  | 'moonshot'
+  | 'kimi-code'
+  | 'qwen'
+  | 'zhipu'
+  | 'siliconflow'
+  | 'ollama'
+  | 'local-openai'
+  | 'custom-openai'
+
+export interface AgentModelConfig {
+  provider: AgentModelProvider
+  model: string
+  apiKey?: string
+  baseUrl?: string
+  temperature: number
+  maxTokens: number
+  systemPrompt?: string
+  enableMemory: boolean
+  enableTools: boolean
+  apiKeyRequired?: boolean
+}
+
+export interface AgentProviderPreset {
+  value: AgentModelProvider
+  label: string
+  region: 'domestic' | 'international' | 'local' | 'custom'
+  protocol: 'openai-compatible' | 'anthropic' | 'ollama'
+  defaultBaseUrl: string
+  defaultModel: string
+  apiKeyRequired: boolean
+  models: Array<{ label: string; value: string }>
+  description: string
+}
 
 /** 发票 */
 export interface Invoice {

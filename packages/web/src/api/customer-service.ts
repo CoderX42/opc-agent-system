@@ -3,6 +3,15 @@ import type { Conversation, Ticket, Message, ApiResponse, PaginatedResult, Pagin
 
 /** ==================== 对话管理 ==================== */
 
+/** 创建对话 */
+export function createConversation(data: {
+  channel: Conversation['channel']
+  customerName: string
+  summary?: string
+}) {
+  return post<ApiResponse<Conversation>>('/customer-service/conversations', data)
+}
+
 /** 获取对话列表 */
 export function getConversationList(params?: PaginationParams & { status?: string; channel?: string }) {
   return get<ApiResponse<PaginatedResult<Conversation>>>('/customer-service/conversations', { params })

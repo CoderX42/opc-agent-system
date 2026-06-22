@@ -1,5 +1,5 @@
 import { get, post, put, del } from './request'
-import type { Agent, ApiResponse, PaginatedResult, PaginationParams } from '@/types'
+import type { Agent, AgentModelConfig, AgentProviderPreset, ApiResponse, PaginatedResult, PaginationParams } from '@/types'
 
 export type AgentChatType = 'FINANCE' | 'CUSTOMER_SERVICE' | 'LEGAL' | 'ADMIN'
 
@@ -11,6 +11,16 @@ export function getAgentList(params?: PaginationParams) {
 /** 获取当前在线的 Agent 列表（办公区顶部使用） */
 export function getActiveAgents() {
   return get<ApiResponse<Agent[]>>('/agents/active')
+}
+
+/** 获取可配置的四类默认 Agent */
+export function getConfigurableAgents() {
+  return get<ApiResponse<Agent[]>>('/agents/configurable')
+}
+
+/** 获取大模型服务商预设 */
+export function getAgentModelPresets() {
+  return get<ApiResponse<AgentProviderPreset[]>>('/agents/model-presets')
 }
 
 /** 获取Agent详情 */
@@ -26,6 +36,11 @@ export function createAgent(data: Partial<Agent>) {
 /** 更新Agent */
 export function updateAgent(id: string, data: Partial<Agent>) {
   return put<ApiResponse<Agent>>(`/agents/${id}`, data)
+}
+
+/** 更新 Agent 大模型接入配置 */
+export function updateAgentModelConfig(id: string, data: AgentModelConfig) {
+  return put<ApiResponse<Agent>>(`/agents/${id}/model-config`, data)
 }
 
 /** 删除Agent */
