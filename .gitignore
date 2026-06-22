@@ -6,5 +6,6 @@ dist/
 .DS_Store
 coverage/
 .turbo/
+.trae/
 package-lock.json
 pnpm-debug.log*
