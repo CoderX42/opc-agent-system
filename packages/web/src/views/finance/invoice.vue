@@ -1,13 +1,40 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h2 class="page-title">发票管理</h2>
+    <div class="page-header invoice-page-header">
+      <div>
+        <span class="kicker">INVOICE DESK</span>
+        <h2 class="page-title">发票管理</h2>
+        <p class="page-subtitle">上传识别、补全票据信息并完成审核，保持发票与流水口径一致。</p>
+      </div>
       <div class="page-actions">
         <el-button type="primary" icon="Plus" @click="handleCreate">创建发票</el-button>
       </div>
     </div>
 
-    <div class="filter-bar">
+    <section class="invoice-summary">
+      <div class="summary-item">
+        <span>当前页金额</span>
+        <strong>¥{{ formatMoney(pageTotalAmount) }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>当前页税额</span>
+        <strong>¥{{ formatMoney(pageTotalTax) }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>待审核</span>
+        <strong class="is-warning">{{ pagePendingCount }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>匹配发票</span>
+        <strong>{{ pagination.total }}</strong>
+      </div>
+    </section>
+
+    <div class="filter-bar invoice-filter-bar">
+      <div class="filter-copy">
+        <span class="kicker">FILTERS</span>
+        <strong>筛选发票</strong>
+      </div>
       <div class="filter-items">
         <el-select v-model="filters.type" placeholder="发票类型" clearable style="width: 120px;">
           <el-option label="收入发票" value="income" />
@@ -24,38 +51,65 @@
       <el-button icon="Search" @click="handleSearch">搜索</el-button>
     </div>
 
-    <div class="table-wrapper">
-      <el-table :data="invoiceList" v-loading="loading" stripe>
+    <div class="table-wrapper invoice-table-wrapper">
+      <el-table
+        :data="invoiceList"
+        v-loading="loading"
+        stripe
+        class="invoice-table"
+        :row-class-name="getInvoiceRowClass"
+      >
         <el-table-column type="selection" width="50" />
-        <el-table-column prop="invoiceNo" label="发票编号" width="160" />
-        <el-table-column prop="customerName" label="客户名称" min-width="150" show-overflow-tooltip />
+        <el-table-column prop="invoiceNo" label="发票编号" width="170">
+          <template #default="{ row }">
+            <span class="invoice-no">{{ row.invoiceNo || row.id?.slice(0, 8) }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="customerName" label="客户名称" min-width="170" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="customer-cell">
+              <strong>{{ row.customerName || '未填写客户' }}</strong>
+              <span>{{ row.description || '暂无描述' }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column prop="type" label="类型" width="100">
           <template #default="{ row }">
-            <el-tag :type="row.type === 'income' ? 'success' : 'danger'" size="small">
+            <el-tag :type="row.type === 'income' ? 'success' : 'danger'" size="small" effect="plain">
               {{ row.type === 'income' ? '收入' : '支出' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="amount" label="金额" width="140" align="right">
-          <template #default="{ row }">¥{{ formatMoney(row.amount) }}</template>
+          <template #default="{ row }">
+            <span class="money-value" :class="row.type === 'income' ? 'is-income' : 'is-expense'">
+              {{ row.type === 'income' ? '+' : '-' }}¥{{ formatMoney(row.amount) }}
+            </span>
+          </template>
         </el-table-column>
         <el-table-column prop="taxAmount" label="税额" width="120" align="right">
-          <template #default="{ row }">¥{{ formatMoney(row.taxAmount) }}</template>
+          <template #default="{ row }">
+            <span class="tax-value">¥{{ formatMoney(row.taxAmount) }}</span>
+          </template>
         </el-table-column>
         <el-table-column prop="status" label="状态" width="100">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
+            <el-tag :type="getStatusType(row.status)" size="small" effect="plain">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
         <el-table-column label="开票日期" width="120">
-          <template #default="{ row }">{{ formatDate(row.invoiceDate || row.date) }}</template>
+          <template #default="{ row }">
+            <span class="ledger-date">{{ formatDate(row.invoiceDate || row.date) }}</span>
+          </template>
         </el-table-column>
         <el-table-column label="操作" width="260" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)" :disabled="row.status === 'APPROVED'">编辑</el-button>
-            <el-button link type="success" size="small" @click="handleApprove(row)" :disabled="row.status !== 'PENDING'">审核</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <div class="table-actions">
+              <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
+              <el-button link type="primary" size="small" @click="handleEdit(row)" :disabled="row.status === 'APPROVED'">编辑</el-button>
+              <el-button link type="success" size="small" @click="handleApprove(row)" :disabled="row.status !== 'PENDING'">审核</el-button>
+              <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -74,14 +128,16 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="600px" destroy-on-close>
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="620px" destroy-on-close class="finance-dialog">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px" class="finance-form">
+        <div class="form-section-title">票据类型</div>
         <el-form-item label="发票类型" prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio value="income">收入发票</el-radio>
-            <el-radio value="expense">支出发票</el-radio>
+          <el-radio-group v-model="form.type" class="type-switch">
+            <el-radio-button value="income">收入发票</el-radio-button>
+            <el-radio-button value="expense">支出发票</el-radio-button>
           </el-radio-group>
         </el-form-item>
+        <div class="form-section-title">OCR 与附件</div>
         <el-form-item label="发票图片">
           <div class="invoice-upload">
             <FileUpload
@@ -97,7 +153,7 @@
                 type="primary"
                 plain
                 icon="View"
-                :loading="recognizing"
+              :loading="recognizing"
                 @click="handleRecognize"
               >
                 识别并填入
@@ -106,6 +162,7 @@
             </div>
           </div>
         </el-form-item>
+        <div class="form-section-title">发票内容</div>
         <el-form-item label="发票编号">
           <el-input v-model="form.invoiceNo" placeholder="上传识别或手动输入" />
         </el-form-item>
@@ -134,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules, type UploadFile } from 'element-plus'
 import { getInvoiceList, createInvoice, updateInvoice, deleteInvoice, approveInvoice, recognizeInvoiceImage } from '@/api/finance'
 import type { Invoice } from '@/types'
@@ -170,6 +227,10 @@ const formRules: FormRules = {
 }
 
 const invoiceList = ref<Invoice[]>([])
+
+const pageTotalAmount = computed(() => invoiceList.value.reduce((sum, item) => sum + Number(item.amount || 0), 0))
+const pageTotalTax = computed(() => invoiceList.value.reduce((sum, item) => sum + Number(item.taxAmount || 0), 0))
+const pagePendingCount = computed(() => invoiceList.value.filter(item => item.status === 'PENDING').length)
 
 async function fetchList() {
   loading.value = true
@@ -373,12 +434,68 @@ function getStatusText(status: string) {
   return map[status] || status
 }
 
+function getInvoiceRowClass({ row }: { row: Invoice }) {
+  const status = row.status || 'PENDING'
+  return `is-${status.toLowerCase()}-row`
+}
+
 watch([() => filters.type, () => filters.status, () => filters.dateRange], () => { pagination.page = 1; fetchList() })
 onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.filter-bar { 
+.invoice-page-header {
+  align-items: flex-end;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  color: $text-secondary;
+  line-height: 1.7;
+}
+
+.invoice-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: $shadow-sm;
+}
+
+.summary-item {
+  padding: 14px 16px;
+  border-right: 1px solid $rule;
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: $brass-deep;
+  }
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 500;
+    color: $forest;
+    font-variant-numeric: tabular-nums;
+
+    &.is-warning {
+      color: $warning-color;
+    }
+  }
+}
+
+.invoice-filter-bar { 
   display: flex; 
   gap: 12px; 
   margin-bottom: 16px; 
@@ -388,9 +505,88 @@ onMounted(fetchList)
   border: 2px solid $forest;
   box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
 }
-.filter-items { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.filter-copy {
+  min-width: 112px;
+
+  strong {
+    display: block;
+    margin-top: 3px;
+    color: $forest;
+  }
+}
+
+.filter-items {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.invoice-no {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  color: $forest;
+  letter-spacing: 0.02em;
+}
+
+.customer-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    color: $forest;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  span {
+    color: $text-secondary;
+    font-size: 11px;
+  }
+}
+
+.ledger-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: $text-secondary;
+}
+
+.money-value,
+.tax-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.money-value {
+  &.is-income {
+    color: $success-color;
+  }
+
+  &.is-expense {
+    color: $danger-color;
+  }
+}
+
+.tax-value {
+  color: $brass-deep;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
 .invoice-upload {
   width: 100%;
+  padding: 12px;
+  background: color-mix(in srgb, $brass 6%, $cream);
+  border: 1.5px dashed rgba(31, 42, 36, 0.28);
 }
 
 .invoice-upload-actions {
@@ -404,6 +600,88 @@ onMounted(fetchList)
     font-size: 13px;
     font-weight: 600;
     text-decoration: underline;
+  }
+}
+
+.form-section-title {
+  margin: 0 0 14px 100px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: $brass-deep;
+}
+
+.type-switch {
+  width: 100%;
+}
+
+:deep(.type-switch .el-radio-button) {
+  width: 50%;
+}
+
+:deep(.type-switch .el-radio-button__inner) {
+  width: 100%;
+}
+
+:deep(.invoice-table .is-pending-row td:first-child) {
+  box-shadow: inset 3px 0 0 $warning-color;
+}
+
+:deep(.invoice-table .is-approved-row td:first-child) {
+  box-shadow: inset 3px 0 0 $success-color;
+}
+
+:deep(.invoice-table .is-rejected-row td:first-child) {
+  box-shadow: inset 3px 0 0 $danger-color;
+}
+
+:deep(.invoice-table .is-draft-row td:first-child) {
+  box-shadow: inset 3px 0 0 $info-color;
+}
+
+:deep(.finance-dialog .el-dialog__body) {
+  padding-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .invoice-page-header {
+    align-items: flex-start;
+  }
+
+  .invoice-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-item:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .summary-item:nth-child(-n + 2) {
+    border-bottom: 1px solid $rule;
+  }
+
+  .invoice-filter-bar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .invoice-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    border-right: 0;
+    border-bottom: 1px solid $rule;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .form-section-title {
+    margin-left: 0;
   }
 }
 </style>

@@ -1,72 +1,132 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h2 class="page-title">财务概览</h2>
+    <div class="page-header finance-page-header">
+      <div>
+        <span class="kicker">FINANCE AGENT</span>
+        <h2 class="page-title">财务概览</h2>
+        <p class="page-subtitle">实时汇总收入、支出、发票与现金流，帮助 Owner 快速判断经营状态。</p>
+      </div>
       <div class="page-actions">
         <el-button icon="MagicStick" @click="$router.push({ path: '/agents/copilot', query: { agent: 'FINANCE' } })">问 Agent</el-button>
         <el-button type="primary" icon="Download" @click="handleExport">导出报表</el-button>
       </div>
     </div>
 
+    <section class="finance-hero">
+      <div class="finance-hero-copy">
+        <span class="hero-stamp">LEDGER SNAPSHOT</span>
+        <h3>{{ cashflowStatus }}</h3>
+        <p>财务 Agent 已合并交易流水与已通过发票，正在持续关注净利润、支出结构和待审票据。</p>
+      </div>
+      <div class="finance-hero-metrics">
+        <div class="hero-metric">
+          <span>净利润率</span>
+          <strong :class="{ 'is-negative': Number(overview.netProfit || 0) < 0 }">{{ netProfitRate }}</strong>
+        </div>
+        <div class="hero-metric">
+          <span>支出占比</span>
+          <strong>{{ expenseRatio }}</strong>
+        </div>
+        <div class="hero-metric">
+          <span>趋势样本</span>
+          <strong>{{ trendMonths }}</strong>
+        </div>
+      </div>
+    </section>
+
     <el-row :gutter="16" class="stats-row">
       <el-col :xs="12" :sm="6">
-        <StatsCard label="总收入" :value="formatMoney(overview.totalIncome)" icon="TrendCharts" color="#67c23a" />
+        <StatsCard label="总收入" :value="formatMoney(overview.totalIncome)" icon="TrendCharts" color="#4f8f68" />
       </el-col>
       <el-col :xs="12" :sm="6">
-        <StatsCard label="总支出" :value="formatMoney(overview.totalExpense)" icon="Minus" color="#f56c6c" />
+        <StatsCard label="总支出" :value="formatMoney(overview.totalExpense)" icon="Minus" color="#b94c34" />
       </el-col>
       <el-col :xs="12" :sm="6">
-        <StatsCard label="净利润" :value="formatMoney(overview.netProfit)" icon="Coin" color="#409eff" />
+        <StatsCard label="净利润" :value="formatMoney(overview.netProfit)" icon="Coin" color="#2f6f7e" />
       </el-col>
       <el-col :xs="12" :sm="6">
-        <StatsCard label="待审发票" :value="overview.pendingInvoices ?? 0" icon="Document" color="#e6a23c" />
+        <StatsCard label="待审发票" :value="overview.pendingInvoices ?? 0" icon="Document" color="#d9a441" />
       </el-col>
     </el-row>
 
-    <el-row :gutter="16">
+    <el-row :gutter="16" class="finance-chart-grid">
       <el-col :xs="24" :lg="16">
-        <el-card shadow="never">
+        <el-card shadow="never" class="finance-chart-card">
           <template #header>
-            <span class="card-title">月度收支趋势</span>
+            <div class="chart-card-header">
+              <div>
+                <span class="kicker">FLOW TREND</span>
+                <span class="card-title">月度收支趋势</span>
+              </div>
+              <span class="chart-note">收入 / 支出</span>
+            </div>
           </template>
           <div ref="trendChartRef" class="chart-container"></div>
         </el-card>
       </el-col>
 
       <el-col :xs="24" :lg="8">
-        <el-card shadow="never">
+        <el-card shadow="never" class="finance-chart-card">
           <template #header>
-            <span class="card-title">支出分类</span>
+            <div class="chart-card-header">
+              <div>
+                <span class="kicker">EXPENSE MIX</span>
+                <span class="card-title">支出分类</span>
+              </div>
+              <span class="chart-note">Top 10</span>
+            </div>
           </template>
           <div ref="pieChartRef" class="chart-container"></div>
         </el-card>
       </el-col>
     </el-row>
 
-    <el-card shadow="never" style="margin-top: 16px;">
+    <el-card shadow="never" class="finance-section-card">
       <template #header>
         <div class="card-header">
-          <span class="card-title">最近交易</span>
+          <div>
+            <span class="kicker">RECENT LEDGER</span>
+            <span class="card-title">最近交易</span>
+          </div>
           <el-button link type="primary" @click="$router.push('/finance/transaction')">查看全部</el-button>
         </div>
       </template>
-      <el-table :data="recentTransactions" v-loading="recentLoading" size="default">
+      <el-table
+        :data="recentTransactions"
+        v-loading="recentLoading"
+        size="default"
+        class="finance-table"
+        :row-class-name="getTransactionRowClass"
+      >
         <el-table-column label="日期" width="120">
-          <template #default="{ row }">{{ formatDate(row.transactionDate || row.date) }}</template>
+          <template #default="{ row }">
+            <span class="ledger-date">{{ formatDate(row.transactionDate || row.date) }}</span>
+          </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
-        <el-table-column prop="category" label="分类" width="120" />
+        <el-table-column prop="description" label="描述" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="transaction-cell">
+              <strong>{{ row.description || '未命名交易' }}</strong>
+              <span>{{ row.counterparty || row.account || '系统记录' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="category" label="分类" width="130">
+          <template #default="{ row }">
+            <span class="category-pill">{{ row.category || '未分类' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="type" label="类型" width="80">
           <template #default="{ row }">
-            <el-tag :type="row.type === 'INCOME' ? 'success' : 'danger'" size="small">
+            <el-tag :type="row.type === 'INCOME' ? 'success' : 'danger'" size="small" effect="plain">
               {{ row.type === 'INCOME' ? '收入' : '支出' }}
             </el-tag>
           </template>
         </el-table-column>
         <el-table-column label="金额" width="140" align="right">
           <template #default="{ row }">
-            <span :style="{ color: row.type === 'INCOME' ? '#67c23a' : '#f56c6c' }">
-              {{ row.type === 'INCOME' ? '+' : '-' }}¥{{ formatMoney(row.amount) }}
+            <span class="money-value" :class="row.type === 'INCOME' ? 'is-income' : 'is-expense'">
+              {{ row.type === 'INCOME' ? '+' : '-' }}{{ formatMoney(row.amount) }}
             </span>
           </template>
         </el-table-column>
@@ -76,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import * as echarts from 'echarts'
 import StatsCard from '@/components/StatsCard.vue'
 import { ElMessage } from 'element-plus'
@@ -90,6 +150,39 @@ let pieChart: echarts.ECharts | null = null
 const overview = reactive<Record<string, any>>({})
 const recentTransactions = ref<any[]>([])
 const recentLoading = ref(false)
+
+const FINANCE_COLORS = {
+  income: '#4f8f68',
+  expense: '#b94c34',
+  profit: '#2f6f7e',
+  brass: '#b7996e',
+  forest: '#1f2a24',
+  muted: '#6e7a72',
+  paper: '#faf3e2',
+  rule: 'rgba(31, 42, 36, 0.14)',
+}
+
+const netProfitRate = computed(() => {
+  const income = Number(overview.totalIncome || 0)
+  if (!income) return '0.0%'
+  return `${((Number(overview.netProfit || 0) / income) * 100).toFixed(1)}%`
+})
+
+const expenseRatio = computed(() => {
+  const income = Number(overview.totalIncome || 0)
+  const expense = Number(overview.totalExpense || 0)
+  if (!income && !expense) return '0.0%'
+  return `${((expense / Math.max(income + expense, 1)) * 100).toFixed(1)}%`
+})
+
+const trendMonths = computed(() => `${(overview.monthlyTrend || []).length || 1}个月`)
+
+const cashflowStatus = computed(() => {
+  const profit = Number(overview.netProfit || 0)
+  if (profit > 0) return '现金流保持正向'
+  if (profit < 0) return '现金流需要关注'
+  return '现金流等待更多数据'
+})
 
 async function fetchOverview() {
   try {
@@ -133,10 +226,20 @@ function formatMoney(value: number | string | undefined) {
   return '¥' + Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function formatCompactMoney(value: number | string | undefined) {
+  const amount = Number(value || 0)
+  if (Math.abs(amount) >= 10000) return `${(amount / 10000).toFixed(1)}万`
+  return amount.toLocaleString('zh-CN')
+}
+
 function formatDate(value: string | Date | undefined) {
   if (!value) return ''
   const d = typeof value === 'string' ? new Date(value) : value
   return d.toISOString().slice(0, 10)
+}
+
+function getTransactionRowClass({ row }: { row: any }) {
+  return row.type === 'INCOME' ? 'is-income-row' : 'is-expense-row'
 }
 
 function renderTrendChart(monthlyTrend: Array<{ month: string; income: number; expense: number }>) {
@@ -146,14 +249,66 @@ function renderTrendChart(monthlyTrend: Array<{ month: string; income: number; e
   const incomes = monthlyTrend.map(m => Number(m.income || 0))
   const expenses = monthlyTrend.map(m => Number(m.expense || 0))
   trendChart.setOption({
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['收入', '支出'] },
-    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', data: months.length ? months : ['本月'] },
-    yAxis: { type: 'value' },
+    color: [FINANCE_COLORS.income, FINANCE_COLORS.expense],
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: 'rgba(250, 243, 226, 0.96)',
+      borderColor: FINANCE_COLORS.forest,
+      borderWidth: 1,
+      textStyle: { color: FINANCE_COLORS.forest },
+      valueFormatter: (value: number | string) => formatMoney(value),
+    },
+    legend: {
+      top: 0,
+      right: 8,
+      itemWidth: 10,
+      itemHeight: 10,
+      textStyle: { color: FINANCE_COLORS.muted, fontSize: 11 },
+      data: ['收入', '支出'],
+    },
+    grid: { left: 8, right: 18, top: 42, bottom: 8, containLabel: true },
+    xAxis: {
+      type: 'category',
+      data: months.length ? months : ['本月'],
+      boundaryGap: false,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: FINANCE_COLORS.rule } },
+      axisLabel: { color: FINANCE_COLORS.muted },
+    },
+    yAxis: {
+      type: 'value',
+      axisLabel: { color: FINANCE_COLORS.muted, formatter: (value: number) => formatCompactMoney(value) },
+      splitLine: { lineStyle: { color: FINANCE_COLORS.rule, type: 'dashed' } },
+    },
     series: [
-      { name: '收入', type: 'line', smooth: true, data: incomes, itemStyle: { color: '#67c23a' } },
-      { name: '支出', type: 'line', smooth: true, data: expenses, itemStyle: { color: '#f56c6c' } },
+      {
+        name: '收入',
+        type: 'line',
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 3 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(79, 143, 104, 0.24)' },
+            { offset: 1, color: 'rgba(79, 143, 104, 0.02)' },
+          ]),
+        },
+        data: incomes,
+      },
+      {
+        name: '支出',
+        type: 'line',
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 3 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(185, 76, 52, 0.2)' },
+            { offset: 1, color: 'rgba(185, 76, 52, 0.02)' },
+          ]),
+        },
+        data: expenses,
+      },
     ],
   })
 }
@@ -162,15 +317,31 @@ function renderPieChart(categories: Array<{ category: string; amount: number }>)
   if (!pieChartRef.value) return
   if (!pieChart) pieChart = echarts.init(pieChartRef.value)
   pieChart.setOption({
-    tooltip: { trigger: 'item' },
-    legend: { bottom: '0', left: 'center' },
+    color: ['#b94c34', '#d98f45', '#b7996e', '#8d704a', '#6e7a72', '#4f8f68', '#2f6f7e'],
+    tooltip: {
+      trigger: 'item',
+      backgroundColor: 'rgba(250, 243, 226, 0.96)',
+      borderColor: FINANCE_COLORS.forest,
+      borderWidth: 1,
+      textStyle: { color: FINANCE_COLORS.forest },
+      formatter: '{b}<br/>¥{c} · {d}%',
+    },
+    legend: {
+      bottom: 0,
+      left: 'center',
+      icon: 'circle',
+      itemWidth: 8,
+      itemHeight: 8,
+      textStyle: { color: FINANCE_COLORS.muted, fontSize: 11 },
+    },
     series: [
       {
         type: 'pie',
-        radius: ['40%', '70%'],
-        itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+        radius: ['48%', '72%'],
+        center: ['50%', '45%'],
+        itemStyle: { borderRadius: 6, borderColor: FINANCE_COLORS.paper, borderWidth: 3 },
         label: { show: false },
-        emphasis: { label: { show: true, fontSize: 14, fontWeight: 'bold' } },
+        emphasis: { scaleSize: 6, label: { show: true, fontSize: 13, fontWeight: 'bold', color: FINANCE_COLORS.forest } },
         data: categories.length
           ? categories.map(c => ({ value: c.amount, name: c.category }))
           : [{ value: 1, name: '暂无数据' }],
@@ -198,8 +369,130 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
+.finance-page-header {
+  align-items: flex-end;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  color: $text-secondary;
+  line-height: 1.7;
+}
+
+.finance-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  margin-bottom: 16px;
+  padding: 18px 20px;
+  overflow: hidden;
+  background:
+    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
+    radial-gradient(circle at 90% 10%, rgba(183, 153, 110, 0.35), transparent 34%);
+  border: 2px solid $forest;
+  box-shadow: $shadow-md;
+  color: $cream;
+
+  &::before {
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    content: '';
+    border: 1px solid rgba(250, 243, 226, 0.18);
+  }
+}
+
+.finance-hero-copy,
+.finance-hero-metrics {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-stamp {
+  display: inline-flex;
+  padding: 3px 8px;
+  margin-bottom: 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: $forest;
+  background: $brass;
+}
+
+.finance-hero h3 {
+  margin-bottom: 8px;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 34px);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.finance-hero p {
+  max-width: 620px;
+  color: rgba(250, 243, 226, 0.74);
+  line-height: 1.7;
+}
+
+.finance-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  min-width: 390px;
+  align-self: stretch;
+  border: 1px solid rgba(250, 243, 226, 0.16);
+}
+
+.hero-metric {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px;
+  border-right: 1px solid rgba(250, 243, 226, 0.16);
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  span {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: rgba(250, 243, 226, 0.62);
+  }
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 500;
+    color: $cream;
+    font-variant-numeric: tabular-nums;
+
+    &.is-negative {
+      color: #ffb199;
+    }
+  }
+}
+
 .stats-row { margin-bottom: 16px; }
+
+.finance-chart-grid {
+  row-gap: 16px;
+}
+
+.finance-chart-card {
+  height: 100%;
+}
+
+.finance-section-card {
+  margin-top: 16px;
+}
+
 .card-title { 
+  display: block;
   font-family: var(--font-display);
   font-weight: 500;
   font-style: italic;
@@ -207,6 +500,116 @@ onUnmounted(() => {
   font-variation-settings: 'opsz' 96;
   color: $forest;
 }
-.card-header { display: flex; justify-content: space-between; align-items: center; }
+
+.card-header,
+.chart-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-note {
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: $brass-deep;
+  border: 1px solid $rule;
+  background: $cream-warm;
+}
+
 .chart-container { height: 320px; width: 100%; }
+
+.ledger-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: $text-secondary;
+}
+
+.transaction-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    color: $forest;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  span {
+    color: $text-secondary;
+    font-size: 11px;
+  }
+}
+
+.category-pill {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 8px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: $brass-deep;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  background: color-mix(in srgb, $brass 10%, $cream);
+  border: 1px solid rgba(183, 153, 110, 0.38);
+}
+
+.money-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+
+  &.is-income {
+    color: $success-color;
+  }
+
+  &.is-expense {
+    color: $danger-color;
+  }
+}
+
+:deep(.finance-table .is-income-row td:first-child) {
+  box-shadow: inset 3px 0 0 $success-color;
+}
+
+:deep(.finance-table .is-expense-row td:first-child) {
+  box-shadow: inset 3px 0 0 $danger-color;
+}
+
+@media (max-width: 960px) {
+  .finance-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .finance-hero-metrics {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .finance-page-header {
+    align-items: flex-start;
+  }
+
+  .finance-hero-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-metric {
+    border-right: 0;
+    border-bottom: 1px solid rgba(250, 243, 226, 0.16);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
 </style>

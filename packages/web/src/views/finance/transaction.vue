@@ -1,14 +1,41 @@
 <template>
   <div class="page-container">
-    <div class="page-header">
-      <h2 class="page-title">记账管理</h2>
+    <div class="page-header ledger-page-header">
+      <div>
+        <span class="kicker">LEDGER ENTRIES</span>
+        <h2 class="page-title">记账管理</h2>
+        <p class="page-subtitle">记录收入、支出、账户和往来方，让财务 Agent 有清晰可靠的流水底账。</p>
+      </div>
       <div class="page-actions">
         <el-button type="primary" icon="Plus" @click="handleCreate">新增记录</el-button>
         <el-button icon="Download" @click="handleExport">导出</el-button>
       </div>
     </div>
 
-    <div class="filter-bar">
+    <section class="ledger-summary">
+      <div class="summary-item">
+        <span>当前页收入</span>
+        <strong class="is-income">¥{{ formatMoney(pageIncome) }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>当前页支出</span>
+        <strong class="is-expense">¥{{ formatMoney(pageExpense) }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>当前页结余</span>
+        <strong :class="pageBalance >= 0 ? 'is-income' : 'is-expense'">¥{{ formatMoney(pageBalance) }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>匹配记录</span>
+        <strong>{{ pagination.total }}</strong>
+      </div>
+    </section>
+
+    <div class="filter-bar ledger-filter-bar">
+      <div class="filter-copy">
+        <span class="kicker">FILTERS</span>
+        <strong>筛选流水</strong>
+      </div>
       <div class="filter-items">
         <el-select v-model="filters.type" placeholder="交易类型" clearable style="width: 120px;">
           <el-option label="收入" value="INCOME" />
@@ -20,32 +47,61 @@
       <el-button icon="Search" @click="handleSearch">搜索</el-button>
     </div>
 
-    <div class="table-wrapper">
-      <el-table :data="transactionList" v-loading="loading" stripe>
+    <div class="table-wrapper ledger-table-wrapper">
+      <el-table
+        :data="transactionList"
+        v-loading="loading"
+        stripe
+        class="ledger-table"
+        :row-class-name="getTransactionRowClass"
+      >
         <el-table-column type="selection" width="50" />
         <el-table-column label="日期" width="120">
-          <template #default="{ row }">{{ formatDate(row.transactionDate || row.date) }}</template>
+          <template #default="{ row }">
+            <span class="ledger-date">{{ formatDate(row.transactionDate || row.date) }}</span>
+          </template>
         </el-table-column>
         <el-table-column prop="type" label="类型" width="80">
           <template #default="{ row }">
-            <el-tag :type="getTypeTag(row.type)" size="small">{{ getTypeText(row.type) }}</el-tag>
+            <el-tag :type="getTypeTag(row.type)" size="small" effect="plain">{{ getTypeText(row.type) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="category" label="分类" width="120" />
-        <el-table-column prop="counterparty" label="交易方" min-width="150" show-overflow-tooltip />
-        <el-table-column prop="account" label="账户" width="120" />
+        <el-table-column prop="category" label="分类" width="130">
+          <template #default="{ row }">
+            <span class="category-pill">{{ row.category || '未分类' }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="counterparty" label="交易方" min-width="170" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="party-cell">
+              <strong>{{ row.counterparty || '未填写交易方' }}</strong>
+              <span>{{ row.description || '暂无说明' }}</span>
+            </div>
+          </template>
+        </el-table-column>
+        <el-table-column prop="account" label="账户" width="130">
+          <template #default="{ row }">
+            <span class="account-chip">{{ row.account || '默认账户' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="amount" label="金额" width="140" align="right">
           <template #default="{ row }">
-            <span :style="{ color: row.type === 'INCOME' ? '#67c23a' : '#f56c6c', fontWeight: 600 }">
+            <span class="money-value" :class="row.type === 'INCOME' ? 'is-income' : 'is-expense'">
               {{ row.type === 'INCOME' ? '+' : '-' }}¥{{ formatMoney(row.amount) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="description" label="描述" min-width="200" show-overflow-tooltip />
+        <el-table-column prop="description" label="备注" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="muted-text">{{ row.description || '—' }}</span>
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <div class="table-actions">
+              <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -64,12 +120,13 @@
       </div>
     </div>
 
-    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="550px" destroy-on-close>
-      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px">
+    <el-dialog v-model="dialogVisible" :title="dialogTitle" width="560px" destroy-on-close class="finance-dialog">
+      <el-form ref="formRef" :model="form" :rules="formRules" label-width="100px" class="finance-form">
+        <div class="form-section-title">流水信息</div>
         <el-form-item label="交易类型" prop="type">
-          <el-radio-group v-model="form.type">
-            <el-radio value="INCOME">收入</el-radio>
-            <el-radio value="EXPENSE">支出</el-radio>
+          <el-radio-group v-model="form.type" class="type-switch">
+            <el-radio-button value="INCOME">收入</el-radio-button>
+            <el-radio-button value="EXPENSE">支出</el-radio-button>
           </el-radio-group>
         </el-form-item>
         <el-form-item label="分类" prop="category">
@@ -100,7 +157,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { getTransactionList, createTransaction, updateTransaction, deleteTransaction, exportFinanceReport } from '@/api/finance'
 import type { Transaction } from '@/types'
@@ -134,6 +191,16 @@ const formRules: FormRules = {
 }
 
 const transactionList = ref<Transaction[]>([])
+
+const pageIncome = computed(() => transactionList.value.reduce((sum, item) => {
+  return item.type === 'INCOME' ? sum + Number(item.amount || 0) : sum
+}, 0))
+
+const pageExpense = computed(() => transactionList.value.reduce((sum, item) => {
+  return item.type === 'EXPENSE' ? sum + Number(item.amount || 0) : sum
+}, 0))
+
+const pageBalance = computed(() => pageIncome.value - pageExpense.value)
 
 async function fetchList() {
   loading.value = true
@@ -264,12 +331,71 @@ function getTypeText(type: string) {
   return map[type] || type
 }
 
+function getTransactionRowClass({ row }: { row: Transaction }) {
+  return row.type === 'INCOME' ? 'is-income-row' : 'is-expense-row'
+}
+
 watch([() => filters.type, () => filters.category], () => { pagination.page = 1; fetchList() })
 onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.filter-bar { 
+.ledger-page-header {
+  align-items: flex-end;
+}
+
+.page-subtitle {
+  margin-top: 6px;
+  color: $text-secondary;
+  line-height: 1.7;
+}
+
+.ledger-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 16px;
+  background: $cream;
+  border: 2px solid $forest;
+  box-shadow: $shadow-sm;
+}
+
+.summary-item {
+  padding: 14px 16px;
+  border-right: 1px solid $rule;
+
+  &:last-child {
+    border-right: 0;
+  }
+
+  span {
+    display: block;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: $brass-deep;
+  }
+
+  strong {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-style: italic;
+    font-weight: 500;
+    color: $forest;
+    font-variant-numeric: tabular-nums;
+
+    &.is-income {
+      color: $success-color;
+    }
+
+    &.is-expense {
+      color: $danger-color;
+    }
+  }
+}
+
+.ledger-filter-bar { 
   display: flex; 
   gap: 12px; 
   margin-bottom: 16px; 
@@ -279,5 +405,173 @@ onMounted(fetchList)
   border: 2px solid $forest;
   box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
 }
-.filter-items { display: flex; gap: 12px; flex-wrap: wrap; }
+
+.filter-copy {
+  min-width: 112px;
+
+  strong {
+    display: block;
+    margin-top: 3px;
+    color: $forest;
+  }
+}
+
+.filter-items {
+  display: flex;
+  flex: 1;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ledger-table-wrapper {
+  position: relative;
+}
+
+.ledger-date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: $text-secondary;
+}
+
+.category-pill,
+.account-chip {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 3px 8px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-pill {
+  color: $brass-deep;
+  background: color-mix(in srgb, $brass 10%, $cream);
+  border: 1px solid rgba(183, 153, 110, 0.38);
+}
+
+.account-chip {
+  color: $forest;
+  background: color-mix(in srgb, $forest 7%, $cream);
+  border: 1px solid rgba(31, 42, 36, 0.22);
+}
+
+.party-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+
+  strong {
+    color: $forest;
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  span {
+    color: $text-secondary;
+    font-size: 11px;
+  }
+}
+
+.money-value {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+
+  &.is-income {
+    color: $success-color;
+  }
+
+  &.is-expense {
+    color: $danger-color;
+  }
+}
+
+.muted-text {
+  color: $text-secondary;
+}
+
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.form-section-title {
+  margin: 0 0 14px 100px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: $brass-deep;
+}
+
+.type-switch {
+  width: 100%;
+}
+
+:deep(.type-switch .el-radio-button) {
+  width: 50%;
+}
+
+:deep(.type-switch .el-radio-button__inner) {
+  width: 100%;
+}
+
+:deep(.ledger-table .is-income-row td:first-child) {
+  box-shadow: inset 3px 0 0 $success-color;
+}
+
+:deep(.ledger-table .is-expense-row td:first-child) {
+  box-shadow: inset 3px 0 0 $danger-color;
+}
+
+:deep(.finance-dialog .el-dialog__body) {
+  padding-top: 20px;
+}
+
+@media (max-width: 760px) {
+  .ledger-page-header {
+    align-items: flex-start;
+  }
+
+  .ledger-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .summary-item:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .summary-item:nth-child(-n + 2) {
+    border-bottom: 1px solid $rule;
+  }
+
+  .ledger-filter-bar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .ledger-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-item {
+    border-right: 0;
+    border-bottom: 1px solid $rule;
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  .form-section-title {
+    margin-left: 0;
+  }
+}
 </style>
