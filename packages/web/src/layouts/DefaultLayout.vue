@@ -192,7 +192,6 @@ const breadcrumbs = computed(() => {
   }))
 })
 
-// 监听路由变化，更新激活菜单
 watch(
   () => route.path,
   (path) => {
@@ -201,7 +200,6 @@ watch(
   { immediate: true }
 )
 
-/** 处理用户下拉菜单命令 */
 async function handleUserCommand(command: string) {
   switch (command) {
     case 'profile':
@@ -217,10 +215,8 @@ async function handleUserCommand(command: string) {
           type: 'warning',
         })
       } catch {
-        // 用户取消 → 不执行任何登出动作
         break
       }
-      // 用户确认 → 强制走完登出流程（即使接口失败也要跳到登录页）
       try {
         await userStore.logout()
       } catch (err) {
@@ -244,12 +240,13 @@ async function handleUserCommand(command: string) {
   position: relative;
   z-index: 20;
   background:
-    radial-gradient(circle at 20% 0%, rgba(201, 242, 123, 0.1), transparent 30%),
+    repeating-linear-gradient(90deg, rgba(250, 243, 226, 0.03) 0 1px, transparent 1px 24px),
     $bg-sidebar;
   transition: width $transition-duration $transition-timing;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  border-right: 2px solid rgba(250, 243, 226, 0.1);
 }
 
 .logo-container {
@@ -260,6 +257,7 @@ async function handleUserCommand(command: string) {
   gap: 12px;
   padding: 0 18px;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(250, 243, 226, 0.1);
 }
 
 .logo-mark {
@@ -268,12 +266,14 @@ async function handleUserCommand(command: string) {
   display: grid;
   place-items: center;
   flex: 0 0 40px;
-  color: #0d211c;
-  background: $accent-color;
-  border-radius: 13px 13px 13px 4px;
-  font-size: 21px;
-  font-weight: 850;
-  box-shadow: 0 8px 22px rgba(201, 242, 123, 0.14);
+  color: $forest;
+  background: $brass;
+  border: 2px solid $forest;
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 600;
+  font-style: italic;
+  box-shadow: 3px 3px 0 rgba(250, 243, 226, 0.1);
 }
 
 .logo-copy {
@@ -283,35 +283,39 @@ async function handleUserCommand(command: string) {
 }
 
 .logo-text {
-  color: #f4f7f0;
+  color: #faf3e2;
+  font-family: var(--font-display);
   font-size: 14px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.04em;
   white-space: nowrap;
 }
 
 .logo-caption {
   margin-top: 2px;
-  color: rgba(232, 240, 234, 0.46);
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.menu-label {
-  padding: 12px 24px 8px;
-  color: rgba(230, 239, 231, 0.32);
-  font-size: 10px;
-  font-weight: 700;
+  color: rgba(250, 243, 226, 0.46);
+  font-family: var(--font-mono);
+  font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
+.menu-label {
+  padding: 14px 24px 10px;
+  color: rgba(250, 243, 226, 0.32);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
 .sidebar-menu {
-  --el-menu-active-color: #d9ff8a;
+  --el-menu-active-color: $brass;
   --el-menu-bg-color: transparent;
-  --el-menu-hover-bg-color: rgba(255, 255, 255, 0.1);
-  --el-menu-text-color: #dce9df;
+  --el-menu-hover-bg-color: rgba(250, 243, 226, 0.06);
+  --el-menu-text-color: #e8e0d2;
 
   border-right: none;
   background-color: transparent;
@@ -324,8 +328,9 @@ async function handleUserCommand(command: string) {
   :deep(.el-sub-menu__title) {
     height: 46px;
     margin: 3px 10px;
-    color: #dce9df;
-    border-radius: 11px;
+    color: #e8e0d2;
+    border: 1.5px solid transparent;
+    transition: all 160ms ease;
 
     .el-icon,
     span {
@@ -333,77 +338,82 @@ async function handleUserCommand(command: string) {
     }
 
     &:hover {
-      color: #fff;
-      background-color: rgba(255, 255, 255, 0.1);
+      color: #faf3e2;
+      background-color: rgba(250, 243, 226, 0.06);
+      border-color: rgba(183, 153, 110, 0.2);
     }
 
     &.is-active {
-      color: #d9ff8a;
-      background-color: rgba(201, 242, 123, 0.16);
-      box-shadow: inset 3px 0 $accent-color;
+      color: $brass;
+      background-color: rgba(183, 153, 110, 0.1);
+      border-color: rgba(183, 153, 110, 0.4);
+      box-shadow: inset 3px 0 $brass;
     }
   }
 
   :deep(.el-sub-menu.is-open > .el-sub-menu__title) {
-    color: #fff;
-    background-color: rgba(255, 255, 255, 0.08);
+    color: #faf3e2;
+    background-color: rgba(250, 243, 226, 0.06);
   }
 
   :deep(.el-menu--inline) {
     margin: 2px 10px 6px;
     padding: 4px 0;
-    background-color: rgba(4, 22, 18, 0.3);
-    border-radius: 12px;
+    background-color: rgba(31, 42, 36, 0.3);
+    border: 1px solid rgba(250, 243, 226, 0.08);
   }
 
   :deep(.el-sub-menu .el-menu-item) {
     min-width: auto;
     margin: 2px 6px;
     padding-left: 42px !important;
-    color: #e7f0e9;
+    color: #e8e0d2;
     background-color: transparent;
-    font-weight: 620;
+    border: 1px solid transparent;
 
     &:hover {
-      color: #fff;
-      background-color: rgba(255, 255, 255, 0.1);
+      color: #faf3e2;
+      background-color: rgba(250, 243, 226, 0.06);
+      border-color: rgba(183, 153, 110, 0.15);
     }
 
     &.is-active {
-      color: #efffbd;
-      background-color: rgba(201, 242, 123, 0.2);
-      box-shadow: inset 3px 0 $accent-color;
+      color: $brass;
+      background-color: rgba(183, 153, 110, 0.1);
+      border-color: rgba(183, 153, 110, 0.3);
+      box-shadow: inset 3px 0 $brass;
     }
   }
 }
 
 :global(.el-menu--popup) {
-  --el-menu-active-color: #d9ff8a;
-  --el-menu-bg-color: #102922;
-  --el-menu-hover-bg-color: rgba(255, 255, 255, 0.1);
-  --el-menu-text-color: #e7f0e9;
+  --el-menu-active-color: $brass;
+  --el-menu-bg-color: #26302a;
+  --el-menu-hover-bg-color: rgba(250, 243, 226, 0.08);
+  --el-menu-text-color: #e8e0d2;
 
-  padding: 8px;
-  background-color: #102922;
-  border: 1px solid rgba(201, 242, 123, 0.16);
-  border-radius: 12px;
-  box-shadow: 0 18px 46px rgba(4, 22, 18, 0.28);
+  padding: 6px;
+  background-color: #26302a;
+  border: 2px solid $forest;
+  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.2);
 }
 
 :global(.el-menu--popup .el-menu-item) {
   height: 40px;
-  color: #e7f0e9;
-  border-radius: 9px;
-}
+  color: #e8e0d2;
+  border: 1px solid transparent;
 
-:global(.el-menu--popup .el-menu-item:hover) {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.1);
-}
+  &:hover {
+    color: #faf3e2;
+    background-color: rgba(250, 243, 226, 0.08);
+    border-color: rgba(183, 153, 110, 0.2);
+  }
 
-:global(.el-menu--popup .el-menu-item.is-active) {
-  color: #efffbd;
-  background-color: rgba(201, 242, 123, 0.2);
+  &.is-active {
+    color: $brass;
+    background-color: rgba(183, 153, 110, 0.1);
+    border-color: rgba(183, 153, 110, 0.3);
+  }
 }
 
 .system-status {
@@ -413,10 +423,9 @@ async function handleUserCommand(command: string) {
   min-height: 62px;
   margin: 12px;
   padding: 12px;
-  color: #e7eee8;
-  background: rgba(255, 255, 255, 0.045);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 14px;
+  color: #e8e0d2;
+  background: rgba(250, 243, 226, 0.04);
+  border: 1.5px solid rgba(250, 243, 226, 0.1);
 
   &.is-collapsed { justify-content: center; }
 }
@@ -425,11 +434,12 @@ async function handleUserCommand(command: string) {
   width: 9px;
   height: 9px;
   flex: 0 0 9px;
-  background: $accent-color;
-  border: 2px solid rgba(201, 242, 123, 0.28);
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px rgba(201, 242, 123, 0.08);
+  background: #8dd8a3;
+  border: 2px solid rgba(141, 216, 163, 0.28);
+  animation: status-blink 1.2s steps(2, jump-none) infinite;
 }
+
+@keyframes status-blink { 50% { opacity: 0.35; } }
 
 .status-copy {
   min-width: 0;
@@ -437,8 +447,19 @@ async function handleUserCommand(command: string) {
   flex-direction: column;
   gap: 2px;
 
-  strong { font-size: 12px; font-weight: 700; }
-  span { color: rgba(231, 238, 232, 0.45); font-size: 10px; white-space: nowrap; }
+  strong { 
+    font-family: var(--font-display);
+    font-size: 12px;
+    font-weight: 500;
+    font-style: italic;
+  }
+  span { 
+    color: rgba(232, 224, 210, 0.45); 
+    font-family: var(--font-mono);
+    font-size: 9px; 
+    white-space: nowrap;
+    letter-spacing: 0.06em;
+  }
 }
 
 .layout-main-container {
@@ -448,15 +469,16 @@ async function handleUserCommand(command: string) {
 }
 
 .layout-header {
-  background: rgba(247, 247, 243, 0.88);
+  background: rgba(250, 243, 226, 0.92);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 28px;
-  border-bottom: 1px solid rgba(216, 222, 217, 0.8);
+  padding: 0 24px;
+  border-bottom: 2px solid $forest;
   backdrop-filter: blur(18px);
   z-index: 10;
   flex-shrink: 0;
+  box-shadow: 0 2px 0 rgba(183, 153, 110, 0.2) inset;
 }
 
 .header-left {
@@ -471,38 +493,47 @@ async function handleUserCommand(command: string) {
   display: grid;
   place-items: center;
   padding: 0;
-  background: #fff;
-  border: 1px solid $border-light;
-  border-radius: 11px;
+  background: $cream;
+  border: 2px solid $forest;
   cursor: pointer;
-  color: $text-regular;
-  box-shadow: $shadow-sm;
-  transition: color $transition-duration, transform $transition-duration;
+  color: $forest;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
+  transition: color $transition-duration, transform $transition-duration, box-shadow $transition-duration;
 
   &:hover {
-    color: $primary-color;
-    transform: translateY(-1px);
+    color: $forest;
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.14);
   }
 }
 
 .route-heading {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 
   strong {
-    color: $text-primary;
+    font-family: var(--font-display);
     font-size: 17px;
-    font-weight: 720;
-    letter-spacing: -0.025em;
+    font-weight: 500;
+    font-style: italic;
+    letter-spacing: -0.01em;
+    color: $forest;
   }
 }
 
 .route-eyebrow {
-  color: $text-placeholder;
+  color: $brass-deep;
+  font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 750;
-  letter-spacing: 0.11em;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }
 
 .header-right {
@@ -517,18 +548,28 @@ async function handleUserCommand(command: string) {
   display: grid;
   place-items: center;
   padding: 0;
-  background: #fff;
-  border: 1px solid $border-light;
-  border-radius: 11px;
+  background: $cream;
+  border: 2px solid $forest;
   cursor: pointer;
-  color: $text-regular;
-  box-shadow: $shadow-sm;
-  transition: color $transition-duration, transform $transition-duration;
+  color: $forest;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
+  transition: color $transition-duration, transform $transition-duration, box-shadow $transition-duration;
 
   &:hover {
-    color: $primary-color;
-    transform: translateY(-1px);
+    color: $forest;
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
   }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.14);
+  }
+}
+
+.notification-badge :deep(.el-badge__content) {
+  background: $danger-color;
+  border-color: $cream;
 }
 
 .command-search {
@@ -539,76 +580,97 @@ async function handleUserCommand(command: string) {
   gap: 9px;
   padding: 0 9px 0 12px;
   color: $text-secondary;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid $border-light;
-  border-radius: 11px;
+  background: $cream-warm;
+  border: 2px solid $forest;
   cursor: pointer;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
+  transition: all 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
+  }
 
   span { flex: 1; text-align: left; font-size: 12px; }
   kbd {
-    padding: 3px 6px;
-    color: $text-secondary;
-    background: #f0f2ed;
-    border: 1px solid $border-light;
-    border-radius: 6px;
-    font-size: 10px;
-    box-shadow: 0 1px 0 #d8ded9;
+    padding: 2px 5px;
+    font-size: 9px;
+    font-family: var(--font-mono);
+    color: $forest;
+    background: $cream;
+    border: 1px solid $forest;
   }
-}
-
-.notification-badge {
-  display: flex;
-  align-items: center;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 9px;
+  gap: 10px;
+  padding: 6px 8px 6px 6px;
+  border: 2px solid $forest;
+  background: $cream;
   cursor: pointer;
-  padding: 4px 6px 4px 4px;
-  border-radius: 12px;
-  transition: background-color $transition-duration;
+  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
+  transition: all 160ms ease;
 
   &:hover {
-    background-color: $bg-color;
+    transform: translateY(-2px);
+    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
   }
 }
 
-.user-name {
-  font-size: 12px;
-  font-weight: 700;
-  color: $text-primary;
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.user-info :deep(.el-avatar) {
+  width: 36px;
+  height: 36px;
+  background: $brass;
+  color: $forest;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-style: italic;
+  border: 2px solid $forest;
 }
 
-.user-copy { display: flex; flex-direction: column; line-height: 1.25; }
-.user-role { color: $text-placeholder; font-size: 9px; }
-.user-arrow { color: $text-placeholder; }
+.user-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  .user-name {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 500;
+    font-style: italic;
+    color: $forest;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .user-role {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    color: $brass-deep;
+    text-transform: uppercase;
+  }
+}
+
+.user-arrow { color: $forest; font-size: 14px; }
 
 .layout-main {
   flex: 1;
-  min-height: 0;
-  background:
-    radial-gradient(circle at 90% 0%, rgba(201, 242, 123, 0.13), transparent 24%),
-    $bg-page;
+  overflow: auto;
   padding: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  @include custom-scrollbar;
 }
 
-@media (max-width: 1024px) {
-  .command-search { width: 40px; padding: 0; justify-content: center; }
-  .command-search span, .command-search kbd { display: none; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.22s ease;
 }
 
-@media (max-width: 760px) {
-  .layout-header { padding: 0 14px; }
-  .route-eyebrow, .user-copy { display: none; }
-  .header-right { gap: 6px; }
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
