@@ -17,7 +17,8 @@
     "api:generate": "pnpm --filter opc-agent-web api:generate",
     "db:migrate": "pnpm --filter opc-agent-server db:migrate",
     "db:revert": "pnpm --filter opc-agent-server db:revert",
-    "db:seed": "pnpm --filter opc-agent-server db:seed"
+    "db:seed": "pnpm --filter opc-agent-server db:seed",
+    "generate-assets": "pnpm --filter opc-agent-assets generate-assets"
   },
   "engines": {
     "node": ">=20.0.0",

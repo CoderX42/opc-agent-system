@@ -1,0 +1,11 @@
+Avoid:
+- photorealism
+- 3D render
+- painterly fantasy illustration
+- high-resolution concept-art texture
+- blurry edges
+- heavy gradients
+- cropped sprites
+- inconsistent grid cell sizes
+- text artifacts
+- watermark

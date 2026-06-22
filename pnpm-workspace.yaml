@@ -1,5 +1,6 @@
 packages:
   - 'packages/*'
+  - 'opc-agent-assets'
 allowBuilds:
   '@nestjs/core': true
   '@parcel/watcher': true
