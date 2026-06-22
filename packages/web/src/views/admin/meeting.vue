@@ -7,14 +7,33 @@
       </div>
     </div>
 
-    <div class="filter-bar">
-      <el-input v-model="filters.keyword" placeholder="搜索会议纪要..." clearable style="width: 240px;" @keyup.enter="handleSearch" />
+    <div class="meeting-brief">
+      <div>
+        <span class="kicker">MEETING NOTES</span>
+        <strong>{{ meetingList.length }} 份纪要正在归档</strong>
+        <p>快速追踪会议结论、行动项和参会人，减少散落在聊天里的待办。</p>
+      </div>
+      <div class="meeting-metrics">
+        <span><b>{{ completedCount }}</b> 已完成</span>
+        <span><b>{{ activeCount }}</b> 进行中</span>
+      </div>
+    </div>
+
+    <div class="filter-bar meeting-filter">
+      <el-input v-model="filters.keyword" placeholder="搜索会议纪要..." clearable class="meeting-search" @keyup.enter="handleSearch" />
       <el-button icon="Search" @click="handleSearch">搜索</el-button>
     </div>
 
     <div class="table-wrapper">
-      <el-table :data="meetingList" v-loading="loading" stripe>
-        <el-table-column prop="title" label="会议主题" min-width="200" show-overflow-tooltip />
+      <el-table :data="filteredMeetingList" v-loading="loading" stripe>
+        <el-table-column prop="title" label="会议主题" min-width="220" show-overflow-tooltip>
+          <template #default="{ row }">
+            <div class="meeting-title-cell">
+              <span class="meeting-icon"><el-icon><Memo /></el-icon></span>
+              <span>{{ row.title }}</span>
+            </div>
+          </template>
+        </el-table-column>
         <el-table-column label="日期" width="170">
           <template #default="{ row }">{{ formatTime(row.startTime) }}</template>
         </el-table-column>
@@ -22,7 +41,7 @@
         <el-table-column label="参会人" width="240">
           <template #default="{ row }">
             <template v-if="row.participants?.length">
-              <el-tag v-for="p in row.participants.slice(0, 3)" :key="p" size="small" style="margin-right: 4px;">{{ p }}</el-tag>
+              <el-tag v-for="p in row.participants.slice(0, 3)" :key="p" size="small" class="participant-tag">{{ p }}</el-tag>
               <el-tag v-if="row.participants.length > 3" size="small" type="info">+{{ row.participants.length - 3 }}</el-tag>
             </template>
             <span v-else>—</span>
@@ -62,15 +81,15 @@
           <el-descriptions-item label="地点">{{ currentMeeting.location || '—' }}</el-descriptions-item>
           <el-descriptions-item label="会议链接">{{ currentMeeting.meetingLink || '—' }}</el-descriptions-item>
           <el-descriptions-item label="参会人" :span="2">
-            <el-tag v-for="p in currentMeeting.participants || []" :key="p" size="small" style="margin-right: 4px;">{{ p }}</el-tag>
+            <el-tag v-for="p in currentMeeting.participants || []" :key="p" size="small" class="participant-tag">{{ p }}</el-tag>
           </el-descriptions-item>
         </el-descriptions>
 
         <el-divider content-position="left">会议议程</el-divider>
-        <div class="meeting-content">{{ currentMeeting.agenda || '—' }}</div>
+        <div class="meeting-content agenda-content">{{ currentMeeting.agenda || '—' }}</div>
 
         <el-divider content-position="left">会议纪要</el-divider>
-        <div class="meeting-content">{{ currentMeeting.minutes || '—' }}</div>
+        <div class="meeting-content minutes-content">{{ currentMeeting.minutes || '—' }}</div>
       </template>
     </el-dialog>
 
@@ -117,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox, type FormInstance, type FormRules } from 'element-plus'
 import { getMeetingMinutesList, createMeetingMinutes, updateMeetingMinutes, deleteMeetingMinutes } from '@/api/admin'
 
@@ -157,6 +176,23 @@ const formRules: FormRules = {
 
 const meetingList = ref<Meeting[]>([])
 
+const filteredMeetingList = computed(() => {
+  const keyword = filters.keyword.trim().toLowerCase()
+  if (!keyword) return meetingList.value
+  return meetingList.value.filter((meeting) => {
+    return [
+      meeting.title,
+      meeting.location,
+      meeting.agenda,
+      meeting.minutes,
+      ...(meeting.participants || []),
+    ].some(value => (value || '').toLowerCase().includes(keyword))
+  })
+})
+
+const completedCount = computed(() => meetingList.value.filter(item => item.status === 'COMPLETED').length)
+const activeCount = computed(() => meetingList.value.filter(item => item.status === 'IN_PROGRESS' || item.status === 'SCHEDULED').length)
+
 async function fetchList() {
   loading.value = true
   try {
@@ -194,8 +230,8 @@ function handleView(row: any) { currentMeeting.value = row; detailVisible.value 
 function handleEdit(row: any) {
   form.id = row.id
   form.title = row.title
-  form.startTime = formatTime(row.startTime)
-  form.endTime = formatTime(row.endTime || '')
+  form.startTime = formatDateTimeValue(row.startTime)
+  form.endTime = formatDateTimeValue(row.endTime || '')
   form.location = row.location || ''
   form.meetingLink = row.meetingLink || ''
   form.participants = [...(row.participants || [])]
@@ -237,7 +273,25 @@ async function handleSubmit() {
 function formatTime(value: string | Date | undefined | null) {
   if (!value) return ''
   const d = typeof value === 'string' ? new Date(value) : value
-  return d.toISOString().slice(0, 16).replace('T', ' ')
+  return d.toLocaleString('zh-CN', {
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
+function formatDateTimeValue(value: string | Date | undefined | null) {
+  if (!value) return ''
+  const d = typeof value === 'string' ? new Date(value) : value
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mi = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}:${ss}`
 }
 
 function getStatusType(s?: string) {
@@ -253,6 +307,65 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
+.meeting-brief {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 16px;
+  color: $cream;
+  background:
+    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
+    radial-gradient(circle at 90% 20%, rgba(217, 164, 65, 0.28), transparent 36%);
+  border: 2px solid $forest;
+  box-shadow: $shadow-sm;
+
+  .kicker {
+    color: color-mix(in srgb, $brass 82%, $cream);
+  }
+
+  strong {
+    display: block;
+    margin: 6px 0;
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-style: italic;
+    font-weight: 500;
+  }
+
+  p {
+    color: color-mix(in srgb, $cream 78%, $forest);
+  }
+}
+
+.meeting-metrics {
+  display: flex;
+  gap: 10px;
+  flex: 0 0 auto;
+
+  span {
+    min-width: 100px;
+    padding: 10px 12px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-align: center;
+    color: color-mix(in srgb, $cream 78%, $forest);
+    background: rgba(250, 243, 226, 0.09);
+    border: 1.5px solid rgba(250, 243, 226, 0.24);
+  }
+
+  b {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 500;
+    color: $cream;
+  }
+}
+
 .filter-bar { 
   display: flex; 
   gap: 12px; 
@@ -263,12 +376,64 @@ onMounted(fetchList)
   border: 2px solid $forest;
   box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
 }
+.meeting-filter {
+  justify-content: flex-start;
+}
+.meeting-search {
+  width: 260px;
+}
+.meeting-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+  color: $forest;
+}
+.meeting-icon {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  color: $forest;
+  background: $cream-warm;
+  border: 1.5px solid $forest;
+}
+.participant-tag {
+  margin-right: 4px;
+  margin-bottom: 3px;
+}
 .meeting-content { 
   line-height: 1.8; 
   white-space: pre-wrap; 
   color: $text-regular; 
-  padding: 12px; 
+  min-height: 72px;
+  padding: 14px;
   background: $cream-warm;
   border: 1.5px solid $rule;
+}
+.agenda-content {
+  border-left: 4px solid $warning-color;
+}
+.minutes-content {
+  border-left: 4px solid $success-color;
+}
+
+@media (max-width: 760px) {
+  .meeting-brief {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .meeting-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .meeting-search {
+    width: 100%;
+  }
 }
 </style>
