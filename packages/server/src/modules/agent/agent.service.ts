@@ -4,7 +4,18 @@ import { Repository } from 'typeorm';
 import { Agent, AgentStatus, AgentType } from './entities/agent.entity';
 import { AgentQueryDto } from './dto/agent-query.dto';
 import { AiService } from '../../ai/ai.service';
-import { CreateAgentDto, UpdateAgentDto } from './dto/agent.dto';
+import { CreateAgentDto, UpdateAgentDto, UpdateAgentModelConfigDto } from './dto/agent.dto';
+import {
+  AGENT_PROVIDER_PRESETS,
+  AgentModelConfig,
+  defaultAgentConfig,
+  mergeAgentConfig,
+  normalizeAgentConfig,
+  sanitizeAgentConfig,
+  toAiProviderType,
+} from './agent-model-config';
+
+type SafeAgent = Omit<Agent, 'config'> & { config: AgentModelConfig };
 
 @Injectable()
 export class AgentService {
@@ -14,12 +25,16 @@ export class AgentService {
     private readonly aiService: AiService,
   ) {}
 
-  async create(data: CreateAgentDto): Promise<Agent> {
-    const agent = this.agentRepository.create(data);
-    return this.agentRepository.save(agent);
+  async create(data: CreateAgentDto): Promise<SafeAgent> {
+    const agent = this.agentRepository.create({
+      ...data,
+      config: (data.config || defaultAgentConfig(data.type)) as Record<string, unknown>,
+    });
+    const saved = await this.agentRepository.save(agent);
+    return this.toSafeAgent(saved);
   }
 
-  async findAll(query: AgentQueryDto): Promise<{ items: Agent[]; total: number }> {
+  async findAll(query: AgentQueryDto): Promise<{ items: SafeAgent[]; total: number }> {
     const { type, name, status, page, limit, sortBy, sortOrder } = query;
     const queryBuilder = this.agentRepository.createQueryBuilder('agent');
 
@@ -39,10 +54,15 @@ export class AgentService {
       .take(limit);
 
     const [items, total] = await queryBuilder.getManyAndCount();
-    return { items, total };
+    return { items: items.map((agent) => this.toSafeAgent(agent)), total };
   }
 
-  async findOne(id: string): Promise<Agent> {
+  async findOne(id: string): Promise<SafeAgent> {
+    const agent = await this.findRawOne(id);
+    return this.toSafeAgent(agent);
+  }
+
+  async findRawOne(id: string): Promise<Agent> {
     const agent = await this.agentRepository.findOne({ where: { id } });
     if (!agent) {
       throw new NotFoundException(`Agent #${id} not found`);
@@ -50,37 +70,74 @@ export class AgentService {
     return agent;
   }
 
-  async findByType(type: AgentType): Promise<Agent[]> {
-    return this.agentRepository.find({
+  async findByType(type: AgentType): Promise<SafeAgent[]> {
+    const agents = await this.agentRepository.find({
       where: { type, status: AgentStatus.ACTIVE },
     });
+    return agents.map((agent) => this.toSafeAgent(agent));
   }
 
-  async update(id: string, data: UpdateAgentDto): Promise<Agent> {
-    const agent = await this.findOne(id);
+  async update(id: string, data: UpdateAgentDto): Promise<SafeAgent> {
+    const agent = await this.findRawOne(id);
+    const previousConfig = agent.config;
     Object.assign(agent, data);
-    return this.agentRepository.save(agent);
+    if (data.config) {
+      agent.config = mergeAgentConfig(
+        agent.type,
+        previousConfig,
+        data.config,
+      ) as unknown as Record<string, unknown>;
+    }
+    const saved = await this.agentRepository.save(agent);
+    return this.toSafeAgent(saved);
   }
 
   async remove(id: string): Promise<void> {
-    const agent = await this.findOne(id);
+    const agent = await this.findRawOne(id);
     await this.agentRepository.remove(agent);
   }
 
-  async getActiveAgents(): Promise<Agent[]> {
-    return this.agentRepository.find({
+  async getActiveAgents(): Promise<SafeAgent[]> {
+    const agents = await this.agentRepository.find({
       where: { status: AgentStatus.ACTIVE },
     });
+    return agents.map((agent) => this.toSafeAgent(agent));
   }
 
-  async setStatus(id: string, status: AgentStatus): Promise<Agent> {
-    const agent = await this.findOne(id);
+  async getConfigurableAgents(): Promise<SafeAgent[]> {
+    const agents = await Promise.all(
+      Object.values(AgentType).map((type) => this.ensureDefaultAgent(type)),
+    );
+    return agents.map((agent) => this.toSafeAgent(agent));
+  }
+
+  async setStatus(id: string, status: AgentStatus): Promise<SafeAgent> {
+    const agent = await this.findRawOne(id);
     agent.status = status;
-    return this.agentRepository.save(agent);
+    const saved = await this.agentRepository.save(agent);
+    return this.toSafeAgent(saved);
+  }
+
+  getModelPresets() {
+    return AGENT_PROVIDER_PRESETS;
+  }
+
+  async updateModelConfig(
+    id: string,
+    data: UpdateAgentModelConfigDto,
+  ): Promise<SafeAgent> {
+    const agent = await this.findRawOne(id);
+    agent.config = mergeAgentConfig(
+      agent.type,
+      agent.config,
+      data as Partial<AgentModelConfig>,
+    ) as unknown as Record<string, unknown>;
+    const saved = await this.agentRepository.save(agent);
+    return this.toSafeAgent(saved);
   }
 
   async chat(id: string, message: string): Promise<{ reply: string }> {
-    const agent = await this.findOne(id);
+    const agent = await this.findRawOne(id);
     if (agent.status !== AgentStatus.ACTIVE) {
       throw new NotFoundException('Agent 当前不可用');
     }
@@ -94,7 +151,7 @@ export class AgentService {
 
   private async ensureDefaultAgent(type: AgentType): Promise<Agent> {
     const existing = await this.agentRepository.findOne({
-      where: { type, status: AgentStatus.ACTIVE },
+      where: { type },
       order: { createdAt: 'ASC' },
     });
     if (existing) return existing;
@@ -109,21 +166,25 @@ export class AgentService {
         name: names[type],
         type,
         status: AgentStatus.ACTIVE,
-        config: {},
+        config: defaultAgentConfig(type) as unknown as Record<string, unknown>,
       }),
     );
   }
 
   private async chatWithAgent(agent: Agent, message: string): Promise<{ reply: string }> {
-    const prompts: Record<AgentType, string> = {
-      [AgentType.FINANCE]: '你是严谨的财务助理，提供记账、发票和经营分析建议，不虚构数字。',
-      [AgentType.CUSTOMER_SERVICE]: '你是专业客服助理，回答清晰、友善，并在不确定时转人工。',
-      [AgentType.LEGAL]: '你是法务辅助工具，识别风险并明确提示内容不构成正式法律意见。',
-      [AgentType.ADMIN]: '你是行政助理，帮助拆解任务、日程和会议行动项。',
-    };
+    const config = normalizeAgentConfig(agent.type, agent.config);
     let reply: string;
     try {
-      reply = await this.aiService.simpleChat(message, prompts[agent.type]);
+      reply = await this.aiService.simpleChat(message, config.systemPrompt, {
+        provider: toAiProviderType(config),
+        model: config.model,
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+        temperature: config.temperature,
+        maxTokens: config.maxTokens,
+        providerLabel: config.provider,
+        apiKeyRequired: config.apiKeyRequired,
+      });
     } catch {
       reply = this.localFallback(agent.type, message);
     }
@@ -142,5 +203,12 @@ export class AgentService {
         '我可以帮你拆解任务、日程和会议行动项。当前 AI 服务未配置，建议把事项拆成负责人、截止时间、优先级和下一步动作。',
     };
     return `${guides[type]}\n\n你刚才的问题是：“${message}”`;
+  }
+
+  private toSafeAgent(agent: Agent): SafeAgent {
+    return {
+      ...agent,
+      config: sanitizeAgentConfig(normalizeAgentConfig(agent.type, agent.config)),
+    };
   }
 }
