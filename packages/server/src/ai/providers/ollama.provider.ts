@@ -28,8 +28,9 @@ export class OllamaProvider implements AiProviderInterface {
   async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
     try {
       const model = options?.model || this.defaultModel;
+      const baseUrl = normalizeBaseUrl(options?.baseUrl || this.baseUrl);
 
-      const response = await fetch(`${this.baseUrl}/api/chat`, {
+      const response = await fetch(`${baseUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -76,8 +77,9 @@ export class OllamaProvider implements AiProviderInterface {
   ): AsyncGenerator<string, void, unknown> {
     try {
       const model = options?.model || this.defaultModel;
+      const baseUrl = normalizeBaseUrl(options?.baseUrl || this.baseUrl);
 
-      const response = await fetch(`${this.baseUrl}/api/chat`, {
+      const response = await fetch(`${baseUrl}/api/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -133,4 +135,8 @@ export class OllamaProvider implements AiProviderInterface {
       throw error;
     }
   }
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, '');
 }

@@ -1,11 +1,27 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiProviderInterface, ChatMessage, ChatOptions, ChatResponse } from './providers/ai-provider.interface';
+import { AnthropicProvider } from './providers/anthropic.provider';
 import { DeepseekProvider } from './providers/deepseek.provider';
 import { OllamaProvider } from './providers/ollama.provider';
+import { OpenAiCompatibleProvider } from './providers/openai-compatible.provider';
 import { RagService } from './rag/rag.service';
 
-export type AiProviderType = 'deepseek' | 'ollama';
+export type AiProviderType =
+  | 'deepseek'
+  | 'ollama'
+  | 'openai-compatible'
+  | 'openai'
+  | 'anthropic'
+  | 'minimax'
+  | 'moonshot'
+  | 'kimi-code'
+  | 'qwen'
+  | 'zhipu'
+  | 'siliconflow'
+  | 'local-openai';
+
+export type AiChatOptions = ChatOptions & { provider?: AiProviderType };
 
 @Injectable()
 export class AiService {
@@ -15,13 +31,25 @@ export class AiService {
 
   constructor(
     private readonly configService: ConfigService,
+    private readonly anthropicProvider: AnthropicProvider,
     private readonly deepseekProvider: DeepseekProvider,
     private readonly ollamaProvider: OllamaProvider,
+    private readonly openAiCompatibleProvider: OpenAiCompatibleProvider,
     private readonly ragService: RagService,
   ) {
     this.providers = new Map<string, AiProviderInterface>();
+    this.providers.set('anthropic', this.anthropicProvider);
     this.providers.set('deepseek', this.deepseekProvider);
     this.providers.set('ollama', this.ollamaProvider);
+    this.providers.set('openai-compatible', this.openAiCompatibleProvider);
+    this.providers.set('openai', this.openAiCompatibleProvider);
+    this.providers.set('minimax', this.openAiCompatibleProvider);
+    this.providers.set('moonshot', this.openAiCompatibleProvider);
+    this.providers.set('kimi-code', this.openAiCompatibleProvider);
+    this.providers.set('qwen', this.openAiCompatibleProvider);
+    this.providers.set('zhipu', this.openAiCompatibleProvider);
+    this.providers.set('siliconflow', this.openAiCompatibleProvider);
+    this.providers.set('local-openai', this.openAiCompatibleProvider);
     this.defaultProvider = 'deepseek';
   }
 
@@ -52,7 +80,7 @@ export class AiService {
    */
   async chat(
     messages: ChatMessage[],
-    options?: ChatOptions & { provider?: AiProviderType },
+    options?: AiChatOptions,
   ): Promise<ChatResponse> {
     const provider = this.getProvider(options?.provider);
     this.logger.log(`Sending chat to ${provider.name}`);
@@ -64,7 +92,7 @@ export class AiService {
    */
   async *chatStream(
     messages: ChatMessage[],
-    options?: ChatOptions & { provider?: AiProviderType },
+    options?: AiChatOptions,
   ): AsyncGenerator<string, void, unknown> {
     const provider = this.getProvider(options?.provider);
     this.logger.log(`Starting stream chat with ${provider.name}`);
@@ -118,7 +146,7 @@ export class AiService {
   async simpleChat(
     message: string,
     systemPrompt?: string,
-    provider?: AiProviderType,
+    providerOrOptions?: AiProviderType | AiChatOptions,
   ): Promise<string> {
     const messages: ChatMessage[] = [];
     if (systemPrompt) {
@@ -126,7 +154,11 @@ export class AiService {
     }
     messages.push({ role: 'user', content: message });
 
-    const response = await this.chat(messages, { provider });
+    const options =
+      typeof providerOrOptions === 'string'
+        ? { provider: providerOrOptions }
+        : providerOrOptions;
+    const response = await this.chat(messages, options);
     return response.content;
   }
 }

@@ -24,14 +24,17 @@ export class DeepseekProvider implements AiProviderInterface {
 
   async chat(messages: ChatMessage[], options?: ChatOptions): Promise<ChatResponse> {
     try {
-      if (!this.apiKey) {
+      const apiKey = options?.apiKey || this.apiKey;
+      const baseUrl = normalizeBaseUrl(options?.baseUrl || this.baseUrl);
+
+      if (!apiKey) {
         throw new ServiceUnavailableException('DeepSeek API 未配置');
       }
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: options?.model || 'deepseek-chat',
@@ -72,14 +75,17 @@ export class DeepseekProvider implements AiProviderInterface {
     options?: ChatOptions,
   ): AsyncGenerator<string, void, unknown> {
     try {
-      if (!this.apiKey) {
+      const apiKey = options?.apiKey || this.apiKey;
+      const baseUrl = normalizeBaseUrl(options?.baseUrl || this.baseUrl);
+
+      if (!apiKey) {
         throw new ServiceUnavailableException('DeepSeek API 未配置');
       }
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await fetch(`${baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
         },
         body: JSON.stringify({
           model: options?.model || 'deepseek-chat',
@@ -131,4 +137,8 @@ export class DeepseekProvider implements AiProviderInterface {
       throw error;
     }
   }
+}
+
+function normalizeBaseUrl(baseUrl: string): string {
+  return baseUrl.replace(/\/+$/, '');
 }

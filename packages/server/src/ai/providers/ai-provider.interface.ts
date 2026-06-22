@@ -8,6 +8,10 @@ export interface ChatOptions {
   maxTokens?: number;
   model?: string;
   stream?: boolean;
+  apiKey?: string;
+  baseUrl?: string;
+  providerLabel?: string;
+  apiKeyRequired?: boolean;
 }
 
 export interface ChatResponse {
