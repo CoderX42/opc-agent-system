@@ -22,6 +22,8 @@
         class="task-card"
         :class="[{ selected: selectedAgentId === task.agentId }, `task-${task.status}`]"
         :style="{ '--idx': i }"
+        :aria-pressed="selectedAgentId === task.agentId"
+        :aria-label="`${task.name}，${agentName(task.agentId)}，${statusLabel(task.status)}，进度 ${task.progress}%`"
         @click="$emit('select', task.agentId)"
       >
         <div class="task-topline">
@@ -41,7 +43,17 @@
           </span>
           <strong class="status-percent">{{ task.progress }}<i>%</i></strong>
         </div>
-        <el-progress :percentage="task.progress" :show-text="false" :stroke-width="5" :color="progressColor(task.status)" />
+        <el-progress
+          :percentage="task.progress"
+          :show-text="false"
+          :stroke-width="5"
+          :color="progressColor(task.status)"
+          role="progressbar"
+          :aria-label="`${task.name} 进度`"
+          :aria-valuenow="task.progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        />
       </button>
     </div>
 
@@ -51,7 +63,13 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { OfficeAgent, OfficeAgentStatus, OfficeTask, TaskPriority } from '@/stores/agentOffice'
+import {
+  OFFICE_STATUS_COLOR,
+  OFFICE_STATUS_LABEL,
+  TASK_PRIORITY_LABEL,
+  TASK_PRIORITY_TAG_TYPE,
+} from '../constants/statusMeta'
+import type { OfficeAgent, OfficeAgentStatus, OfficeTask, TaskPriority } from '@/types/office'
 
 const props = defineProps<{
   tasks: OfficeTask[]
@@ -61,28 +79,30 @@ const props = defineProps<{
 
 defineEmits<{ select: [agentId: string] }>()
 
+const agentMap = computed(() => new Map(props.agents.map((agent) => [agent.id, agent])))
+
 function agentName(agentId: string) {
-  return props.agents.find((agent) => agent.id === agentId)?.name || '未知 Agent'
+  return agentMap.value.get(agentId)?.name || '未知 Agent'
 }
 
 function agentDotColor(agentId: string) {
-  return props.agents.find((agent) => agent.id === agentId)?.accent || '#8d704a'
+  return agentMap.value.get(agentId)?.accent || '#8d704a'
 }
 
 function priorityLabel(priority: TaskPriority) {
-  return { high: '高优先级', medium: '中优先级', low: '低优先级' }[priority]
+  return TASK_PRIORITY_LABEL[priority]
 }
 
 function priorityType(priority: TaskPriority) {
-  return ({ high: 'danger', medium: 'warning', low: 'info' } as const)[priority]
+  return TASK_PRIORITY_TAG_TYPE[priority]
 }
 
 function statusLabel(status: OfficeAgentStatus) {
-  return { running: '运行中', waiting: '等待确认', error: '异常', idle: '空闲', paused: '已暂停', completed: '已完成' }[status]
+  return OFFICE_STATUS_LABEL[status]
 }
 
 function progressColor(status: OfficeAgentStatus) {
-  return { running: '#4B8FCB', waiting: '#D9A441', error: '#D66B52', idle: '#4F8F68', paused: '#89918C', completed: '#26372F' }[status]
+  return OFFICE_STATUS_COLOR[status]
 }
 </script>
 
@@ -223,12 +243,35 @@ function progressColor(status: OfficeAgentStatus) {
   transition: transform 240ms cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 
+.task-card::after {
+  content: 'OPEN';
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  color: rgba(31, 42, 36, 0.34);
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
 .task-card:hover {
   transform: translateY(-3px);
   border-color: #1f2a24;
   box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.16);
 }
+.task-card:hover::after,
+.task-card:focus-visible::after { opacity: 1; transform: translateY(0); }
 .task-card:hover::before { transform: scaleY(1); }
+
+.task-card:focus-visible {
+  outline: 3px solid rgba(217, 164, 65, 0.78);
+  outline-offset: 3px;
+  transform: translateY(-3px);
+}
 
 .task-card:active {
   transform: translateY(1px);

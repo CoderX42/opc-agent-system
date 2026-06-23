@@ -89,14 +89,14 @@
     </el-tabs>
 
     <footer class="detail-actions">
-      <el-button type="primary" @click="$emit('append-command')" class="action-primary">
+      <el-button type="primary" @click="$emit('append-command')" class="action-primary" :aria-label="`向 ${agent.name} 追加指令`">
         追加指令
       </el-button>
-      <el-button :type="agent.status === 'paused' ? 'success' : 'warning'" @click="$emit('toggle-pause')">
+      <el-button :type="agent.status === 'paused' ? 'success' : 'warning'" @click="$emit('toggle-pause')" :aria-label="`${agent.status === 'paused' ? '继续' : '暂停'} ${agent.name}`">
         {{ agent.status === 'paused' ? '继续' : '暂停' }}
       </el-button>
-      <el-button plain @click="$emit('rerun')">重跑</el-button>
-      <el-button text @click="$emit('view-logs')">日志</el-button>
+      <el-button plain @click="$emit('rerun')" :aria-label="`重跑 ${agent.name} 当前任务`">重跑</el-button>
+      <el-button text @click="$emit('view-logs')" :aria-label="`查看 ${agent.name} 全部日志`">日志</el-button>
     </footer>
   </aside>
 </template>
@@ -104,7 +104,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import AgentAvatar from './AgentAvatar.vue'
-import type { OfficeAgent, OfficeAgentStatus } from '@/stores/agentOffice'
+import {
+  OFFICE_AVATAR_STATUS,
+  OFFICE_STATUS_COLOR,
+  OFFICE_STATUS_META,
+  OFFICE_STATUS_SHORT_LABEL,
+  OFFICE_STATUS_TAG_TYPE,
+} from '../constants/statusMeta'
+import type { OfficeAgent, OfficeAgentStatus } from '@/types/office'
 
 const props = defineProps<{ agent: OfficeAgent | undefined }>()
 const activeTab = ref('overview')
@@ -119,30 +126,23 @@ defineEmits<{
 watch(() => props.agent?.id, () => { activeTab.value = 'overview' })
 
 function statusLabel(status: OfficeAgentStatus) {
-  return { running: '运行中', waiting: '待确认', error: '异常', idle: '空闲', paused: '已暂停', completed: '已完成' }[status]
+  return OFFICE_STATUS_SHORT_LABEL[status]
 }
 
 function statusMeta(status: OfficeAgentStatus) {
-  return ({
-    running: '正在处理任务 · 上次心跳刚刚',
-    waiting: '等待人工确认 · 已停留 02:14',
-    error: '异常中断 · 需要立即介入',
-    idle: '空闲待命 · 随时接受任务',
-    paused: '已被人工暂停',
-    completed: '今日工作已收尾',
-  } as const)[status]
+  return OFFICE_STATUS_META[status]
 }
 
 function statusTagType(status: OfficeAgentStatus) {
-  return ({ running: 'primary', waiting: 'warning', error: 'danger', idle: 'success', paused: 'info', completed: 'success' } as const)[status]
+  return OFFICE_STATUS_TAG_TYPE[status]
 }
 
 function progressColor(status: OfficeAgentStatus) {
-  return { running: '#4B8FCB', waiting: '#D9A441', error: '#D66B52', idle: '#4F8F68', paused: '#89918C', completed: '#26372F' }[status]
+  return OFFICE_STATUS_COLOR[status]
 }
 
 function avatarStatus(status: OfficeAgentStatus) {
-  return ({ running: 'working', waiting: 'waiting', error: 'error', idle: 'idle', paused: 'offline', completed: 'idle' } as const)[status]
+  return OFFICE_AVATAR_STATUS[status]
 }
 
 function etaFromProgress(progress: number) {
@@ -173,6 +173,17 @@ function etaFromProgress(progress: number) {
   overflow: hidden;
 }
 
+.agent-detail::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+  background: radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 62%);
+}
+
 .kicker {
   font-family: 'JetBrains Mono', 'SF Mono', monospace;
   font-size: 9px;
@@ -184,6 +195,8 @@ function etaFromProgress(progress: number) {
 
 /* === HEADER === */
 .detail-header {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns: 76px 1fr;
   align-items: center;
@@ -353,11 +366,13 @@ function etaFromProgress(progress: number) {
 
 /* === CURRENT TASK === */
 .current-task {
+  position: relative;
   display: grid;
   gap: 12px;
   padding: 12px 13px;
   border: 1.5px solid rgba(31, 42, 36, 0.18);
   background: #f5ebd3;
+  box-shadow: inset 5px 0 0 color-mix(in srgb, var(--accent) 70%, #1f2a24);
 }
 
 .task-card-top {
@@ -532,12 +547,16 @@ function etaFromProgress(progress: number) {
 
 /* === ACTIONS === */
 .detail-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
   display: grid;
   grid-template-columns: 1.4fr 1fr 0.9fr 0.7fr;
   gap: 6px;
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid rgba(31, 42, 36, 0.18);
+  background: linear-gradient(180deg, rgba(250, 243, 226, 0.72), #faf3e2 28%);
 }
 .detail-actions :deep(.el-button) {
   min-height: 34px;
@@ -548,6 +567,12 @@ function etaFromProgress(progress: number) {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
+}
+
+.detail-actions :deep(.el-button:focus-visible),
+.logs-cta:focus-visible {
+  outline: 3px solid rgba(217, 164, 65, 0.72);
+  outline-offset: 2px;
 }
 .detail-actions :deep(.action-primary) {
   background: var(--accent);
