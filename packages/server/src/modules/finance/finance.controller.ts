@@ -24,6 +24,7 @@ import {
   UpdateInvoiceDto,
 } from './dto/invoice.dto';
 import { CreateAccountDto } from './dto/account.dto';
+import { KlineDetailQueryDto, KlineQueryDto } from './dto/kline-query.dto';
 
 type AuthRequest = { user: { id: string } };
 
@@ -141,5 +142,17 @@ export class FinanceController {
   @ApiOperation({ summary: '导出 CSV 财务报表' })
   exportReport(@Request() req: AuthRequest, @Body() dto: ExportReportDto) {
     return this.finance.exportReport(req.user.id, dto);
+  }
+
+  @Get('report/kline')
+  @ApiOperation({ summary: '获取 K 线图数据(daily|monthly|yearly)' })
+  getKline(@Request() req: AuthRequest, @Query() query: KlineQueryDto) {
+    return this.finance.getKlineSeries(req.user.id, query.dimension, query.rangeDays);
+  }
+
+  @Get('report/kline/detail')
+  @ApiOperation({ summary: '获取单根 K 线周期明细' })
+  getKlineDetail(@Request() req: AuthRequest, @Query() query: KlineDetailQueryDto) {
+    return this.finance.getKlinePeriodDetail(req.user.id, query.dimension, query.period);
   }
 }

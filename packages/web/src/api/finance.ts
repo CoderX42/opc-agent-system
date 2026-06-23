@@ -81,3 +81,52 @@ export function getFinanceOverview() {
 export function exportFinanceReport(params: { startDate: string; endDate: string; format?: string }) {
   return post<ApiResponse<{ filename: string; count: number; downloadUrl: string }>>('/finance/report/export', params)
 }
+
+/** 获取 K 线图数据 */
+export interface KlineSeries {
+  x: string
+  o: number
+  c: number
+  h: number
+  l: number
+  income: number
+  expense: number
+  count: number
+  empty: boolean
+}
+
+export interface KlineDetailItem {
+  id: string
+  source: 'transaction' | 'invoice'
+  date: string
+  type: string
+  amount: number
+  signedAmount: number
+  category: string
+  counterparty: string
+  description: string
+  balanceAfter: number
+}
+
+export interface KlineDetail {
+  period: string
+  dimension: 'daily' | 'monthly' | 'yearly'
+  range: { start: string; end: string }
+  o: number
+  c: number
+  h: number
+  l: number
+  income: number
+  expense: number
+  count: number
+  empty: boolean
+  items: KlineDetailItem[]
+}
+
+export function getFinanceKline(params: { dimension: 'daily' | 'monthly' | 'yearly'; rangeDays?: number }) {
+  return get<ApiResponse<KlineSeries[]>>('/finance/report/kline', { params })
+}
+
+export function getFinanceKlineDetail(params: { dimension: 'daily' | 'monthly' | 'yearly'; period: string }) {
+  return get<ApiResponse<KlineDetail>>('/finance/report/kline/detail', { params })
+}

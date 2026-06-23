@@ -535,6 +535,430 @@ export class FinanceService {
   }
 
   private async invalidate(ownerId: string): Promise<void> {
-    await this.cache.del(`finance:summary:${ownerId}`);
+    await Promise.all([
+      this.cache.del(`finance:summary:${ownerId}`),
+      this.cache.set(`finance:kline:version:${ownerId}`, Date.now(), 300_000),
+    ]);
+  }
+
+  async getKlineSeries(
+    ownerId: string,
+    dimension: 'daily' | 'monthly' | 'yearly' = 'monthly',
+    rangeDays = 365,
+  ): Promise<
+    Array<{
+      x: string;
+      o: number;
+      c: number;
+      h: number;
+      l: number;
+      income: number;
+      expense: number;
+      count: number;
+      empty: boolean;
+    }>
+  > {
+    const safeDimension: 'daily' | 'monthly' | 'yearly' =
+      dimension === 'daily' || dimension === 'monthly' || dimension === 'yearly'
+        ? dimension
+        : 'monthly';
+    const safeRange = Math.min(3650, Math.max(30, Number(rangeDays) || 365));
+    const cacheVersion = (await this.cache.get<number>(`finance:kline:version:${ownerId}`)) || 1;
+    const cacheKey = `finance:kline:${ownerId}:${cacheVersion}:${safeDimension}:${safeRange}`;
+    const cached = await this.cache.get<unknown>(cacheKey);
+    if (cached) return cached as never;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const start = new Date(today);
+    start.setDate(today.getDate() - safeRange + 1);
+    const windowStart = this.periodStart(start, safeDimension);
+    const windowEnd = this.nextPeriodStart(today, safeDimension);
+
+    const [openingTx, openingInv, txRows, invRows] = await Promise.all([
+      this.transactionRepository
+        .createQueryBuilder('t')
+        .select(
+          `COALESCE(SUM(CASE WHEN t.type = :income THEN t.amount ELSE -t.amount END), 0)`,
+          'balance',
+        )
+        .where('t.ownerId = :ownerId', { ownerId })
+        .andWhere('t.invoiceId IS NULL')
+        .andWhere('t.date < :windowStart', { windowStart })
+        .setParameters({ income: TransactionType.INCOME })
+        .getRawOne(),
+      this.invoiceRepository
+        .createQueryBuilder('i')
+        .select(
+          `COALESCE(SUM(CASE WHEN i.type = :income THEN i.amount ELSE -i.amount END), 0)`,
+          'balance',
+        )
+        .where('i.ownerId = :ownerId', { ownerId })
+        .andWhere('i.status = :status', { status: 'APPROVED' })
+        .andWhere('i.date < :windowStart', { windowStart })
+        .setParameters({ income: 'income' })
+        .getRawOne(),
+      this.transactionRepository
+        .createQueryBuilder('t')
+        .select('t.date', 'date')
+        .addSelect('t.id', 'id')
+        .addSelect('t.createdAt', 'createdAt')
+        .addSelect('t.type', 'type')
+        .addSelect('t.amount', 'amount')
+        .where('t.ownerId = :ownerId', { ownerId })
+        .andWhere('t.invoiceId IS NULL')
+        .andWhere('t.date >= :windowStart', { windowStart })
+        .andWhere('t.date < :windowEnd', { windowEnd })
+        .orderBy('t.date', 'ASC')
+        .getRawMany(),
+      this.invoiceRepository
+        .createQueryBuilder('i')
+        .select('i.date', 'date')
+        .addSelect('i.id', 'id')
+        .addSelect('i.createdAt', 'createdAt')
+        .addSelect('i.type', 'type')
+        .addSelect('i.amount', 'amount')
+        .where('i.ownerId = :ownerId', { ownerId })
+        .andWhere('i.status = :status', { status: 'APPROVED' })
+        .andWhere('i.date >= :windowStart', { windowStart })
+        .andWhere('i.date < :windowEnd', { windowEnd })
+        .orderBy('i.date', 'ASC')
+        .getRawMany(),
+    ]);
+
+    type Row = { id: string; date: Date; createdAt: Date; type: string; amount: number };
+    const rows: Row[] = [...txRows, ...invRows]
+      .map((r) => ({
+        id: String(r.id || ''),
+        date: this.toLocalDate(r.date),
+        createdAt: r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt),
+        type: String(r.type),
+        amount: Number(r.amount || 0),
+      }))
+      .sort((a, b) => {
+        const dateDiff = a.date.getTime() - b.date.getTime();
+        if (dateDiff) return dateDiff;
+        const createdDiff = a.createdAt.getTime() - b.createdAt.getTime();
+        if (createdDiff) return createdDiff;
+        return a.id.localeCompare(b.id);
+      });
+
+    let runningBalance =
+      Number(openingTx?.balance || 0) + Number(openingInv?.balance || 0);
+
+    const rowsByBucket = new Map<string, Row[]>();
+    rows.forEach((row) => {
+      const key = this.bucketKey(row.date, safeDimension);
+      const bucketRows = rowsByBucket.get(key);
+      if (bucketRows) {
+        bucketRows.push(row);
+      } else {
+        rowsByBucket.set(key, [row]);
+      }
+    });
+
+    const series = this.periodStarts(windowStart, today, safeDimension).map((period) => {
+      const key = this.bucketKey(period, safeDimension);
+      const bucketRows = rowsByBucket.get(key) || [];
+      const open = this.round2(runningBalance);
+      const bucket = {
+        x: this.bucketLabel(period, safeDimension),
+        o: open,
+        c: open,
+        h: open,
+        l: open,
+        income: 0,
+        expense: 0,
+        count: 0,
+      };
+
+      bucketRows.forEach((row) => {
+        const net = row.type === 'INCOME' || row.type === 'income'
+          ? Number(row.amount || 0)
+          : -Number(row.amount || 0);
+        runningBalance += net;
+        bucket.c = this.round2(runningBalance);
+        bucket.h = Math.max(bucket.h, bucket.c);
+        bucket.l = Math.min(bucket.l, bucket.c);
+        if (net >= 0) bucket.income += net;
+        else bucket.expense += -net;
+        bucket.count += 1;
+      });
+
+      return {
+        x: bucket.x,
+        o: this.round2(bucket.o),
+        c: this.round2(bucket.c),
+        h: this.round2(bucket.h),
+        l: this.round2(bucket.l),
+        income: this.round2(bucket.income),
+        expense: this.round2(bucket.expense),
+        count: bucket.count,
+        empty: bucket.count === 0,
+      };
+    });
+
+    await this.cache.set(cacheKey, series, 60_000);
+    return series;
+  }
+
+  async getKlinePeriodDetail(
+    ownerId: string,
+    dimension: 'daily' | 'monthly' | 'yearly' = 'daily',
+    period: string,
+  ) {
+    const safeDimension: 'daily' | 'monthly' | 'yearly' =
+      dimension === 'daily' || dimension === 'monthly' || dimension === 'yearly'
+        ? dimension
+        : 'daily';
+    const start = this.parsePeriodLabel(period, safeDimension);
+    if (!start) throw new BadRequestException('非法 K 线周期');
+    const end = this.nextPeriodStart(start, safeDimension);
+
+    const [openingTx, openingInv, txRows, invRows] = await Promise.all([
+      this.transactionRepository
+        .createQueryBuilder('t')
+        .select(
+          `COALESCE(SUM(CASE WHEN t.type = :income THEN t.amount ELSE -t.amount END), 0)`,
+          'balance',
+        )
+        .where('t.ownerId = :ownerId', { ownerId })
+        .andWhere('t.invoiceId IS NULL')
+        .andWhere('t.date < :start', { start })
+        .setParameters({ income: TransactionType.INCOME })
+        .getRawOne(),
+      this.invoiceRepository
+        .createQueryBuilder('i')
+        .select(
+          `COALESCE(SUM(CASE WHEN i.type = :income THEN i.amount ELSE -i.amount END), 0)`,
+          'balance',
+        )
+        .where('i.ownerId = :ownerId', { ownerId })
+        .andWhere('i.status = :status', { status: 'APPROVED' })
+        .andWhere('i.date < :start', { start })
+        .setParameters({ income: 'income' })
+        .getRawOne(),
+      this.transactionRepository
+        .createQueryBuilder('t')
+        .select('t.id', 'id')
+        .addSelect('t.date', 'date')
+        .addSelect('t.createdAt', 'createdAt')
+        .addSelect('t.type', 'type')
+        .addSelect('t.amount', 'amount')
+        .addSelect('t.category', 'category')
+        .addSelect('t.counterparty', 'counterparty')
+        .addSelect('t.description', 'description')
+        .where('t.ownerId = :ownerId', { ownerId })
+        .andWhere('t.invoiceId IS NULL')
+        .andWhere('t.date >= :start', { start })
+        .andWhere('t.date < :end', { end })
+        .orderBy('t.date', 'ASC')
+        .addOrderBy('t.createdAt', 'ASC')
+        .getRawMany(),
+      this.invoiceRepository
+        .createQueryBuilder('i')
+        .select('i.id', 'id')
+        .addSelect('i.date', 'date')
+        .addSelect('i.createdAt', 'createdAt')
+        .addSelect('i.type', 'type')
+        .addSelect('i.amount', 'amount')
+        .addSelect('i.category', 'category')
+        .addSelect('i.vendor', 'vendor')
+        .addSelect('i.customerName', 'customerName')
+        .addSelect('i.description', 'description')
+        .where('i.ownerId = :ownerId', { ownerId })
+        .andWhere('i.status = :status', { status: 'APPROVED' })
+        .andWhere('i.date >= :start', { start })
+        .andWhere('i.date < :end', { end })
+        .orderBy('i.date', 'ASC')
+        .addOrderBy('i.createdAt', 'ASC')
+        .getRawMany(),
+    ]);
+
+    type DetailRow = {
+      id: string;
+      source: 'transaction' | 'invoice';
+      date: Date;
+      createdAt: Date;
+      type: string;
+      amount: number;
+      category: string;
+      counterparty: string;
+      description: string;
+    };
+
+    const rows: DetailRow[] = [
+      ...txRows.map((r) => ({
+        id: String(r.id || ''),
+        source: 'transaction' as const,
+        date: this.toLocalDate(r.date),
+        createdAt: r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt),
+        type: String(r.type),
+        amount: Number(r.amount || 0),
+        category: String(r.category || '其他'),
+        counterparty: String(r.counterparty || ''),
+        description: String(r.description || ''),
+      })),
+      ...invRows.map((r) => ({
+        id: String(r.id || ''),
+        source: 'invoice' as const,
+        date: this.toLocalDate(r.date),
+        createdAt: r.createdAt instanceof Date ? r.createdAt : new Date(r.createdAt),
+        type: String(r.type),
+        amount: Number(r.amount || 0),
+        category: String(r.category || '其他'),
+        counterparty: String(r.customerName || r.vendor || ''),
+        description: String(r.description || ''),
+      })),
+    ].sort((a, b) => {
+      const dateDiff = a.date.getTime() - b.date.getTime();
+      if (dateDiff) return dateDiff;
+      const createdDiff = a.createdAt.getTime() - b.createdAt.getTime();
+      if (createdDiff) return createdDiff;
+      return a.id.localeCompare(b.id);
+    });
+
+    let runningBalance =
+      Number(openingTx?.balance || 0) + Number(openingInv?.balance || 0);
+    const open = this.round2(runningBalance);
+    let high = open;
+    let low = open;
+    let income = 0;
+    let expense = 0;
+
+    const items = rows.map((row) => {
+      const signedAmount = row.type === 'INCOME' || row.type === 'income'
+        ? row.amount
+        : -row.amount;
+      runningBalance += signedAmount;
+      const balanceAfter = this.round2(runningBalance);
+      high = Math.max(high, balanceAfter);
+      low = Math.min(low, balanceAfter);
+      if (signedAmount >= 0) income += signedAmount;
+      else expense += -signedAmount;
+      return {
+        id: row.id,
+        source: row.source,
+        date: this.formatDate(row.date),
+        type: row.type,
+        amount: this.round2(row.amount),
+        signedAmount: this.round2(signedAmount),
+        category: row.category,
+        counterparty: row.counterparty,
+        description: row.description,
+        balanceAfter,
+      };
+    });
+
+    const close = this.round2(runningBalance);
+    return {
+      period: this.bucketLabel(start, safeDimension),
+      dimension: safeDimension,
+      range: {
+        start: this.formatDate(start),
+        end: this.formatDate(new Date(end.getTime() - 24 * 60 * 60 * 1000)),
+      },
+      o: open,
+      c: close,
+      h: this.round2(high),
+      l: this.round2(low),
+      income: this.round2(income),
+      expense: this.round2(expense),
+      count: items.length,
+      empty: items.length === 0,
+      items,
+    };
+  }
+
+  private bucketKey(date: Date, dimension: 'daily' | 'monthly' | 'yearly'): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    if (dimension === 'daily') return `${y}-${m}-${d}`;
+    if (dimension === 'monthly') return `${y}-${m}`;
+    return `${y}`;
+  }
+
+  private bucketLabel(date: Date, dimension: 'daily' | 'monthly' | 'yearly'): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    if (dimension === 'daily') return `${y}-${m}-${d}`;
+    if (dimension === 'monthly') return `${y}-${m}`;
+    return `${y}年`;
+  }
+
+  private round2(n: number): number {
+    return Math.round(n * 100) / 100;
+  }
+
+  private toLocalDate(value: Date | string): Date {
+    if (value instanceof Date) return value;
+    const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return new Date(value);
+    const [, year, month, day] = match;
+    return new Date(Number(year), Number(month) - 1, Number(day));
+  }
+
+  private formatDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  private parsePeriodLabel(
+    period: string,
+    dimension: 'daily' | 'monthly' | 'yearly',
+  ): Date | null {
+    const normalized = period.trim().replace('年', '');
+    if (dimension === 'daily') {
+      const match = normalized.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+      if (!match) return null;
+      return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+    }
+    if (dimension === 'monthly') {
+      const match = normalized.match(/^(\d{4})-(\d{2})$/);
+      if (!match) return null;
+      return new Date(Number(match[1]), Number(match[2]) - 1, 1);
+    }
+    const match = normalized.match(/^(\d{4})$/);
+    if (!match) return null;
+    return new Date(Number(match[1]), 0, 1);
+  }
+
+  private periodStart(date: Date, dimension: 'daily' | 'monthly' | 'yearly'): Date {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    if (dimension === 'monthly') start.setDate(1);
+    if (dimension === 'yearly') {
+      start.setMonth(0, 1);
+    }
+    return start;
+  }
+
+  private periodStarts(
+    start: Date,
+    end: Date,
+    dimension: 'daily' | 'monthly' | 'yearly',
+  ): Date[] {
+    const periods: Date[] = [];
+    const cursor = this.periodStart(start, dimension);
+    const last = this.periodStart(end, dimension);
+    while (cursor.getTime() <= last.getTime()) {
+      periods.push(new Date(cursor));
+      if (dimension === 'daily') cursor.setDate(cursor.getDate() + 1);
+      else if (dimension === 'monthly') cursor.setMonth(cursor.getMonth() + 1);
+      else cursor.setFullYear(cursor.getFullYear() + 1);
+    }
+    return periods;
+  }
+
+  private nextPeriodStart(date: Date, dimension: 'daily' | 'monthly' | 'yearly'): Date {
+    const next = this.periodStart(date, dimension);
+    if (dimension === 'daily') next.setDate(next.getDate() + 1);
+    else if (dimension === 'monthly') next.setMonth(next.getMonth() + 1);
+    else next.setFullYear(next.getFullYear() + 1);
+    return next;
   }
 }
