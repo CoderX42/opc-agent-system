@@ -16,8 +16,8 @@
           :default-active="activeMenu"
           :collapse="sidebarCollapsed"
           :collapse-transition="false"
-          router
           class="sidebar-menu"
+          @select="handleMenuSelect"
         >
           <el-menu-item index="/dashboard">
             <el-icon><Monitor /></el-icon>
@@ -199,6 +199,16 @@ watch(
   },
   { immediate: true }
 )
+
+function handleMenuSelect(index: string) {
+  if (index === '/office') {
+    const officeRoute = router.resolve({ path: '/office' })
+    window.open(officeRoute.href, '_blank', 'noopener,noreferrer')
+    return
+  }
+
+  if (index !== route.path) void router.push(index)
+}
 
 async function handleUserCommand(command: string) {
   switch (command) {

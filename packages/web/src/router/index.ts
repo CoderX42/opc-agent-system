@@ -15,16 +15,10 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: { title: '登录', hidden: true },
   },
   {
-    path: '/office',
-    component: () => import('@/layouts/DefaultLayout.vue'),
-    children: [
-      {
-        path: '',
-        name: 'Office',
-        component: () => import('@/views/office/index.vue'),
-        meta: { title: '数字员工办公区', icon: 'OfficeBuilding' },
-      },
-    ],
+    path: '/office/:agentType?',
+    name: 'Office',
+    component: () => import('@/views/office/index.vue'),
+    meta: { title: '数字员工办公区', icon: 'OfficeBuilding' },
   },
 
   {
