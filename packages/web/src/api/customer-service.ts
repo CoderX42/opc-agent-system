@@ -29,7 +29,12 @@ export function getConversationMessages(id: string, params?: PaginationParams) {
 
 /** 发送消息 */
 export function sendMessage(conversationId: string, content: string) {
-  return post<ApiResponse<{ userMessage: Message; reply: Message }>>(`/customer-service/conversations/${conversationId}/messages`, { content })
+  return post<ApiResponse<{ userMessage: Message; reply: Message; ticket?: Ticket | null }>>(`/customer-service/conversations/${conversationId}/messages`, { content })
+}
+
+/** 从对话创建工单 */
+export function createTicketFromConversation(conversationId: string, data?: Partial<Ticket>) {
+  return post<ApiResponse<Ticket>>(`/customer-service/conversations/${conversationId}/ticket`, data || {})
 }
 
 /** 关闭对话 */
@@ -81,6 +86,7 @@ export function getCustomerServiceOverview() {
   return get<ApiResponse<{
     activeConversations: number
     pendingTickets: number
+    inProgressTickets: number
     avgResponseTime: number
     satisfactionRate: number
     todayMessages: number

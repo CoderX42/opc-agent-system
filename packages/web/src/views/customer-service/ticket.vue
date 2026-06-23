@@ -236,6 +236,7 @@ async function fetchList() {
       pageSize: pagination.pageSize,
       status: filters.status || undefined,
       priority: filters.priority || undefined,
+      keyword: filters.keyword.trim() || undefined,
     } as any)
     ticketList.value = res.data.items || []
     pagination.total = res.data.total || 0

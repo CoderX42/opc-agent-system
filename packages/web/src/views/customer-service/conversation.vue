@@ -78,7 +78,7 @@
                 <small v-else>从左侧选择对话，查看完整上下文。</small>
               </div>
               <div class="chat-actions" v-if="selectedConversation">
-                <el-button size="small" icon="Tickets" @click="$router.push('/customer-service/ticket')">转工单</el-button>
+                <el-button size="small" icon="Tickets" @click="handleCreateTicket">转工单</el-button>
                 <el-button size="small" type="danger" plain @click="handleClose">关闭对话</el-button>
               </div>
             </div>
@@ -165,6 +165,7 @@ import {
   getConversationMessages,
   sendMessage as apiSendMessage,
   closeConversation,
+  createTicketFromConversation,
 } from '@/api/customer-service'
 import type { Conversation, Message } from '@/types'
 
@@ -297,11 +298,29 @@ async function sendMessage() {
     const idx = messages.value.findIndex(m => m.id === tempUserMsg.id)
     if (idx >= 0 && res.data?.userMessage) messages.value[idx] = res.data.userMessage as Message
     if (res.data?.reply) messages.value.push(res.data.reply as Message)
+    if (res.data?.ticket) {
+      ElMessage.warning(`已自动生成工单 #${shortId(res.data.ticket.id)}`)
+      await fetchConversations()
+      const current = conversationList.value.find((item) => item.id === selectedConversation.value?.id)
+      if (current) selectedConversation.value = current
+    }
   } finally {
     sending.value = false
     await nextTick()
     if (messagesRef.value) messagesRef.value.scrollTop = messagesRef.value.scrollHeight
   }
+}
+
+async function handleCreateTicket() {
+  if (!selectedConversation.value) return
+  try {
+    await ElMessageBox.confirm('确定要基于当前对话创建工单吗？', '转工单', { type: 'warning' })
+    const res = await createTicketFromConversation(selectedConversation.value.id)
+    ElMessage.success(`工单已创建 #${shortId(res.data.id)}`)
+    await fetchConversations()
+    const current = conversationList.value.find((item) => item.id === selectedConversation.value?.id)
+    if (current) selectedConversation.value = current
+  } catch { /* 用户取消 */ }
 }
 
 async function handleClose() {
