@@ -300,12 +300,8 @@ onMounted(fetchList)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
-  padding: 14px 16px;
-  background:
-    linear-gradient(90deg, rgba(250, 243, 226, 0.96), rgba(245, 235, 211, 0.96)),
-    repeating-linear-gradient(135deg, transparent 0 10px, rgba(31, 42, 36, 0.03) 10px 11px);
-  border: 1px solid rgb(var(--line) / 0.7);
-  box-shadow: $shadow-md;
+  padding: 16px 18px;
+  @include glass-card;
 }
 
 .task-command-copy {
@@ -314,11 +310,10 @@ onMounted(fetchList)
   min-width: 220px;
 
   strong {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 18px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 }
 
@@ -348,38 +343,41 @@ onMounted(fetchList)
 .kanban-column {
   flex: 1;
   min-width: 280px;
-  background: $cream;
-  border: 1px solid rgb(var(--line) / 0.7);
   display: flex;
   flex-direction: column;
-  box-shadow: $shadow-md;
+  background:
+    linear-gradient(180deg, rgb(var(--surface) / 0.95), rgb(var(--surface) / 0.86));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
 }
 
 .kanban-column-header {
-  padding: 12px 14px 13px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  border-top: 4px solid $rule;
-  border-bottom: 1.5px solid $rule;
-  background: $cream-warm;
+  padding: 14px 16px;
+  background: linear-gradient(135deg,
+    rgb(var(--accent-2) / 0.12),
+    rgb(var(--accent-3) / 0.08));
+  border-bottom: 1px solid rgb(var(--line) / 0.5);
 
   small {
     display: block;
     margin-top: 4px;
     font-size: 11px;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
-.column-title { 
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
+.column-title {
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 14px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+  color: rgb(var(--text));
 }
 
 .column-count {
@@ -388,12 +386,14 @@ onMounted(fetchList)
   height: 32px;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-style: italic;
-  color: $forest;
-  background: $cream;
-  border: 1.5px solid $forest;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 700;
+  color: rgb(var(--accent-strong));
+  background: rgb(var(--surface) / 0.9);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 999px;
+  box-shadow: $shadow-sm;
 }
 
 .kanban-column-body {
@@ -408,12 +408,15 @@ onMounted(fetchList)
 .kanban-card {
   position: relative;
   overflow: hidden;
-  background: $bg-page;
-  border: 1.5px solid $forest;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.9));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
   padding: 12px 12px 10px;
   margin-bottom: 12px;
   cursor: pointer;
-  box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.08);
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
   transition: all $transition-duration;
 
   &::before {
@@ -423,47 +426,51 @@ onMounted(fetchList)
     width: 4px;
     height: 100%;
     content: '';
-    background: $brass;
+    background: linear-gradient(180deg, rgb(var(--accent-2)), rgb(var(--accent-3)));
+    border-radius: 4px 0 0 4px;
   }
-  
-  &:hover { 
+
+  &:hover {
     transform: translateY(-2px);
     box-shadow: $shadow-lg;
+    border-color: rgb(var(--accent) / 0.4);
   }
 }
 
 .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 .card-date {
   font-size: 11px;
-  color: $text-placeholder;
+  color: rgb(var(--muted));
   font-family: var(--font-mono);
 
   &.is-overdue {
-    color: $danger-color;
+    color: rgb(var(--danger));
     font-weight: 700;
   }
 }
-.card-title { 
-  font-family: var(--font-display);
-  font-size: 14px; 
-  font-weight: 500; 
-  font-style: italic;
-  margin-bottom: 4px; 
-  color: $forest; 
+.card-title {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: rgb(var(--text));
 }
-.card-desc { font-size: 12px; line-height: 1.55; color: $text-secondary; margin-bottom: 10px; @include text-ellipsis(2); }
+.card-desc { font-size: 12px; line-height: 1.55; color: rgb(var(--muted)); margin-bottom: 10px; @include text-ellipsis(2); }
 .card-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 
   span {
-    padding: 3px 6px;
+    padding: 3px 10px;
     font-family: var(--font-mono);
     font-size: 9px;
-    color: $brass-deep;
-    background: $cream-warm;
-    border: 1px solid $rule;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: rgb(var(--muted));
+    background: rgb(var(--elev) / 0.7);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 999px;
   }
 }
 

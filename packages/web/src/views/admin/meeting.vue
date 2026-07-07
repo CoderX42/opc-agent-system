@@ -52,11 +52,13 @@
             <el-tag :type="getStatusType(row.status)" size="small">{{ getStatusText(row.status) }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" width="220" fixed="right">
           <template #default="{ row }">
-            <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
-            <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            <div class="row-actions">
+              <el-button link type="primary" size="small" @click="handleView(row)">查看</el-button>
+              <el-button link type="primary" size="small" @click="handleEdit(row)">编辑</el-button>
+              <el-button link type="danger" size="small" @click="handleDelete(row)">删除</el-button>
+            </div>
           </template>
         </el-table-column>
       </el-table>
@@ -313,68 +315,66 @@ onMounted(fetchList)
   align-items: center;
   justify-content: space-between;
   margin-bottom: 16px;
-  padding: 16px;
-  color: $cream;
-  background:
-    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
-    radial-gradient(circle at 90% 20%, rgba(217, 164, 65, 0.28), transparent 36%);
-  border: 1px solid rgb(var(--line) / 0.7);
-  box-shadow: $shadow-sm;
+  padding: 20px 24px;
+  @include glass-hero;
 
   .kicker {
-    color: color-mix(in srgb, $brass 82%, $cream);
+    color: rgb(var(--accent-strong));
   }
 
   strong {
     display: block;
-    margin: 6px 0;
-    font-family: var(--font-display);
+    margin: 8px 0;
+    font-family: var(--font-body);
     font-size: 22px;
-    font-style: italic;
-    font-weight: 500;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 
   p {
-    color: color-mix(in srgb, $cream 78%, $forest);
+    color: rgb(var(--muted));
+    line-height: 1.7;
   }
 }
 
 .meeting-metrics {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex: 0 0 auto;
 
   span {
-    min-width: 100px;
-    padding: 10px 12px;
+    min-width: 110px;
+    padding: 12px 14px;
     font-family: var(--font-mono);
     font-size: 10px;
+    font-weight: 600;
     text-align: center;
-    color: color-mix(in srgb, $cream 78%, $forest);
-    background: rgba(250, 243, 226, 0.09);
-    border: 1.5px solid rgba(250, 243, 226, 0.24);
+    color: rgb(var(--muted));
+    background: rgb(var(--surface) / 0.78);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 1rem;
+    box-shadow: $shadow-sm;
+    backdrop-filter: blur(8px);
   }
 
   b {
     display: block;
     margin-bottom: 4px;
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-style: italic;
-    font-weight: 500;
-    color: $cream;
+    font-family: var(--font-body);
+    font-size: 24px;
+    font-weight: 700;
+    color: rgb(var(--accent-strong));
+    font-variant-numeric: tabular-nums;
   }
 }
 
-.filter-bar { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 16px; 
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
   align-items: center;
-  padding: 14px 16px;
-  background: $cream;
-  border: 1px solid rgb(var(--line) / 0.7);
-  box-shadow: $shadow-md;
+  padding: 14px 18px;
+  @include glass-card;
 }
 .meeting-filter {
   justify-content: flex-start;
@@ -385,40 +385,55 @@ onMounted(fetchList)
 .meeting-title-cell {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
   font-weight: 600;
-  color: $forest;
+  color: rgb(var(--text));
 }
 .meeting-icon {
   display: inline-flex;
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  color: $forest;
-  background: $cream-warm;
-  border: 1.5px solid $forest;
+  color: rgb(var(--accent-strong));
+  background:
+    linear-gradient(135deg, rgb(var(--accent-2) / 0.18), rgb(var(--accent-3) / 0.12));
+  border: 1px solid rgb(var(--accent-2) / 0.32);
+  border-radius: 0.625rem;
 }
 .participant-tag {
   margin-right: 4px;
   margin-bottom: 3px;
 }
-.meeting-content { 
-  line-height: 1.8; 
-  white-space: pre-wrap; 
-  color: $text-regular; 
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 4px;
+}
+.row-actions :deep(.el-button) {
+  padding: 4px 6px;
+  min-height: 28px;
+  font-size: 12px;
+}
+.meeting-content {
+  line-height: 1.8;
+  white-space: pre-wrap;
+  color: rgb(var(--text));
   min-height: 72px;
-  padding: 14px;
-  background: $cream-warm;
-  border: 1.5px solid $rule;
+  padding: 16px 18px;
+  background: rgb(var(--surface) / 0.85);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
+  box-shadow: $shadow-sm;
 }
 .agenda-content {
-  border-left: 4px solid $warning-color;
+  border-left: 4px solid rgb(var(--warn));
 }
 .minutes-content {
-  border-left: 4px solid $success-color;
+  border-left: 4px solid rgb(var(--success));
 }
 
 @media (max-width: 760px) {
