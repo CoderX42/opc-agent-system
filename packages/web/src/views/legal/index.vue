@@ -246,38 +246,15 @@ onUnmounted(() => {
 </script>
 
 <style lang="scss" scoped>
-.legal-page {
-  --legal-accent: #8d704a;
-  --legal-danger: #b94c34;
-}
-
 .legal-hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 210px auto;
+  grid-template-columns: minmax(0, 1fr) 220px auto;
   gap: 18px;
   align-items: stretch;
   margin-bottom: 20px;
-  padding: 22px;
-  overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(250, 243, 226, 0.94), rgba(245, 235, 211, 0.9)),
-    repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.05) 0 1px, transparent 1px 18px);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.5rem;
-  box-shadow: $shadow-soft;
-  backdrop-filter: blur(8px);
-
-  &::after {
-    position: absolute;
-    top: -80px;
-    right: 260px;
-    width: 220px;
-    height: 220px;
-    content: '';
-    border: 1px solid rgba(141, 112, 74, 0.26);
-    transform: rotate(18deg);
-  }
+  padding: 22px 24px;
+  @include glass-hero;
 }
 
 .legal-hero-copy,
@@ -289,19 +266,18 @@ onUnmounted(() => {
 
 .legal-hero-title {
   margin-top: 8px;
-  font-family: var(--font-display);
-  font-size: clamp(28px, 3vw, 42px);
-  font-style: italic;
-  font-weight: 500;
-  line-height: 1.05;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: clamp(24px, 2.4vw, 32px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: rgb(var(--text));
 }
 
 .legal-hero-desc {
   max-width: 620px;
   margin-top: 10px;
   line-height: 1.75;
-  color: $text-regular;
+  color: rgb(var(--muted));
 }
 
 .legal-hero-meta {
@@ -311,14 +287,15 @@ onUnmounted(() => {
   margin-top: 16px;
 
   span {
-    padding: 5px 9px;
+    padding: 5px 11px;
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: $forest;
-    background: rgba(183, 153, 110, 0.13);
-    border: 1px solid rgba(31, 42, 36, 0.18);
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.16);
+    border: 1px solid rgb(var(--accent-2) / 0.28);
+    border-radius: 999px;
   }
 }
 
@@ -327,32 +304,31 @@ onUnmounted(() => {
   flex-direction: column;
   justify-content: center;
   min-height: 142px;
-  padding: 16px;
-  background: $forest;
-  border: 1px solid rgba(250, 243, 226, 0.26);
-  box-shadow: inset 0 0 0 1px rgba(250, 243, 226, 0.08);
+  padding: 18px;
+  @include glass-tile;
 
   .panel-label {
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: $brass;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
   }
 
   strong {
-    margin-top: 8px;
-    font-family: var(--font-display);
-    font-size: 44px;
-    font-style: italic;
-    font-weight: 500;
+    margin-top: 10px;
+    font-family: var(--font-body);
+    font-size: 40px;
+    font-weight: 700;
     line-height: 1;
-    color: $cream;
+    color: rgb(var(--accent-strong));
+    font-variant-numeric: tabular-nums;
   }
 
   small {
     margin-top: 8px;
-    color: rgba(250, 243, 226, 0.74);
+    color: rgb(var(--muted));
   }
 }
 
@@ -364,11 +340,12 @@ onUnmounted(() => {
 
   i {
     height: 3px;
-    background: rgba(250, 243, 226, 0.18);
+    background: rgb(var(--line) / 0.7);
+    border-radius: 999px;
 
     &:first-child,
     &:nth-child(2) {
-      background: $brass;
+      background: rgb(var(--accent));
     }
   }
 }
@@ -391,18 +368,16 @@ onUnmounted(() => {
 .legal-card {
   :deep(.el-card__body) {
     background:
-      linear-gradient(180deg, rgba(250, 243, 226, 0.72), rgba(245, 235, 211, 0.48)),
-      repeating-linear-gradient(0deg, transparent 0 27px, rgba(31, 42, 36, 0.035) 27px 28px);
+      linear-gradient(180deg, rgb(var(--surface) / 0.96), rgb(var(--surface) / 0.86)),
+      radial-gradient(circle at 14% 0%, rgb(var(--accent-2) / 0.08), transparent 18rem);
   }
 }
 
 .card-title {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 15px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+  color: rgb(var(--text));
 }
 
 .card-header {
@@ -419,14 +394,14 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: $brass-deep;
+  color: rgb(var(--muted));
 }
 
 .card-subtitle {
   margin-top: 5px;
   letter-spacing: 0.04em;
   text-transform: none;
-  color: $text-secondary;
+  color: rgb(var(--faint));
 }
 
 .chart-container {
@@ -439,16 +414,17 @@ onUnmounted(() => {
 }
 
 .legal-type-tag {
-  background: color-mix(in srgb, $brass 10%, $cream) !important;
-  border-color: rgba(141, 112, 74, 0.38) !important;
-  color: $brass-deep !important;
+  background: rgb(var(--accent-2) / 0.12) !important;
+  border-color: rgb(var(--accent-2) / 0.32) !important;
+  color: rgb(var(--accent-strong)) !important;
 }
 
 .money-text {
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  color: $forest;
+  color: rgb(var(--accent-strong));
+  font-variant-numeric: tabular-nums;
 }
 
 @media (max-width: 1100px) {
