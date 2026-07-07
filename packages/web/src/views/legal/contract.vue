@@ -455,44 +455,51 @@ onMounted(fetchList)
   gap: 18px;
   align-items: flex-start;
   margin-bottom: 18px;
-  padding: 20px 22px;
-  background:
-    linear-gradient(135deg, rgba(250, 243, 226, 0.95), rgba(245, 235, 211, 0.9)),
-    repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.045) 0 1px, transparent 1px 18px);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.5rem;
-  box-shadow: $shadow-soft;
-  backdrop-filter: blur(8px);
+  padding: 22px 24px;
+  @include glass-hero;
 }
 
 .contract-hero-desc {
   max-width: 560px;
   margin-top: 8px;
   line-height: 1.7;
-  color: $text-regular;
+  color: rgb(var(--muted));
 }
 
 .contract-hero .page-title {
   margin-top: 8px;
-  font-family: var(--font-display);
-  font-size: clamp(26px, 2.6vw, 38px);
-  font-style: italic;
-  font-weight: 500;
-  line-height: 1.08;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: rgb(var(--text));
 }
 
 .contract-filter-bar {
+  display: flex;
   align-items: stretch;
+  gap: 14px;
   padding: 0;
+  margin-bottom: 16px;
   overflow: hidden;
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .filter-copy {
-  min-width: 210px;
-  padding: 14px 16px;
-  color: $cream;
-  background: $forest;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 220px;
+  padding: 16px 18px;
+  background:
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.22),
+      rgb(var(--accent-3) / 0.18));
+  border-right: 1px solid rgb(var(--line) / 0.5);
 
   span,
   small {
@@ -500,16 +507,16 @@ onMounted(fetchList)
   }
 
   span {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-style: italic;
-    color: $cream;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(var(--accent-strong));
   }
 
   small {
-    margin-top: 6px;
+    margin-top: 4px;
     line-height: 1.5;
-    color: rgba(250, 243, 226, 0.72);
+    color: rgb(var(--muted));
   }
 }
 
@@ -538,7 +545,7 @@ onMounted(fetchList)
 
 .contract-table-wrapper {
   background:
-    linear-gradient(180deg, rgba(250, 243, 226, 0.96), rgba(245, 235, 211, 0.92));
+    linear-gradient(180deg, rgb(var(--surface) / 0.97), rgb(var(--surface) / 0.9));
 }
 
 .table-toolbar {
@@ -546,18 +553,17 @@ onMounted(fetchList)
   justify-content: space-between;
   gap: 14px;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid $rule;
-  background: rgba(250, 243, 226, 0.72);
+  padding: 14px 18px;
+  background: rgb(var(--elev) / 0.45);
+  border-bottom: 1px solid rgb(var(--line) / 0.5);
 }
 
 .table-title {
   display: block;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-style: italic;
-  font-weight: 500;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(var(--text));
 }
 
 .table-toolbar small {
@@ -567,7 +573,7 @@ onMounted(fetchList)
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .table-chips {
@@ -577,14 +583,15 @@ onMounted(fetchList)
   gap: 6px;
 
   span {
-    padding: 4px 8px;
+    padding: 4px 11px;
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: $brass-deep;
-    background: rgba(183, 153, 110, 0.12);
-    border: 1px solid rgba(141, 112, 74, 0.32);
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.14);
+    border: 1px solid rgb(var(--accent-2) / 0.3);
+    border-radius: 999px;
   }
 }
 
@@ -594,29 +601,30 @@ onMounted(fetchList)
   gap: 3px;
 
   span {
-    font-weight: 700;
-    color: $forest;
+    font-weight: 600;
+    color: rgb(var(--text));
   }
 
   small {
     font-family: var(--font-mono);
     font-size: 9px;
     letter-spacing: 0.08em;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
 .legal-type-tag {
-  background: color-mix(in srgb, $brass 10%, $cream) !important;
-  border-color: rgba(141, 112, 74, 0.38) !important;
-  color: $brass-deep !important;
+  background: rgb(var(--accent-2) / 0.12) !important;
+  border-color: rgb(var(--accent-2) / 0.32) !important;
+  color: rgb(var(--accent-strong)) !important;
 }
 
 .money-text {
   font-family: var(--font-mono);
   font-size: 12px;
   font-weight: 700;
-  color: $forest;
+  color: rgb(var(--accent-strong));
+  font-variant-numeric: tabular-nums;
 }
 
 .status-pill {
@@ -636,22 +644,23 @@ onMounted(fetchList)
   gap: 6px;
 
   strong {
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 }
 
 .review-content {
   min-height: 180px;
   line-height: 1.7;
+  padding: 16px;
   background:
-    linear-gradient(180deg, $cream-warm, $cream),
-    repeating-linear-gradient(0deg, transparent 0 27px, rgba(31, 42, 36, 0.04) 27px 28px);
-  padding: 14px;
-  border: 1.5px solid $rule;
+    linear-gradient(180deg, rgb(var(--surface) / 0.97), rgb(var(--surface) / 0.9)),
+    radial-gradient(circle at 12% 0%, rgb(var(--accent-2) / 0.08), transparent 18rem);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
+  backdrop-filter: blur(10px);
 }
 
 .result-block {
@@ -664,10 +673,12 @@ onMounted(fetchList)
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
-  padding: 14px 16px;
-  color: $cream;
-  background: $forest;
-  border: 1px solid rgb(var(--line) / 0.7);
+  padding: 16px 18px;
+  color: rgb(var(--on-accent));
+  background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
+  border: 1px solid rgb(var(--accent-2) / 0.4);
+  border-radius: 1rem;
+  box-shadow: $shadow-soft;
 
   span {
     font-family: var(--font-mono);
@@ -675,43 +686,40 @@ onMounted(fetchList)
     font-weight: 700;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: rgba(250, 243, 226, 0.72);
+    color: rgb(var(--accent-3) / 0.9);
   }
 
   strong {
-    font-family: var(--font-display);
-    font-size: 30px;
-    font-style: italic;
-    font-weight: 500;
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 700;
     line-height: 1;
   }
 
   &.is-high {
-    background: $danger-color;
-    border-color: color-mix(in srgb, $danger-color 80%, $forest);
+    background: linear-gradient(135deg, rgb(var(--danger)), color-mix(in srgb, rgb(var(--danger)) 70%, rgb(var(--accent-strong))));
   }
 
   &.is-medium {
-    color: $forest;
-    background: $warning-color;
-    border-color: color-mix(in srgb, $warning-color 70%, $forest);
+    color: rgb(var(--text));
+    background: linear-gradient(135deg, rgb(var(--warn)), color-mix(in srgb, rgb(var(--warn)) 60%, rgb(var(--elev))));
 
     span {
-      color: rgba(31, 42, 36, 0.66);
+      color: rgb(var(--accent-strong) / 0.75);
     }
   }
 
   &.is-low {
-    background: $success-color;
-    border-color: color-mix(in srgb, $success-color 72%, $forest);
+    background: linear-gradient(135deg, rgb(var(--success)), color-mix(in srgb, rgb(var(--success)) 60%, rgb(var(--accent-3))));
   }
 }
 
 .summary-box,
 .review-section {
-  padding: 14px;
-  background: rgba(250, 243, 226, 0.72);
-  border: 1px solid $rule;
+  padding: 14px 16px;
+  background: rgb(var(--surface) / 0.88);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
 }
 
 .summary-box span,
@@ -723,12 +731,13 @@ onMounted(fetchList)
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: $brass-deep;
+  color: rgb(var(--muted));
 }
 
 .summary-box p,
 .review-section p {
-  color: $text-regular;
+  color: rgb(var(--text));
+  line-height: 1.7;
 }
 
 .review-grid {
@@ -747,17 +756,18 @@ onMounted(fetchList)
   li {
     position: relative;
     padding-left: 16px;
-    color: $text-regular;
+    color: rgb(var(--text));
+    line-height: 1.6;
 
     &::before {
       position: absolute;
-      top: 0.72em;
+      top: 0.65em;
       left: 0;
-      width: 6px;
-      height: 6px;
+      width: 7px;
+      height: 7px;
       content: '';
-      background: $brass;
-      transform: rotate(45deg);
+      background: rgb(var(--accent));
+      border-radius: 999px;
     }
   }
 }
@@ -772,6 +782,8 @@ onMounted(fetchList)
 
   .filter-copy {
     width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgb(var(--line) / 0.5);
   }
 
   .filter-field,

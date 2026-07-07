@@ -225,62 +225,55 @@ onMounted(fetchList)
   gap: 18px;
   align-items: stretch;
   margin-bottom: 20px;
-  padding: 20px 22px;
-  background:
-    linear-gradient(135deg, rgba(250, 243, 226, 0.95), rgba(245, 235, 211, 0.9)),
-    repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.045) 0 1px, transparent 1px 18px);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.5rem;
-  box-shadow: $shadow-soft;
-  backdrop-filter: blur(8px);
+  padding: 22px 24px;
+  @include glass-hero;
 }
 
 .compliance-copy p {
   max-width: 620px;
   margin-top: 8px;
   line-height: 1.75;
-  color: $text-regular;
+  color: rgb(var(--muted));
 }
 
 .compliance-copy .page-title {
   margin-top: 8px;
-  font-family: var(--font-display);
-  font-size: clamp(26px, 2.6vw, 38px);
-  font-style: italic;
-  font-weight: 500;
-  line-height: 1.08;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: clamp(22px, 2.2vw, 30px);
+  font-weight: 700;
+  line-height: 1.1;
+  color: rgb(var(--text));
 }
 
 .compliance-score-card {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 16px;
-  color: $cream;
-  background: $forest;
-  border: 1px solid rgba(250, 243, 226, 0.2);
+  padding: 18px 20px;
+  @include glass-tile;
 
   span {
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: $brass;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
   }
 
   strong {
-    margin-top: 8px;
-    font-family: var(--font-display);
-    font-size: 42px;
-    font-style: italic;
-    font-weight: 500;
+    margin-top: 10px;
+    font-family: var(--font-body);
+    font-size: 38px;
+    font-weight: 700;
     line-height: 1;
+    color: rgb(var(--accent-strong));
+    font-variant-numeric: tabular-nums;
   }
 
   small {
     margin-top: 8px;
-    color: rgba(250, 243, 226, 0.72);
+    color: rgb(var(--muted));
   }
 }
 
@@ -300,18 +293,16 @@ onMounted(fetchList)
   :deep(.el-card__body) {
     padding: 18px;
     background:
-      linear-gradient(180deg, rgba(250, 243, 226, 0.76), rgba(245, 235, 211, 0.56)),
-      repeating-linear-gradient(0deg, transparent 0 27px, rgba(31, 42, 36, 0.035) 27px 28px);
+      linear-gradient(180deg, rgb(var(--surface) / 0.96), rgb(var(--surface) / 0.86)),
+      radial-gradient(circle at 14% 0%, rgb(var(--accent-2) / 0.08), transparent 18rem);
   }
 }
 
 .card-title {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 15px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+  color: rgb(var(--text));
 }
 
 .card-header {
@@ -327,20 +318,21 @@ onMounted(fetchList)
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: $text-secondary;
+  color: rgb(var(--faint));
 }
 
 .progress-label {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-style: italic;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: 22px;
+  font-weight: 700;
+  color: rgb(var(--accent-strong));
+  font-variant-numeric: tabular-nums;
 }
 
 .progress-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 14px;
   margin-top: 14px;
 
   span {
@@ -351,32 +343,46 @@ onMounted(fetchList)
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 
   i {
     width: 8px;
     height: 8px;
     display: inline-block;
-    transform: rotate(45deg);
+    border-radius: 999px;
   }
 
-  .is-pass { background: $success-color; }
-  .is-fail { background: $danger-color; }
-  .is-pending { background: $warning-color; }
+  .is-pass { background: rgb(var(--success)); }
+  .is-fail { background: rgb(var(--danger)); }
+  .is-pending { background: rgb(var(--warn)); }
 }
 
 .compliance-filter-bar {
+  display: flex;
   align-items: stretch;
+  gap: 14px;
   padding: 0;
+  margin-bottom: 16px;
   overflow: hidden;
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .filter-copy {
-  min-width: 210px;
-  padding: 14px 16px;
-  color: $cream;
-  background: $forest;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 220px;
+  padding: 16px 18px;
+  background:
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.22),
+      rgb(var(--accent-3) / 0.18));
+  border-right: 1px solid rgb(var(--line) / 0.5);
 
   span,
   small {
@@ -384,15 +390,16 @@ onMounted(fetchList)
   }
 
   span {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-style: italic;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(var(--accent-strong));
   }
 
   small {
-    margin-top: 6px;
+    margin-top: 4px;
     line-height: 1.5;
-    color: rgba(250, 243, 226, 0.72);
+    color: rgb(var(--muted));
   }
 }
 
@@ -414,7 +421,7 @@ onMounted(fetchList)
 
 .compliance-table-wrapper {
   background:
-    linear-gradient(180deg, rgba(250, 243, 226, 0.96), rgba(245, 235, 211, 0.92));
+    linear-gradient(180deg, rgb(var(--surface) / 0.97), rgb(var(--surface) / 0.9));
 }
 
 .table-toolbar {
@@ -422,18 +429,17 @@ onMounted(fetchList)
   justify-content: space-between;
   gap: 14px;
   align-items: center;
-  padding: 14px 16px;
-  border-bottom: 1px solid $rule;
-  background: rgba(250, 243, 226, 0.72);
+  padding: 14px 18px;
+  background: rgb(var(--elev) / 0.45);
+  border-bottom: 1px solid rgb(var(--line) / 0.5);
 }
 
 .table-title {
   display: block;
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-style: italic;
-  font-weight: 500;
-  color: $forest;
+  font-family: var(--font-body);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(var(--text));
 }
 
 .table-toolbar small {
@@ -443,7 +449,7 @@ onMounted(fetchList)
   font-size: 9px;
   font-weight: 700;
   letter-spacing: 0.08em;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .table-chips {
@@ -453,14 +459,15 @@ onMounted(fetchList)
   gap: 6px;
 
   span {
-    padding: 4px 8px;
+    padding: 4px 11px;
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.08em;
-    color: $brass-deep;
-    background: rgba(183, 153, 110, 0.12);
-    border: 1px solid rgba(141, 112, 74, 0.32);
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.14);
+    border: 1px solid rgb(var(--accent-2) / 0.3);
+    border-radius: 999px;
   }
 }
 
@@ -470,23 +477,23 @@ onMounted(fetchList)
   gap: 3px;
 
   span {
-    font-weight: 700;
-    color: $forest;
+    font-weight: 600;
+    color: rgb(var(--text));
   }
 
   small {
     max-width: 360px;
     overflow: hidden;
-    color: $text-secondary;
+    color: rgb(var(--muted));
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 }
 
 .category-tag {
-  background: color-mix(in srgb, $brass 10%, $cream) !important;
-  border-color: rgba(141, 112, 74, 0.38) !important;
-  color: $brass-deep !important;
+  background: rgb(var(--accent-2) / 0.12) !important;
+  border-color: rgb(var(--accent-2) / 0.32) !important;
+  color: rgb(var(--accent-strong)) !important;
 }
 
 .status-pill {
@@ -512,7 +519,12 @@ onMounted(fetchList)
     align-items: stretch;
   }
 
-  .filter-copy,
+  .filter-copy {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgb(var(--line) / 0.5);
+  }
+
   .filter-field,
   .keyword-field,
   .filter-controls > .el-button {
