@@ -36,9 +36,11 @@ function syncMockStats() {
 
 export async function getOfficeState(): Promise<OfficeStateResponse> {
   try {
-    // Attempt real backend first
-    const res = await get<OfficeStateResponse>('/office/state')
-    return res
+    // Attempt real backend first. axios interceptor returns the
+    // envelope { success, data, ... }, so unwrap to the inner payload.
+    const res = await get<{ data: OfficeStateResponse }>('/office/state')
+    if (res?.data) return res.data
+    throw new Error('office state empty')
   } catch {
     // fallback to mock
     await new Promise((resolve) => window.setTimeout(resolve, 120))
