@@ -173,23 +173,19 @@ async function handleLogin() {
   flex-direction: column;
   padding: 34px 42px 26px;
   overflow: hidden;
-  color: #faf3e2;
-  border-right: 2px solid $forest;
-  background:
-    repeating-linear-gradient(90deg, rgba(250, 243, 226, 0.03) 0 1px, transparent 1px 32px),
-    repeating-linear-gradient(rgba(250, 243, 226, 0.03) 0 1px, transparent 1px 32px),
-    $forest;
+  color: #fff;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  background: linear-gradient(145deg, $primary-dark, $bg-sidebar);
 }
 
 .story-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.08;
+  opacity: 0.06;
   background-image:
-    linear-gradient(rgba(183, 153, 110, 0.2) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(183, 153, 110, 0.2) 1px, transparent 1px);
-  background-size: 40px 40px;
-  mask-image: linear-gradient(135deg, black, transparent 72%);
+    linear-gradient(rgba(255,255,255,0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.25) 1px, transparent 1px);
+  background-size: 42px 42px;
 }
 
 .story-brand, .story-content, .story-footer { position: relative; z-index: 1; }
@@ -199,22 +195,19 @@ async function handleLogin() {
   height: 40px;
   display: grid;
   place-items: center;
-  color: $forest;
-  background: $brass;
-  border: 2px solid #faf3e2;
-  font-family: var(--font-display);
+  color: #fff;
+  background: $forest;
+  border-radius: $border-radius-md;
+  font-family: var(--font-body);
   font-size: 20px;
-  font-style: italic;
-  font-weight: 600;
-  box-shadow: 3px 3px 0 rgba(250, 243, 226, 0.1);
+  font-weight: 700;
 }
 .story-brand > div:last-child { display: flex; flex-direction: column; }
 .story-brand strong { 
-  font-family: var(--font-display);
-  font-size: 13px; 
-  font-weight: 500;
-  font-style: italic;
-  letter-spacing: .08em; 
+  font-family: var(--font-body);
+  font-size: 14px; 
+  font-weight: 600;
+  letter-spacing: .02em; 
 }
 .story-brand span { 
   margin-top: 2px; 
@@ -277,7 +270,7 @@ async function handleLogin() {
   display: grid; 
   place-items: center; 
   flex: 0 0 30px; 
-  color: #faf3e2; 
+  color: #fff; 
   border: 1.5px solid $forest;
 }
 .story-agent > div { min-width: 0; display: flex; flex-direction: column; }
@@ -312,7 +305,7 @@ async function handleLogin() {
   width: 6px; 
   height: 6px; 
   background: $success-color; 
-  border: 1px solid #faf3e2;
+  border: 1px solid rgba(255,255,255,0.2);
   animation: status-blink 1.2s steps(2, jump-none) infinite;
 }
 
@@ -332,7 +325,7 @@ async function handleLogin() {
 }
 .entry-top :deep(.el-button) { 
   min-height: 34px; 
-  border-radius: 0;
+  border-radius: $border-radius-md;
   border: 1.5px solid $forest;
   font-family: var(--font-body);
   font-weight: 600;
@@ -383,10 +376,14 @@ async function handleLogin() {
 .login-form :deep(.el-input__wrapper) { 
   min-height: 46px; 
   padding: 0 14px; 
-  background: $cream; 
-  border: 2px solid $forest;
-  border-radius: 0;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.1);
+  background: #fff; 
+  border: 1px solid $border-color;
+  border-radius: $border-radius-md;
+  box-shadow: none;
+}
+.login-form :deep(.el-input__wrapper.is-focus) {
+  border-color: $forest;
+  box-shadow: 0 0 0 3px rgba(22, 119, 255, 0.1);
 }
 .login-options { display: flex; align-items: center; justify-content: space-between; margin: -3px 0 20px; }
 .login-options :deep(.el-checkbox__label) { 
@@ -407,8 +404,8 @@ async function handleLogin() {
   display: flex; 
   background: $brass;
   border-color: $brass;
-  border-radius: 0;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.2);
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-md;
 }
 .login-btn :deep(span) { 
   width: 100%; 

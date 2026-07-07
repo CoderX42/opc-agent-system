@@ -5,7 +5,7 @@
       <section class="copilot-grid">
         <!-- 左：Agent 选择 + 命令清单 -->
         <aside class="copilot-rail">
-          <div class="rail-block">
+          <div class="rail-block glass-card">
             <div class="agent-rail">
               <button
                 v-for="(agent, i) in agents"
@@ -43,7 +43,7 @@
             </div>
           </div>
 
-          <div class="rail-block">
+          <div class="rail-block glass-card">
             <ol class="cmd-list">
               <li
                 v-for="(prompt, i) in activeAgent.suggestions"
@@ -272,28 +272,14 @@ function sendPrompt(prompt: string) {
 <style lang="scss" scoped>
 @use '@/styles/variables.scss' as *;
 
-// ============== 页面底色 + 纸质网格 ==============
+// ============== 页面底色 + 玻璃拟态 ==============
 .copilot-page {
   position: relative;
   min-height: calc(100vh - #{$header-height});
   padding: 28px 32px 48px;
-  background: $page-bg;
-  color: $text-primary;
+  color: rgb(var(--text));
   font-family: var(--font-body);
   overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image:
-      linear-gradient(to right, rgba(31, 42, 36, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(31, 42, 36, 0.05) 1px, transparent 1px);
-    background-size: 32px 32px;
-    background-position: -1px -1px;
-    pointer-events: none;
-    mask-image: radial-gradient(ellipse at 50% 30%, black 40%, transparent 90%);
-  }
 }
 
 .copilot-stage {
@@ -321,10 +307,13 @@ function sendPrompt(prompt: string) {
 }
 
 .rail-block {
-  background: $cream;
-  border: 2px solid $forest;
-  padding: 18px;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.92));
+  border: 1px solid rgb(var(--line) / 0.6);
+  padding: 20px;
+  border-radius: 1.25rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(14px);
 }
 
 .rail-head {
@@ -335,25 +324,23 @@ function sendPrompt(prompt: string) {
 
   h2 {
     margin: 0;
-    font-family: var(--font-display);
-    font-weight: 500;
-    font-style: italic;
-    font-size: 18px;
-    font-variation-settings: 'opsz' 96;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 16px;
     letter-spacing: -0.01em;
-    color: $forest;
+    color: rgb(var(--text));
   }
 }
 
 .rail-num {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.14em;
-  color: $brass-deep;
-  padding: 2px 6px;
-  border: 1px solid $brass;
-  background: $cream-warm;
+  color: rgb(var(--accent-strong));
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgb(var(--accent-2) / 0.12);
 }
 
 .rail-hint {
@@ -361,7 +348,7 @@ function sendPrompt(prompt: string) {
   font-family: 'JetBrains Mono', ui-monospace, monospace;
   font-size: 10px;
   letter-spacing: 0.08em;
-  color: $text-placeholder;
+  color: rgb(var(--faint));
 }
 
 // --- Agent tiles ---
@@ -377,40 +364,37 @@ function sendPrompt(prompt: string) {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 14px 16px 14px 20px;
+  padding: 16px 18px;
   text-align: left;
   cursor: pointer;
-  background: $cream;
-  border: 1.5px solid $forest;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.1);
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-soft;
   overflow: hidden;
-  transition:
-    background-color 0.2s ease,
-    border-color 0.2s ease,
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(10px);
 
   // 左侧激活条
   .tile-rail {
     position: absolute;
-    left: 6px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 0;
-    background: var(--agent-accent);
-    transition: height 0.36s cubic-bezier(0.2, 0.8, 0.2, 1);
+    left: 8px;
+    top: 12px;
+    bottom: 12px;
+    width: 4px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, var(--agent-accent), rgb(var(--accent-2)));
+    opacity: 0.55;
   }
 
-  // 大号衬线水印（背景）
+  // 大号装饰字符（背景水印，去掉斜体）
   .tile-watermark {
     position: absolute;
     right: -10px;
     bottom: -28px;
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 120px;
-    font-weight: 500;
-    font-style: italic;
+    font-weight: 700;
     line-height: 1;
     color: var(--agent-accent);
     opacity: 0.05;
@@ -428,22 +412,18 @@ function sendPrompt(prompt: string) {
   }
 
   .tile-mono {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: grid;
     place-items: center;
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 500;
-    font-style: italic;
-    color: $forest;
-    background: color-mix(in srgb, var(--agent-accent) 12%, $cream-warm);
-    border: 1.5px solid $forest;
-    transition:
-      background-color 0.2s ease,
-      color 0.2s ease,
-      transform 0.2s ease,
-      border-color 0.2s ease;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, var(--agent-accent), rgb(var(--accent)));
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+    box-shadow: 0 6px 16px -8px var(--agent-accent);
   }
 
   .tile-status {
@@ -452,15 +432,16 @@ function sendPrompt(prompt: string) {
     gap: 5px;
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.12em;
-    color: $text-secondary;
+    color: rgb(var(--muted));
 
     i {
-      width: 5px;
-      height: 5px;
-      background: $success-color;
-      border: 1px solid $forest;
+      width: 6px;
+      height: 6px;
+      background: rgb(var(--success));
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgb(var(--success) / 0.18);
       animation: tilePulse 1.8s ease-in-out infinite;
     }
   }
@@ -475,21 +456,18 @@ function sendPrompt(prompt: string) {
 
   .tile-name {
     margin: 0;
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-weight: 500;
-    font-style: italic;
-    font-variation-settings: 'opsz' 96;
-    letter-spacing: -0.01em;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: rgb(var(--text));
     transition: color 0.2s ease;
   }
 
   .tile-desc {
     margin: 0;
     font-size: 12px;
-    line-height: 1.45;
-    color: $text-secondary;
+    line-height: 1.5;
+    color: rgb(var(--muted));
     transition: color 0.2s ease;
   }
 
@@ -500,15 +478,14 @@ function sendPrompt(prompt: string) {
     align-items: center;
     gap: 8px;
     padding-top: 10px;
-    border-top: 1px solid $rule;
   }
 
   .tile-code {
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.1em;
-    color: $text-secondary;
+    color: rgb(var(--muted));
     font-variant-numeric: tabular-nums;
   }
 
@@ -520,20 +497,20 @@ function sendPrompt(prompt: string) {
     font-size: 9px;
     font-weight: 500;
     letter-spacing: 0.08em;
-    color: $text-secondary;
+    color: rgb(var(--faint));
   }
 
   .tile-dot {
-    color: rgba(31, 42, 36, 0.3);
+    color: rgb(var(--faint) / 0.6);
   }
 
   &:hover {
-    border-color: var(--agent-accent);
+    border-color: rgb(var(--accent) / 0.5);
     transform: translateY(-2px);
-    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.14);
+    box-shadow: $shadow-glow;
 
     .tile-watermark {
-      opacity: 0.09;
+      opacity: 0.08;
       transform: translateX(-2px);
     }
 
@@ -543,15 +520,11 @@ function sendPrompt(prompt: string) {
   }
 
   &.is-active {
-    background: var(--agent-accent);
-    border-color: $forest;
-    box-shadow:
-      6px 6px 0 rgba(31, 42, 36, 0.2),
-      0 1px 0 rgba(255, 255, 255, 0.18) inset;
+    background: linear-gradient(135deg, var(--agent-accent), rgb(var(--accent-strong)));
+    border-color: transparent;
+    box-shadow: 0 18px 48px -16px var(--agent-accent), inset 0 1px 0 rgb(255 255 255 / 0.2);
 
-    .tile-rail {
-      height: 70%;
-    }
+    .tile-rail { height: 70%; }
 
     .tile-watermark {
       opacity: 0.14;
@@ -560,51 +533,38 @@ function sendPrompt(prompt: string) {
     }
 
     .tile-mono {
-      background: rgba(255, 255, 255, 0.18);
+      background: rgb(255 255 255 / 0.22);
       color: white;
-      border-color: rgba(255, 255, 255, 0.32);
+      border-color: rgb(255 255 255 / 0.32);
       transform: scale(1.06);
+      box-shadow: none;
     }
 
     .tile-status {
-      color: rgba(255, 255, 255, 0.92);
-
+      color: rgb(255 255 255 / 0.92);
       i {
         background: white;
-        border-color: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 0 0 3px rgb(255 255 255 / 0.25);
       }
     }
 
     .tile-name,
-    .tile-desc {
-      color: white;
-    }
-
-    .tile-desc {
-      color: rgba(255, 255, 255, 0.78);
-    }
-
-    .tile-foot {
-      border-top-color: rgba(255, 255, 255, 0.18);
-    }
-
+    .tile-desc { color: white; }
+    .tile-desc { color: rgb(255 255 255 / 0.82); }
     .tile-code,
-    .tile-meta {
-      color: rgba(255, 255, 255, 0.72);
-    }
-
-    .tile-dot {
-      color: rgba(255, 255, 255, 0.4);
-    }
+    .tile-meta { color: rgb(255 255 255 / 0.78); }
+    .tile-dot { color: rgb(255 255 255 / 0.45); }
   }
 }
 
 @keyframes tilePulse {
   0%, 100% {
-    border-color: rgba(47, 143, 103, 0.5);
+    transform: scale(1);
+    opacity: 1;
   }
   50% {
-    border-color: rgba(47, 143, 103, 0.2);
+    transform: scale(0.92);
+    opacity: 0.85;
   }
 }
 
@@ -615,7 +575,7 @@ function sendPrompt(prompt: string) {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .cmd-item button {
@@ -624,53 +584,53 @@ function sendPrompt(prompt: string) {
   grid-template-columns: 36px 1fr auto;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   text-align: left;
   cursor: pointer;
-  background: transparent;
-  border: 1px solid transparent;
-  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  background: rgb(var(--surface) / 0.75);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 0.875rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  backdrop-filter: blur(6px);
 
   .cmd-no {
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.1em;
-    color: $text-secondary;
+    color: rgb(var(--faint));
     font-variant-numeric: tabular-nums;
   }
 
   .cmd-text {
     font-size: 12px;
     line-height: 1.4;
-    color: $text-regular;
+    color: rgb(var(--text));
   }
 
   .cmd-run {
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    color: $text-secondary;
-    padding: 2px 6px;
-    border: 1px solid rgba(31, 42, 36, 0.2);
-    background: $cream-warm;
-    transition: color 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    color: rgb(var(--muted));
+    padding: 3px 9px;
+    border: 0;
+    background: rgb(var(--elev) / 0.8);
+    border-radius: 999px;
+    transition: all 0.2s ease;
   }
 
   &:hover {
-    background: $cream-warm;
-    border-color: color-mix(in srgb, var(--agent-accent) 25%, transparent);
+    background: rgb(var(--surface));
+    border-color: rgb(var(--accent) / 0.45);
     transform: translateX(2px);
 
-    .cmd-no {
-      color: var(--agent-accent);
-    }
+    .cmd-no { color: rgb(var(--accent-strong)); }
 
     .cmd-run {
-      color: var(--agent-accent);
-      border-color: var(--agent-accent);
-      background: color-mix(in srgb, var(--agent-accent) 10%, $cream-warm);
+      color: #fff;
+      background: var(--agent-accent);
     }
   }
 }
@@ -687,12 +647,18 @@ function sendPrompt(prompt: string) {
 .brief-card {
   --agent-accent: #{$primary-color};
   position: relative;
-  padding: 20px 22px 18px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  padding: 22px 24px 20px;
+  background:
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.15),
+      rgb(var(--surface) / 0.96) 50%,
+      rgb(var(--accent-3) / 0.12) 100%);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.25rem;
+  box-shadow: $shadow-md;
+  backdrop-filter: blur(14px);
   overflow: hidden;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: box-shadow 0.4s ease;
 
   &::after {
     content: '';
@@ -701,7 +667,7 @@ function sendPrompt(prompt: string) {
     bottom: -40px;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, color-mix(in srgb, var(--agent-accent) 10%, transparent), transparent 70%);
+    background: radial-gradient(circle, rgb(var(--agent-accent) / 0.18), transparent 70%);
     pointer-events: none;
   }
 }
@@ -716,10 +682,10 @@ function sendPrompt(prompt: string) {
 .brief-kicker {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--agent-accent) 78%, $text-secondary);
+  color: rgb(var(--accent-strong));
 }
 
 .brief-live {
@@ -728,39 +694,41 @@ function sendPrompt(prompt: string) {
   gap: 6px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  color: $success-color;
+  color: rgb(var(--success));
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgb(var(--success) / 0.1);
 
   i {
-    width: 5px;
-    height: 5px;
-    background: $success-color;
-    border: 1px solid $forest;
+    width: 6px;
+    height: 6px;
+    background: rgb(var(--success));
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px rgb(var(--success) / 0.2);
     animation: pulse 1.6s ease-in-out infinite;
   }
 }
 
 .brief-main {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .brief-name {
   margin: 0 0 6px;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
-  font-variation-settings: 'opsz' 96;
+  font-family: var(--font-body);
+  font-weight: 700;
   font-size: 26px;
-  letter-spacing: -0.01em;
-  color: $forest;
+  letter-spacing: -0.02em;
+  color: rgb(var(--text));
 }
 
 .brief-desc {
   margin: 0;
   font-size: 13px;
   line-height: 1.6;
-  color: $text-regular;
+  color: rgb(var(--muted));
   max-width: 640px;
 }
 
@@ -768,8 +736,7 @@ function sendPrompt(prompt: string) {
   display: grid;
   grid-template-columns: 1fr 1fr 1.4fr;
   gap: 16px;
-  padding-top: 14px;
-  border-top: 1px solid $rule;
+  padding-top: 16px;
 }
 
 .meta-col {
@@ -782,16 +749,16 @@ function sendPrompt(prompt: string) {
 .meta-label {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .meta-value {
   font-size: 13px;
   font-weight: 600;
-  color: $forest;
+  color: rgb(var(--text));
 }
 
 .meta-actions-row {
@@ -804,24 +771,25 @@ function sendPrompt(prompt: string) {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 10px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 500;
-  font-style: italic;
-  color: color-mix(in srgb, var(--agent-accent) 80%, $forest);
-  background: color-mix(in srgb, var(--agent-accent) 8%, $cream-warm);
-  border: 1.5px solid $forest;
+  padding: 6px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--accent-strong));
+  background: rgb(var(--surface) / 0.8);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 999px;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
 
   .meta-action-arrow {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 11px;
   }
 
   &:hover {
-    background: color-mix(in srgb, var(--agent-accent) 14%, $cream-warm);
+    background: rgb(var(--accent-2) / 0.12);
+    border-color: rgb(var(--accent) / 0.5);
     transform: translateY(-1px);
   }
 }
@@ -839,56 +807,25 @@ function sendPrompt(prompt: string) {
 }
 
 @keyframes pulse {
-  0%, 100% {
-    border-color: rgba(47, 143, 103, 0.6);
-  }
-  50% {
-    border-color: rgba(47, 143, 103, 0.2);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.18); }
 }
 
 // ============== 响应式 ==============
 @media (max-width: 1080px) {
-  .copilot-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .copilot-rail {
-    position: static;
-  }
-
+  .copilot-grid { grid-template-columns: 1fr; }
+  .copilot-rail { position: static; }
   .agent-rail {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
   }
-
-  .brief-meta {
-    grid-template-columns: 1fr 1fr;
-  }
+  .brief-meta { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 720px) {
-  .copilot-page {
-    padding: 24px 18px 40px;
-  }
-
-  .hero-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .stat {
-    &:nth-child(2) {
-      border-right: none;
-    }
-  }
-
-  .agent-rail {
-    grid-template-columns: 1fr;
-  }
-
-  .brief-meta {
-    grid-template-columns: 1fr;
-  }
+  .copilot-page { padding: 24px 18px 40px; }
+  .agent-rail { grid-template-columns: 1fr; }
+  .brief-meta { grid-template-columns: 1fr; }
 }
 </style>

@@ -862,29 +862,34 @@ function providerTagType(region?: ProviderRegion) {
   color: $forest;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  background: color-mix(in srgb, $success-color 9%, $cream);
-  border: 1.5px solid color-mix(in srgb, $success-color 34%, $forest);
+  background: rgb(var(--success) / 0.1);
+  border: 1px solid rgb(var(--success) / 0.4);
 }
 
 .sync-dot {
   width: 8px;
   height: 8px;
-  background: $success-color;
-  box-shadow: 0 0 0 4px color-mix(in srgb, $success-color 18%, transparent);
+  background: rgb(var(--success));
+  box-shadow: 0 0 0 4px rgb(var(--success) / 0.2);
 }
 
 .settings-hero {
   display: grid;
   grid-template-columns: minmax(280px, 1.15fr) minmax(360px, 1.85fr);
   gap: 16px;
+  border-radius: 1.5rem;
+  background: rgb(var(--surface) / 0.9);
+  border: 1px solid rgb(var(--line) / 0.6);
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(8px);
   margin-bottom: 18px;
 }
 
 .identity-panel,
 .settings-metrics {
   background: var(--settings-panel);
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow: $shadow-md;
 }
 
 .identity-panel {
@@ -903,8 +908,8 @@ function providerTagType(region?: ProviderRegion) {
   font-style: italic;
   color: $cream;
   background: $forest;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.16);
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow: $shadow-soft;
 }
 
 .identity-copy {
@@ -979,7 +984,7 @@ function providerTagType(region?: ProviderRegion) {
   :deep(.el-tabs__header) {
     margin-bottom: 16px;
     padding-bottom: 12px;
-    border-bottom: 2px solid $forest;
+    border-bottom: 1px solid rgb(var(--line) / 0.6);
   }
 
   :deep(.el-tabs__nav) {
@@ -999,7 +1004,7 @@ function providerTagType(region?: ProviderRegion) {
     font-weight: 500;
     color: $text-secondary;
     background: $cream-warm;
-    border: 2px solid $forest;
+    border: 1px solid rgb(var(--line) / 0.7);
     border-bottom: none;
     transition: all $transition-duration;
 
@@ -1064,7 +1069,7 @@ function providerTagType(region?: ProviderRegion) {
   background:
     linear-gradient(135deg, rgba(183, 153, 110, 0.14), transparent 62%),
     $cream-warm;
-  border: 1.5px solid $rule-strong;
+  border: 1px solid rgb(var(--line) / 0.5);
 }
 
 .profile-rail {
@@ -1148,13 +1153,13 @@ function providerTagType(region?: ProviderRegion) {
   padding: 18px;
   overflow: hidden;
   background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.08);
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow: $shadow-sm;
   transition: all $transition-duration;
 
   &:hover {
     background-color: $cream-warm;
-    box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.16);
+    box-shadow: $shadow-soft;
     transform: translateY(-1px);
   }
 }
@@ -1233,7 +1238,7 @@ function providerTagType(region?: ProviderRegion) {
   height: 44px;
   place-items: center;
   background: $cream-warm;
-  border: 1.5px solid $rule-strong;
+  border: 1px solid rgb(var(--line) / 0.5);
 }
 
 .agent-actions {
@@ -1255,7 +1260,7 @@ function providerTagType(region?: ProviderRegion) {
   gap: 18px;
   padding: 16px 18px;
   background: $cream-warm;
-  border: 1.5px solid $rule-strong;
+  border: 1px solid rgb(var(--line) / 0.5);
   transition: all $transition-duration $transition-timing;
 
   &:hover {
@@ -1295,7 +1300,7 @@ function providerTagType(region?: ProviderRegion) {
   background:
     linear-gradient(135deg, rgba(64, 158, 255, 0.08), transparent 58%),
     $cream-warm;
-  border: 1.5px solid $rule-strong;
+  border: 1px solid rgb(var(--line) / 0.5);
 
   > div {
     display: grid;
@@ -1361,7 +1366,7 @@ function providerTagType(region?: ProviderRegion) {
   gap: 16px;
   padding: 14px 16px;
   background: $cream;
-  border: 1.5px solid $rule-strong;
+  border: 1px solid rgb(var(--line) / 0.5);
 
   > div {
     display: grid;
