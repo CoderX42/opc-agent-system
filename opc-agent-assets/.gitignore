@@ -1,7 +1,3 @@
 node_modules/
 dist/
 generated/
-
-# Pixel-art outputs are produced by `pnpm generate-assets`
-*.png
-*-frames/
