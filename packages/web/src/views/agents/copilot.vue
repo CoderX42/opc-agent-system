@@ -1,5 +1,11 @@
 <template>
   <div class="copilot-page">
+    <header class="copilot-topbar">
+      <div class="topbar-left">
+        <span class="live-pill"><i aria-hidden="true" /> LIVE</span>
+        <span class="topbar-title">{{ activeAgent.name }} · COPILOT</span>
+      </div>
+    </header>
     <div class="copilot-stage">
       <!-- ============ 主体两列：左 rail / 右控制台 ============ -->
       <section class="copilot-grid">
@@ -275,8 +281,8 @@ function sendPrompt(prompt: string) {
 // ============== 页面底色 + 玻璃拟态 ==============
 .copilot-page {
   position: relative;
-  min-height: calc(100vh - #{$header-height});
-  padding: 28px 32px 48px;
+  min-height: 100vh;
+  padding: 18px 24px 28px;
   color: rgb(var(--text));
   font-family: var(--font-body);
   overflow: hidden;
@@ -286,6 +292,100 @@ function sendPrompt(prompt: string) {
   position: relative;
   max-width: 1320px;
   margin: 0 auto;
+}
+
+// ============== 顶部工具条 ==============
+.copilot-topbar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 12px;
+  max-width: 1320px;
+  margin: 0 auto 12px;
+  padding: 8px 14px;
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(12px);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgb(var(--muted));
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: rgb(var(--muted));
+  background: rgb(var(--surface) / 0.8);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 0.625rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    color: rgb(var(--text));
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--elev));
+  }
+
+  &.active {
+    color: rgb(var(--on-accent));
+    background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
+    border-color: transparent;
+  }
+}
+
+.live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgb(var(--success));
+  background: rgb(var(--success) / 0.1);
+  border: 1px solid rgb(var(--success) / 0.4);
+  border-radius: 999px;
+
+  i {
+    width: 6px;
+    height: 6px;
+    background: rgb(var(--success));
+    border-radius: 999px;
+    box-shadow: 0 0 0 3px rgb(var(--success) / 0.18);
+    animation: live-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
 }
 
 // ============== 主体两列 ==============
@@ -375,16 +475,9 @@ function sendPrompt(prompt: string) {
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   backdrop-filter: blur(10px);
 
-  // 左侧激活条
+  // 左侧激活条(已移除渐变色条)
   .tile-rail {
-    position: absolute;
-    left: 8px;
-    top: 12px;
-    bottom: 12px;
-    width: 4px;
-    border-radius: 999px;
-    background: linear-gradient(180deg, var(--agent-accent), rgb(var(--accent-2)));
-    opacity: 0.55;
+    display: none;
   }
 
   // 大号装饰字符（背景水印，去掉斜体）

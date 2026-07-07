@@ -207,6 +207,12 @@ function handleMenuSelect(index: string) {
     return
   }
 
+  if (index === '/agents/copilot') {
+    const copilotRoute = router.resolve({ path: '/agents/copilot', query: route.query })
+    window.open(copilotRoute.href, '_blank', 'noopener,noreferrer')
+    return
+  }
+
   if (index !== route.path) void router.push(index)
 }
 

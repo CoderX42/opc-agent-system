@@ -20,6 +20,12 @@ export const constantRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/office/index.vue'),
     meta: { title: '数字员工办公区', icon: 'OfficeBuilding' },
   },
+  {
+    path: '/agents/copilot',
+    name: 'AgentCopilot',
+    component: () => import('@/views/agents/copilot.vue'),
+    meta: { title: 'Agent 助手', icon: 'MagicStick', standalone: true },
+  },
 
   {
     path: '/',
@@ -31,12 +37,6 @@ export const constantRoutes: RouteRecordRaw[] = [
         name: 'Dashboard',
         component: () => import('@/views/dashboard/index.vue'),
         meta: { title: '工作台', icon: 'Monitor' },
-      },
-      {
-        path: 'agents/copilot',
-        name: 'AgentCopilot',
-        component: () => import('@/views/agents/copilot.vue'),
-        meta: { title: 'Agent 助手', icon: 'MagicStick' },
       },
     ],
   },
