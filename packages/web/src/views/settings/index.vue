@@ -841,10 +841,6 @@ function providerTagType(region?: ProviderRegion) {
 </script>
 
 <style lang="scss" scoped>
-.settings-page {
-  --settings-panel: rgba(250, 243, 226, 0.88);
-}
-
 .settings-header-actions {
   display: flex;
   align-items: center;
@@ -855,21 +851,23 @@ function providerTagType(region?: ProviderRegion) {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  color: $forest;
+  color: rgb(var(--success));
   letter-spacing: 0.08em;
   text-transform: uppercase;
   background: rgb(var(--success) / 0.1);
   border: 1px solid rgb(var(--success) / 0.4);
+  border-radius: 999px;
 }
 
 .sync-dot {
   width: 8px;
   height: 8px;
   background: rgb(var(--success));
+  border-radius: 999px;
   box-shadow: 0 0 0 4px rgb(var(--success) / 0.2);
 }
 
@@ -877,19 +875,10 @@ function providerTagType(region?: ProviderRegion) {
   display: grid;
   grid-template-columns: minmax(280px, 1.15fr) minmax(360px, 1.85fr);
   gap: 16px;
-  border-radius: 1.5rem;
-  background: rgb(var(--surface) / 0.9);
-  border: 1px solid rgb(var(--line) / 0.6);
-  box-shadow: $shadow-soft;
-  backdrop-filter: blur(8px);
   margin-bottom: 18px;
-}
-
-.identity-panel,
-.settings-metrics {
-  background: var(--settings-panel);
-  border: 1px solid rgb(var(--line) / 0.7);
-  box-shadow: $shadow-md;
+  @include glass-hero;
+  border-radius: 1.5rem;
+  overflow: hidden;
 }
 
 .identity-panel {
@@ -897,18 +886,19 @@ function providerTagType(region?: ProviderRegion) {
   align-items: center;
   gap: 16px;
   min-width: 0;
-  padding: 18px;
+  padding: 22px 24px;
+  @include glass-tile;
+  border-radius: 1.25rem;
 }
 
 .identity-avatar,
 .profile-avatar {
   flex: 0 0 auto;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 30px;
-  font-style: italic;
-  color: $cream;
-  background: $forest;
-  border: 1px solid rgb(var(--line) / 0.7);
+  font-weight: 700;
+  color: rgb(var(--on-accent));
+  background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent-2)));
   box-shadow: $shadow-soft;
 }
 
@@ -919,11 +909,10 @@ function providerTagType(region?: ProviderRegion) {
 
   strong {
     overflow: hidden;
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 22px;
+    font-weight: 700;
+    color: rgb(var(--text));
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -931,7 +920,7 @@ function providerTagType(region?: ProviderRegion) {
   span:last-child {
     overflow: hidden;
     font-size: 12px;
-    color: $text-secondary;
+    color: rgb(var(--muted));
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -940,13 +929,20 @@ function providerTagType(region?: ProviderRegion) {
 .settings-metrics {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.95), rgb(var(--surface) / 0.86));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.25rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
+  overflow: hidden;
 }
 
 .metric-item {
   display: grid;
   gap: 5px;
-  padding: 18px;
-  border-right: 1px solid $rule;
+  padding: 18px 20px;
+  border-right: 1px solid rgb(var(--line) / 0.5);
 
   &:last-child {
     border-right: none;
@@ -956,23 +952,23 @@ function providerTagType(region?: ProviderRegion) {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
-    color: $brass-deep;
+    color: rgb(var(--muted));
     letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
   strong {
-    font-family: var(--font-display);
-    font-size: 28px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
-    line-height: 1;
+    font-family: var(--font-body);
+    font-size: 24px;
+    font-weight: 700;
+    color: rgb(var(--accent-strong));
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
   }
 
   small {
     font-size: 12px;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -997,26 +993,25 @@ function providerTagType(region?: ProviderRegion) {
 
   :deep(.el-tabs__item) {
     padding: 8px 20px;
-    margin-right: 2px;
-    font-family: var(--font-display);
+    margin-right: 6px;
+    font-family: var(--font-body);
     font-size: 14px;
-    font-style: italic;
-    font-weight: 500;
-    color: $text-secondary;
-    background: $cream-warm;
-    border: 1px solid rgb(var(--line) / 0.7);
-    border-bottom: none;
+    font-weight: 600;
+    color: rgb(var(--muted));
+    background: rgb(var(--surface) / 0.7);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 999px;
     transition: all $transition-duration;
 
     &:hover {
-      color: $forest;
-      background: $cream;
+      color: rgb(var(--text));
+      background: rgb(var(--elev));
     }
 
     &.is-active {
-      color: $forest;
-      background: $cream;
-      box-shadow: 0 -2px 0 $brass;
+      color: rgb(var(--on-accent));
+      background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent-2)));
+      border-color: transparent;
     }
   }
 }
@@ -1035,11 +1030,10 @@ function providerTagType(region?: ProviderRegion) {
 
   h3 {
     margin-top: 3px;
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 }
 
@@ -1047,7 +1041,7 @@ function providerTagType(region?: ProviderRegion) {
   font-family: var(--font-mono);
   font-size: 10px;
   font-weight: 700;
-  color: $text-secondary;
+  color: rgb(var(--muted));
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -1065,11 +1059,12 @@ function providerTagType(region?: ProviderRegion) {
   flex-direction: column;
   align-items: flex-start;
   gap: 10px;
-  padding: 18px;
+  padding: 20px;
   background:
-    linear-gradient(135deg, rgba(183, 153, 110, 0.14), transparent 62%),
-    $cream-warm;
-  border: 1px solid rgb(var(--line) / 0.5);
+    linear-gradient(135deg, rgb(var(--accent-2) / 0.16), rgb(var(--accent-3) / 0.08) 60%, transparent);
+  border: 1px solid rgb(var(--accent-2) / 0.28);
+  border-radius: 1rem;
+  box-shadow: $shadow-sm;
 }
 
 .profile-rail {
@@ -1077,24 +1072,23 @@ function providerTagType(region?: ProviderRegion) {
   text-align: center;
 
   strong {
-    font-family: var(--font-display);
-    font-size: 18px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 17px;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 
   span {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 700;
-    color: $brass-deep;
+    color: rgb(var(--accent-strong));
     letter-spacing: 0.1em;
   }
 }
 
 .security-note {
-  color: $forest;
+  color: rgb(var(--text));
 
   strong {
     font-size: 15px;
@@ -1104,7 +1098,7 @@ function providerTagType(region?: ProviderRegion) {
   span {
     font-size: 12px;
     line-height: 1.7;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -1133,7 +1127,7 @@ function providerTagType(region?: ProviderRegion) {
     max-width: 420px;
     font-size: 12px;
     line-height: 1.6;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -1150,17 +1144,20 @@ function providerTagType(region?: ProviderRegion) {
   justify-content: space-between;
   gap: 16px;
   min-width: 0;
-  padding: 18px;
+  padding: 18px 20px;
   overflow: hidden;
-  background: $cream;
-  border: 1px solid rgb(var(--line) / 0.7);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.97), rgb(var(--surface) / 0.9));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.25rem;
   box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
   transition: all $transition-duration;
 
   &:hover {
-    background-color: $cream-warm;
     box-shadow: $shadow-soft;
     transform: translateY(-1px);
+    border-color: rgb(var(--accent) / 0.4);
   }
 }
 
@@ -1170,6 +1167,7 @@ function providerTagType(region?: ProviderRegion) {
   bottom: 0;
   left: 0;
   width: 5px;
+  border-radius: 5px 0 0 5px;
 }
 
 .agent-info {
@@ -1184,19 +1182,17 @@ function providerTagType(region?: ProviderRegion) {
 
   h4 {
     margin-bottom: 4px;
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 15px;
-    font-style: italic;
-    font-variation-settings: 'opsz' 96;
-    font-weight: 500;
-    color: $forest;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 
   p {
     overflow: hidden;
     font-family: var(--font-body);
     font-size: 12px;
-    color: $text-secondary;
+    color: rgb(var(--muted));
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -1215,7 +1211,7 @@ function providerTagType(region?: ProviderRegion) {
     font-size: 10px;
     font-style: normal;
     font-weight: 700;
-    color: $text-secondary;
+    color: rgb(var(--muted));
     letter-spacing: 0.02em;
   }
 
@@ -1227,7 +1223,7 @@ function providerTagType(region?: ProviderRegion) {
   }
 
   em {
-    color: $brass-deep;
+    color: rgb(var(--accent-strong));
   }
 }
 
@@ -1237,8 +1233,9 @@ function providerTagType(region?: ProviderRegion) {
   width: 44px;
   height: 44px;
   place-items: center;
-  background: $cream-warm;
-  border: 1px solid rgb(var(--line) / 0.5);
+  background: rgb(var(--accent-2) / 0.14);
+  border: 1px solid rgb(var(--accent-2) / 0.32);
+  border-radius: 0.75rem;
 }
 
 .agent-actions {
@@ -1259,12 +1256,14 @@ function providerTagType(region?: ProviderRegion) {
   justify-content: space-between;
   gap: 18px;
   padding: 16px 18px;
-  background: $cream-warm;
-  border: 1px solid rgb(var(--line) / 0.5);
+  background: rgb(var(--surface) / 0.88);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
+  box-shadow: $shadow-sm;
   transition: all $transition-duration $transition-timing;
 
   &:hover {
-    background: color-mix(in srgb, $brass 8%, $cream);
+    background: rgb(var(--elev) / 0.7);
     transform: translateX(2px);
   }
 
@@ -1276,13 +1275,13 @@ function providerTagType(region?: ProviderRegion) {
 
   strong {
     font-size: 14px;
-    color: $forest;
+    color: rgb(var(--text));
   }
 
   span {
     font-size: 12px;
     line-height: 1.5;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -1295,12 +1294,12 @@ function providerTagType(region?: ProviderRegion) {
   align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  padding: 16px 18px;
+  padding: 18px 20px;
   margin-bottom: 18px;
   background:
-    linear-gradient(135deg, rgba(64, 158, 255, 0.08), transparent 58%),
-    $cream-warm;
-  border: 1px solid rgb(var(--line) / 0.5);
+    linear-gradient(135deg, rgb(var(--accent-2) / 0.18), rgb(var(--accent-3) / 0.08) 60%, transparent);
+  border: 1px solid rgb(var(--accent-2) / 0.32);
+  border-radius: 1rem;
 
   > div {
     display: grid;
@@ -1309,15 +1308,14 @@ function providerTagType(region?: ProviderRegion) {
   }
 
   strong {
-    font-family: var(--font-display);
-    font-size: 22px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 20px;
+    font-weight: 700;
+    color: rgb(var(--accent-strong));
   }
 
   small {
-    color: $text-secondary;
+    color: rgb(var(--muted));
     line-height: 1.6;
   }
 }
@@ -1327,7 +1325,7 @@ function providerTagType(region?: ProviderRegion) {
     font-family: var(--font-mono);
     font-size: 10px;
     font-weight: 800;
-    color: $forest;
+    color: rgb(var(--muted));
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
@@ -1342,7 +1340,7 @@ function providerTagType(region?: ProviderRegion) {
   small {
     font-family: var(--font-mono);
     font-size: 10px;
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -1365,8 +1363,10 @@ function providerTagType(region?: ProviderRegion) {
   justify-content: space-between;
   gap: 16px;
   padding: 14px 16px;
-  background: $cream;
-  border: 1px solid rgb(var(--line) / 0.5);
+  background: rgb(var(--surface) / 0.88);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1rem;
+  box-shadow: $shadow-sm;
 
   > div {
     display: grid;
@@ -1375,12 +1375,12 @@ function providerTagType(region?: ProviderRegion) {
   }
 
   strong {
-    color: $forest;
+    color: rgb(var(--text));
     font-size: 14px;
   }
 
   span {
-    color: $text-secondary;
+    color: rgb(var(--muted));
     font-size: 12px;
     line-height: 1.5;
   }
@@ -1390,10 +1390,11 @@ function providerTagType(region?: ProviderRegion) {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 12px 14px;
-  color: $text-secondary;
-  background: color-mix(in srgb, $brass 8%, $cream);
-  border: 1px solid $rule;
+  padding: 12px 16px;
+  color: rgb(var(--muted));
+  background: rgb(var(--accent-2) / 0.1);
+  border: 1px solid rgb(var(--accent-2) / 0.28);
+  border-radius: 0.875rem;
 
   span {
     font-size: 12px;
@@ -1401,11 +1402,11 @@ function providerTagType(region?: ProviderRegion) {
   }
 
   code {
-    padding: 1px 4px;
+    padding: 1px 6px;
     font-family: var(--font-mono);
-    color: $forest;
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid $rule;
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--surface) / 0.8);
+    border-radius: 4px;
   }
 }
 
@@ -1433,7 +1434,7 @@ function providerTagType(region?: ProviderRegion) {
 
   .metric-item {
     border-right: none;
-    border-bottom: 1px solid $rule;
+    border-bottom: 1px solid rgb(var(--line) / 0.5);
 
     &:last-child {
       border-bottom: none;
