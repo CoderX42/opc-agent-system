@@ -290,28 +290,21 @@ onMounted(fetchList)
   margin-bottom: 16px;
 }
 
-.selected-date-card,
-.schedule-legend {
-  background: $cream;
-  border: 1px solid rgb(var(--line) / 0.7);
-  box-shadow: $shadow-sm;
-}
-
 .selected-date-card {
-  padding: 14px 16px;
+  padding: 18px 20px;
+  @include glass-card;
 
   strong {
     display: block;
-    margin: 6px 0 4px;
-    font-family: var(--font-display);
+    margin: 8px 0 4px;
+    font-family: var(--font-body);
     font-size: 22px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 
   p {
-    color: $text-secondary;
+    color: rgb(var(--muted));
   }
 }
 
@@ -321,38 +314,47 @@ onMounted(fetchList)
   gap: 10px;
   align-items: center;
   justify-content: flex-end;
-  padding: 14px 16px;
+  padding: 16px 20px;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.95), rgb(var(--surface) / 0.86));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 
   span {
     display: inline-flex;
     gap: 7px;
     align-items: center;
+    padding: 4px 10px;
     font-family: var(--font-mono);
     font-size: 10px;
-    color: $text-secondary;
-    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: rgb(var(--muted));
+    letter-spacing: 0.06em;
+    background: rgb(var(--surface) / 0.7);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 999px;
   }
 
   i {
     width: 10px;
     height: 10px;
-    background: $info-color;
-    border: 1px solid $forest;
+    background: rgb(var(--accent));
+    border-radius: 999px;
   }
 
-  .MEETING i { background: $primary-color; }
-  .DEADLINE i { background: $danger-color; }
-  .WORK i { background: $warning-color; }
-  .PERSONAL i { background: $success-color; }
+  .MEETING i { background: rgb(var(--accent)); }
+  .DEADLINE i { background: rgb(var(--danger)); }
+  .WORK i { background: rgb(var(--warn)); }
+  .PERSONAL i { background: rgb(var(--success)); }
 }
 
-.card-title { 
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
+.card-title {
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 15px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+  color: rgb(var(--text));
 }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 
@@ -361,19 +363,19 @@ onMounted(fetchList)
 
   :deep(.el-calendar__header) {
     padding: 16px 18px;
-    background: $cream-warm;
-    border-bottom: 1.5px solid $rule;
+    background: rgb(var(--elev) / 0.45);
+    border-bottom: 1px solid rgb(var(--line) / 0.5);
   }
 
   :deep(.el-calendar__title) {
-    font-family: var(--font-display);
-    font-size: 20px;
-    font-style: italic;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(var(--text));
   }
 
   :deep(.el-calendar-table td) {
-    border-color: $rule;
+    border-color: rgb(var(--line) / 0.5);
   }
 
   :deep(.el-calendar-day) {
@@ -387,21 +389,22 @@ onMounted(fetchList)
   min-height: 108px;
   padding: 7px;
   cursor: pointer;
+  border-radius: 0.625rem;
   transition: background 160ms $transition-timing, box-shadow 160ms $transition-timing;
 
   &:hover {
-    background: color-mix(in srgb, $brass 8%, $cream);
-    box-shadow: inset 0 0 0 1.5px $forest;
+    background: rgb(var(--accent-2) / 0.1);
+    box-shadow: inset 0 0 0 1.5px rgb(var(--accent) / 0.5);
   }
 
   &.is-selected {
-    background: color-mix(in srgb, $brass 12%, $cream);
-    box-shadow: inset 0 0 0 2px $forest;
+    background: rgb(var(--accent-2) / 0.16);
+    box-shadow: inset 0 0 0 2px rgb(var(--accent));
   }
 
   &.is-today .day-number {
-    color: $cream;
-    background: $forest;
+    color: rgb(var(--on-accent));
+    background: rgb(var(--accent));
   }
 }
 
@@ -413,13 +416,14 @@ onMounted(fetchList)
 
   small {
     min-width: 18px;
-    padding: 1px 5px;
+    padding: 1px 6px;
     font-family: var(--font-mono);
     font-size: 10px;
+    font-weight: 700;
     text-align: center;
-    color: $forest;
-    background: $cream-warm;
-    border: 1px solid $rule;
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.18);
+    border-radius: 999px;
   }
 }
 
@@ -432,24 +436,25 @@ onMounted(fetchList)
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
-  color: $forest;
+  color: rgb(var(--text));
+  border-radius: 999px;
 }
 
 .calendar-event {
   font-size: 11px;
-  padding: 2px 5px;
+  padding: 2px 7px;
   margin-top: 3px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  background-color: color-mix(in srgb, $info-color 10%, $cream);
-  color: $info-color;
-  border: 1px solid currentColor;
+  background-color: rgb(var(--accent) / 0.1);
+  color: rgb(var(--accent));
+  border-radius: 999px;
 
-  &.MEETING { background-color: color-mix(in srgb, $primary-color 8%, $cream); color: $primary-color; }
-  &.DEADLINE { background-color: color-mix(in srgb, $danger-color 10%, $cream); color: $danger-color; }
-  &.WORK { background-color: color-mix(in srgb, $warning-color 10%, $cream); color: $warning-color; }
-  &.PERSONAL { background-color: color-mix(in srgb, $success-color 10%, $cream); color: $success-color; }
+  &.MEETING { background-color: rgb(var(--accent) / 0.12); color: rgb(var(--accent)); }
+  &.DEADLINE { background-color: rgb(var(--danger) / 0.1); color: rgb(var(--danger)); }
+  &.WORK { background-color: rgb(var(--warn) / 0.1); color: rgb(var(--warn)); }
+  &.PERSONAL { background-color: rgb(var(--success) / 0.1); color: rgb(var(--success)); }
 }
 
 .event-more {
@@ -457,7 +462,7 @@ onMounted(fetchList)
   margin-top: 4px;
   font-family: var(--font-mono);
   font-size: 10px;
-  color: $text-placeholder;
+  color: rgb(var(--muted));
 }
 
 @media (max-width: 840px) {

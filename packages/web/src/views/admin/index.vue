@@ -270,37 +270,30 @@ onUnmounted(() => {
   gap: 16px;
   align-items: stretch;
   margin-bottom: 18px;
-  padding: 18px;
+  padding: 22px 24px;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
-    radial-gradient(circle at 80% 10%, rgba(183, 153, 110, 0.34), transparent 34%);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.5rem;
-  box-shadow: $shadow-soft;
-  backdrop-filter: blur(8px);
-  color: $cream;
+  @include glass-hero;
 }
 
 .hero-copy {
   min-width: 0;
 
   .kicker {
-    color: color-mix(in srgb, $brass 82%, $cream);
+    color: rgb(var(--accent-strong));
   }
 
   h3 {
     margin: 10px 0 8px;
-    font-family: var(--font-display);
-    font-size: clamp(20px, 2vw, 28px);
-    font-style: italic;
-    font-weight: 500;
-    line-height: 1.15;
+    font-family: var(--font-body);
+    font-size: clamp(20px, 2vw, 26px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: rgb(var(--text));
   }
 
   p {
     max-width: 620px;
-    color: color-mix(in srgb, $cream 80%, $forest);
+    color: rgb(var(--muted));
     line-height: 1.7;
   }
 }
@@ -316,40 +309,43 @@ onUnmounted(() => {
   display: inline-flex;
   gap: 10px;
   align-items: center;
-  padding: 9px 12px;
-  color: $cream;
+  padding: 9px 14px;
+  color: rgb(var(--text));
   cursor: pointer;
-  background: rgba(250, 243, 226, 0.08);
-  border: 1.5px solid rgba(250, 243, 226, 0.28);
+  background: rgb(var(--surface) / 0.78);
+  border: 1px solid rgb(var(--line) / 0.7);
+  border-radius: 999px;
   transition: all 160ms $transition-timing;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(8px);
 
   span {
     min-width: 24px;
-    padding: 2px 6px;
+    padding: 2px 8px;
     font-family: var(--font-mono);
     font-size: 11px;
+    font-weight: 700;
     text-align: center;
-    color: $forest;
-    background: $cream;
+    color: rgb(var(--on-accent));
+    background: rgb(var(--accent));
+    border-radius: 999px;
   }
 
   &:hover {
     transform: translateY(-2px);
-    border-color: $brass;
-    box-shadow: $shadow-sm;
+    border-color: rgb(var(--accent) / 0.5);
+    box-shadow: $shadow-md;
   }
 
   &.is-warning span {
-    color: $cream;
-    background: $danger-color;
+    background: rgb(var(--danger));
   }
 }
 
 .hero-panel {
   align-self: center;
-  padding: 16px;
-  background: rgba(250, 243, 226, 0.1);
-  border: 1.5px solid rgba(250, 243, 226, 0.26);
+  padding: 18px;
+  @include glass-tile;
 }
 
 .hero-panel-header {
@@ -362,28 +358,32 @@ onUnmounted(() => {
     font-family: var(--font-mono);
     font-size: 10px;
     letter-spacing: 0.12em;
-    color: color-mix(in srgb, $cream 72%, $brass);
+    text-transform: uppercase;
+    color: rgb(var(--muted));
   }
 
   strong {
-    font-family: var(--font-display);
-    font-size: 36px;
-    font-style: italic;
-    font-weight: 500;
+    font-family: var(--font-body);
+    font-size: 32px;
+    font-weight: 700;
     line-height: 1;
+    color: rgb(var(--accent-strong));
+    font-variant-numeric: tabular-nums;
   }
 }
 
 .progress-track {
   height: 9px;
   padding: 2px;
-  background: rgba(250, 243, 226, 0.16);
-  border: 1px solid rgba(250, 243, 226, 0.25);
+  background: rgb(var(--elev));
+  border: 1px solid rgb(var(--line) / 0.7);
+  border-radius: 999px;
 
   span {
     display: block;
     height: 100%;
-    background: linear-gradient(90deg, $brass, $cream);
+    background: linear-gradient(90deg, rgb(var(--accent-2)), rgb(var(--accent-3)));
+    border-radius: 999px;
     transition: width 260ms $transition-timing;
   }
 }
@@ -398,21 +398,21 @@ onUnmounted(() => {
     padding: 8px;
     font-family: var(--font-mono);
     font-size: 10px;
+    font-weight: 600;
     text-align: center;
-    color: color-mix(in srgb, $cream 82%, $forest);
-    background: rgba(250, 243, 226, 0.08);
-    border: 1px solid rgba(250, 243, 226, 0.18);
+    color: rgb(var(--muted));
+    background: rgb(var(--surface) / 0.7);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 0.75rem;
   }
 }
 
 .stats-row { margin-bottom: 20px; row-gap: 16px; }
-.card-title { 
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
+.card-title {
+  font-family: var(--font-body);
+  font-weight: 600;
   font-size: 15px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+  color: rgb(var(--text));
 }
 .card-header { display: flex; justify-content: space-between; align-items: center; }
 .chart-container { height: 300px; width: 100%; }
@@ -423,15 +423,15 @@ onUnmounted(() => {
   min-width: 0;
 
   strong {
-    color: $forest;
+    color: rgb(var(--text));
     line-height: 1.4;
   }
 }
-.schedule-location { display: flex; align-items: center; gap: 4px; font-size: 12px; color: $text-secondary; }
-.task-title-cell { display: flex; align-items: center; gap: 8px; min-width: 0; color: $forest; font-weight: 600; }
-.task-dot { width: 8px; height: 8px; flex: 0 0 auto; background: $info-color; border: 1px solid $forest; }
-.task-dot.is-medium { background: $warning-color; }
-.task-dot.is-high { background: $danger-color; }
+.schedule-location { display: flex; align-items: center; gap: 4px; font-size: 12px; color: rgb(var(--muted)); }
+.task-title-cell { display: flex; align-items: center; gap: 8px; min-width: 0; color: rgb(var(--text)); font-weight: 600; }
+.task-dot { width: 8px; height: 8px; flex: 0 0 auto; background: rgb(var(--info-color, var(--accent))); border-radius: 999px; }
+.task-dot.is-medium { background: rgb(var(--warn)); }
+.task-dot.is-high { background: rgb(var(--danger)); }
 
 @media (max-width: 960px) {
   .admin-hero {
