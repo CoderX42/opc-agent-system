@@ -293,7 +293,7 @@ onMounted(fetchList)
 .selected-date-card,
 .schedule-legend {
   background: $cream;
-  border: 2px solid $forest;
+  border: 1px solid rgb(var(--line) / 0.7);
   box-shadow: $shadow-sm;
 }
 

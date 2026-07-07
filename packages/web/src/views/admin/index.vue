@@ -275,8 +275,10 @@ onUnmounted(() => {
   background:
     linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
     radial-gradient(circle at 80% 10%, rgba(183, 153, 110, 0.34), transparent 34%);
-  border: 2px solid $forest;
-  box-shadow: $shadow-sm;
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(8px);
   color: $cream;
 }
 
@@ -334,7 +336,7 @@ onUnmounted(() => {
   &:hover {
     transform: translateY(-2px);
     border-color: $brass;
-    box-shadow: 3px 3px 0 rgba(250, 243, 226, 0.16);
+    box-shadow: $shadow-sm;
   }
 
   &.is-warning span {

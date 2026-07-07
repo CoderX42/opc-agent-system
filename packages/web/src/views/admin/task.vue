@@ -304,8 +304,8 @@ onMounted(fetchList)
   background:
     linear-gradient(90deg, rgba(250, 243, 226, 0.96), rgba(245, 235, 211, 0.96)),
     repeating-linear-gradient(135deg, transparent 0 10px, rgba(31, 42, 36, 0.03) 10px 11px);
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow: $shadow-md;
 }
 
 .task-command-copy {
@@ -349,10 +349,10 @@ onMounted(fetchList)
   flex: 1;
   min-width: 280px;
   background: $cream;
-  border: 2px solid $forest;
+  border: 1px solid rgb(var(--line) / 0.7);
   display: flex;
   flex-direction: column;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  box-shadow: $shadow-md;
 }
 
 .kanban-column-header {
@@ -428,7 +428,7 @@ onMounted(fetchList)
   
   &:hover { 
     transform: translateY(-2px);
-    box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.16);
+    box-shadow: $shadow-lg;
   }
 }
 

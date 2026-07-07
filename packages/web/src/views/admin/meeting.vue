@@ -318,7 +318,7 @@ onMounted(fetchList)
   background:
     linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
     radial-gradient(circle at 90% 20%, rgba(217, 164, 65, 0.28), transparent 36%);
-  border: 2px solid $forest;
+  border: 1px solid rgb(var(--line) / 0.7);
   box-shadow: $shadow-sm;
 
   .kicker {
@@ -373,8 +373,8 @@ onMounted(fetchList)
   align-items: center;
   padding: 14px 16px;
   background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow: $shadow-md;
 }
 .meeting-filter {
   justify-content: flex-start;
