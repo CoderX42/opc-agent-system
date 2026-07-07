@@ -43,6 +43,29 @@ export function updateAgentModelConfig(id: string, data: AgentModelConfig) {
   return put<ApiResponse<Agent>>(`/agents/${id}/model-config`, data)
 }
 
+/** 测试 AI 模型连接（不入库，按入参配置直接探测） */
+export function testAgentConnection(data: {
+  provider: string
+  model: string
+  apiKey?: string
+  baseUrl?: string
+  maxTokens?: number
+  temperature?: number
+}) {
+  return post<ApiResponse<{
+    ok: boolean
+    latencyMs: number
+    reply?: string
+    error?: string
+    provider: string
+    model: string
+    promptTokens?: number
+    completionTokens?: number
+    totalTokens?: number
+    tokensPerSec?: number
+  }>>('/agents/test-connection', data)
+}
+
 /** 删除Agent */
 export function deleteAgent(id: string) {
   return del<ApiResponse<null>>(`/agents/${id}`)

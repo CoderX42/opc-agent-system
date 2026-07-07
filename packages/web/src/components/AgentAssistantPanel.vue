@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import ChatPanel from '@/components/ChatPanel.vue'
-import { chatWithAgentType, type AgentChatType } from '@/api/agent'
+import { chatWithAgent, chatWithAgentType, type AgentChatType } from '@/api/agent'
 
 interface Message {
   id: string
@@ -51,6 +51,7 @@ interface Message {
 const props = withDefaults(
   defineProps<{
     type: AgentChatType
+    agentId?: string
     title: string
     icon: string
     color?: string
@@ -103,18 +104,29 @@ async function sendMessage(content: string) {
 
   loading.value = true
   try {
-    const res = await chatWithAgentType(props.type, message)
+    const res = props.agentId
+      ? await chatWithAgent(props.agentId, message)
+      : await chatWithAgentType(props.type, message)
     messages.value.push({
       id: crypto.randomUUID(),
       role: 'agent',
       content: res.data.reply || '我暂时没有生成有效回复，请稍后再试。',
       timestamp: currentTime(),
     })
-  } catch {
+  } catch (err: any) {
+    const backendMessage = err?.response?.data?.message
+    const reason = Array.isArray(backendMessage)
+      ? backendMessage.join('；')
+      : backendMessage || err?.message || ''
+    const hint = /api.?key|401|authorized|credentials/i.test(reason)
+      ? '（请检查服务商 API Key / Base URL 是否有效）'
+      : /not found|404|model/i.test(reason)
+      ? '（请检查模型名称是否正确）'
+      : ''
     messages.value.push({
       id: crypto.randomUUID(),
       role: 'agent',
-      content: '这次没有连上 Agent 服务。你可以稍后重试，或者先在对应业务页面继续操作。',
+      content: `这次没有连上 Agent 服务：${reason || '未知错误'}${hint}`,
       timestamp: currentTime(),
     })
   } finally {

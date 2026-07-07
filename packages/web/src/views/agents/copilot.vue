@@ -113,16 +113,94 @@
             </div>
           </article>
 
+          <!-- 模型接入 -->
+          <div class="model-strip glass-card" :class="{ 'needs-key': currentModelInfo.needsApiKey }">
+            <div class="model-strip-main">
+              <span class="model-label">模型接入</span>
+              <select
+                class="model-select provider-select"
+                :value="currentConfiguredAgent?.config?.provider || ''"
+                :disabled="modelSaving || !currentConfiguredAgent"
+                @change="handleProviderSelect"
+              >
+                <option v-if="!currentConfiguredAgent" value="">加载中…</option>
+                <option v-for="preset in providerPresets" :key="preset.value" :value="preset.value">
+                  {{ preset.label }}
+                </option>
+              </select>
+              <select
+                class="model-select"
+                :value="currentModelInfo.model"
+                :disabled="modelSaving || !currentConfiguredAgent"
+                @change="handleModelSelect"
+              >
+                <option v-if="!currentModelOptions.length && !currentModelInfo.model" value="">选择模型</option>
+                <option v-for="model in currentModelOptions" :key="model.value" :value="model.value">
+                  {{ model.label }}
+                </option>
+                <option v-if="currentModelInfo.model && !currentModelInPreset" :value="currentModelInfo.model">
+                  {{ currentModelInfo.model }}
+                </option>
+              </select>
+              <select
+                class="model-select baseurl-presets"
+                :value="''"
+                :disabled="!currentProviderPreset"
+                @change="handleBaseUrlPresetSelect"
+                title="常用 Base URL"
+              >
+                <option value="">常用 Base URL…</option>
+                <option
+                  v-for="url in commonBaseUrls"
+                  :key="url"
+                  :value="url"
+                >{{ url }}</option>
+              </select>
+              <input
+                type="text"
+                class="model-input"
+                placeholder="Base URL（可留空使用默认）"
+                :value="currentBaseUrl"
+                :disabled="modelSaving || !currentConfiguredAgent"
+                @blur="handleBaseUrlChange"
+              />
+              <button
+                type="button"
+                class="test-btn"
+                :disabled="testing || !currentConfiguredAgent"
+                @click="handleTestConnection"
+              >
+                {{ testing ? '测试中…' : '↻ 测试连接' }}
+              </button>
+            </div>
+            <span
+              class="key-pill"
+              :class="{
+                'is-ok': !!testResult && testResult.ok,
+                'is-fail': !!testResult && !testResult.ok,
+              }"
+              :title="testResult?.error || ''"
+            >
+              <template v-if="testing">测试中…</template>
+              <template v-else-if="testResult">
+                {{ testResult.ok
+                  ? `✓ ${testResult.latencyMs}ms${testResult.reply ? ` · ${testResult.reply.slice(0, 24)}` : ''}`
+                  : `✗ ${testResult.error || '连接失败'}` }}
+              </template>
+              <template v-else>{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</template>
+            </span>
+          </div>
+
           <!-- Chat 控制台 -->
           <AgentAssistantPanel
             :key="activeAgent.type"
+            ref="chatRef"
             :type="activeAgent.type"
             :title="`${activeAgent.name} Copilot`"
             :icon="activeAgent.icon"
             :color="activeAgent.color"
             :placeholder="activeAgent.placeholder"
             :suggestions="activeAgent.suggestions"
-            @send="sendPrompt"
           />
         </main>
       </section>
@@ -131,10 +209,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AgentAssistantPanel from '@/components/AgentAssistantPanel.vue'
-import type { AgentChatType } from '@/api/agent'
+import {
+  getAgentModelPresets,
+  getConfigurableAgents,
+  testAgentConnection,
+  updateAgentModelConfig,
+  type AgentChatType,
+} from '@/api/agent'
+import type { Agent, AgentProviderPreset } from '@/types'
+import { suggestBaseUrls } from '@/constants/llm'
 
 interface AgentOption {
   type: AgentChatType
@@ -273,6 +359,177 @@ const chatRef = ref<InstanceType<typeof AgentAssistantPanel> | null>(null)
 function sendPrompt(prompt: string) {
   chatRef.value?.receivePrompt(prompt)
 }
+
+// ============== 模型选择 ==============
+const configuredAgents = ref<Agent[]>([])
+const providerPresets = ref<AgentProviderPreset[]>([])
+const modelSaving = ref(false)
+const testing = ref(false)
+const testResult = ref<{ ok: boolean; latencyMs: number; reply?: string; error?: string } | null>(null)
+
+const currentConfiguredAgent = computed(() =>
+  configuredAgents.value.find((agent) => agent.type === activeType.value),
+)
+const currentProviderPreset = computed(() => {
+  const provider = currentConfiguredAgent.value?.config?.provider
+  return providerPresets.value.find((preset) => preset.value === provider)
+})
+const currentModelOptions = computed(() => currentProviderPreset.value?.models || [])
+const currentModelInPreset = computed(() => {
+  const model = currentConfiguredAgent.value?.config?.model
+  return Boolean(model && currentModelOptions.value.some((item) => item.value === model))
+})
+const currentBaseUrl = computed(() => {
+  const config = currentConfiguredAgent.value?.config
+  return config?.baseUrl || currentProviderPreset.value?.defaultBaseUrl || ''
+})
+const commonBaseUrls = computed(() =>
+  suggestBaseUrls(
+    currentConfiguredAgent.value?.config?.provider,
+    currentProviderPreset.value?.defaultBaseUrl,
+    currentBaseUrl.value,
+  ),
+)
+const currentModelInfo = computed(() => {
+  const config = currentConfiguredAgent.value?.config
+  const preset = currentProviderPreset.value
+  const needsApiKey = Boolean(config?.apiKeyRequired && !config.apiKey)
+  return {
+    providerLabel: preset?.label || config?.provider || '默认模型',
+    model: config?.model || preset?.defaultModel || '',
+    needsApiKey,
+    keyStatus: needsApiKey ? '等待 API Key' : config?.apiKey ? 'KEY 已配置' : '免密/本地',
+  }
+})
+
+onMounted(() => {
+  void loadModelSettings()
+})
+
+async function loadModelSettings() {
+  try {
+    const [agentsRes, presetsRes] = await Promise.all([
+      getConfigurableAgents(),
+      getAgentModelPresets(),
+    ])
+    configuredAgents.value = agentsRes.data || []
+    providerPresets.value = presetsRes.data || []
+  } catch {
+    configuredAgents.value = []
+    providerPresets.value = []
+  }
+}
+
+async function handleProviderSelect(event: Event) {
+  const provider = (event.target as HTMLSelectElement).value
+  const preset = providerPresets.value.find((item) => item.value === provider)
+  if (!preset) return
+  const previousProvider = currentConfiguredAgent.value?.config?.provider
+  const providerChanged = !!previousProvider && previousProvider !== preset.value
+  await saveCurrentModelConfig({
+    provider: preset.value,
+    model: preset.defaultModel || currentConfiguredAgent.value?.config?.model || '',
+    baseUrl: preset.defaultBaseUrl,
+    apiKeyRequired: preset.apiKeyRequired,
+    // 切服务商：强制清空 apiKey，防止跨 provider 串用
+    apiKey: providerChanged ? '' : undefined,
+  })
+  if (providerChanged) {
+    testResult.value = null
+  }
+}
+
+async function handleModelSelect(event: Event) {
+  const model = (event.target as HTMLSelectElement).value
+  if (!model) return
+  testResult.value = null
+  await saveCurrentModelConfig({ model })
+}
+
+async function handleBaseUrlChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const next = input.value.trim()
+  const agent = currentConfiguredAgent.value
+  if (!agent) return
+  if ((agent.config.baseUrl ?? '') === next) return
+  testResult.value = null
+  await saveCurrentModelConfig({ baseUrl: next })
+}
+
+async function handleBaseUrlPresetSelect(event: Event) {
+  const select = event.target as HTMLSelectElement
+  const url = select.value
+  if (!url) return
+  testResult.value = null
+  await saveCurrentModelConfig({ baseUrl: url })
+  // 重置 select 回 placeholder，避免重复点同一项不触发
+  select.value = ''
+}
+
+async function handleTestConnection() {
+  const agent = currentConfiguredAgent.value
+  const config = agent?.config
+  if (!agent || !config) return
+  testing.value = true
+  testResult.value = null
+  try {
+    const res = await testAgentConnection({
+      provider: config.provider,
+      model: config.model || currentProviderPreset.value?.defaultModel || '',
+      apiKey: config.apiKey || undefined,
+      baseUrl: config.baseUrl || currentProviderPreset.value?.defaultBaseUrl || undefined,
+      maxTokens: 1,
+      temperature: 0,
+    })
+    testResult.value = {
+      ok: res.data.ok,
+      latencyMs: res.data.latencyMs,
+      reply: res.data.reply,
+      error: res.data.error,
+    }
+  } catch (err) {
+    testResult.value = {
+      ok: false,
+      latencyMs: 0,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  } finally {
+    testing.value = false
+  }
+}
+
+async function saveCurrentModelConfig(patch: Partial<Agent['config']>) {
+  const agent = currentConfiguredAgent.value
+  if (!agent || modelSaving.value) return
+  const nextConfig: Agent['config'] = {
+    provider: agent.config.provider,
+    model: agent.config.model,
+    temperature: agent.config.temperature,
+    maxTokens: agent.config.maxTokens,
+    enableMemory: agent.config.enableMemory,
+    enableTools: agent.config.enableTools,
+    apiKey: agent.config.apiKey ?? '',
+    baseUrl: agent.config.baseUrl ?? '',
+    systemPrompt: agent.config.systemPrompt ?? '',
+    apiKeyRequired: agent.config.apiKeyRequired,
+    ...patch,
+  }
+  modelSaving.value = true
+  try {
+    const res = await updateAgentModelConfig(agent.id, nextConfig)
+    const index = configuredAgents.value.findIndex((item) => item.id === agent.id)
+    if (index >= 0) configuredAgents.value[index] = res.data
+  } catch (err) {
+    console.error('[Copilot] updateAgentModelConfig failed:', err)
+  } finally {
+    modelSaving.value = false
+  }
+}
+
+// 切换 Agent 时，回到该 Agent 的当前配置
+watch(activeType, () => {
+  // 配置切换由 currentConfiguredAgent computed 自动响应，无需额外动作
+})
 </script>
 
 <style lang="scss" scoped>
@@ -296,10 +553,6 @@ function sendPrompt(prompt: string) {
 
 // ============== 顶部工具条 ==============
 .copilot-topbar {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px;
   max-width: 1320px;
   margin: 0 auto 12px;
   padding: 8px 14px;
@@ -322,41 +575,6 @@ function sendPrompt(prompt: string) {
   font-weight: 700;
   letter-spacing: 0.14em;
   color: rgb(var(--muted));
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.topbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 700;
-  color: rgb(var(--muted));
-  background: rgb(var(--surface) / 0.8);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 0.625rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    color: rgb(var(--text));
-    border-color: rgb(var(--accent) / 0.5);
-    background: rgb(var(--elev));
-  }
-
-  &.active {
-    color: rgb(var(--on-accent));
-    background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
-    border-color: transparent;
-  }
 }
 
 .live-pill {
@@ -884,6 +1102,156 @@ function sendPrompt(prompt: string) {
     background: rgb(var(--accent-2) / 0.12);
     border-color: rgb(var(--accent) / 0.5);
     transform: translateY(-1px);
+  }
+}
+
+// ============== 模型接入 strip ==============
+.model-strip {
+  --agent-accent: #{$primary-color};
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background:
+    linear-gradient(135deg, rgb(var(--accent-2) / 0.12), rgb(var(--surface) / 0.96) 60%, rgb(var(--accent-3) / 0.08) 100%);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
+
+  &.needs-key {
+    border-color: rgb(var(--warning) / 0.5);
+    box-shadow: 0 0 0 1px rgb(var(--warning) / 0.18), $shadow-sm;
+  }
+}
+
+.model-strip-main {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.model-label {
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgb(var(--muted));
+}
+
+.model-select,
+.model-input {
+  height: 32px;
+  min-width: 0;
+  padding: 0 10px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--text));
+  background: rgb(var(--surface) / 0.85);
+  border: 1px solid rgb(var(--line) / 0.7);
+  border-radius: 999px;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:focus {
+    border-color: rgb(var(--accent) / 0.55);
+    background: rgb(var(--surface));
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.provider-select {
+  min-width: 150px;
+  font-weight: 600;
+}
+
+.model-select:not(.provider-select) {
+  min-width: 180px;
+}
+
+.baseurl-presets {
+  min-width: 150px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: rgb(var(--muted));
+  background: rgb(var(--elev) / 0.7);
+}
+
+.model-input {
+  flex: 1 1 220px;
+  min-width: 180px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  color: rgb(var(--text));
+}
+
+.test-btn {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: rgb(var(--on-accent));
+  background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  box-shadow: 0 6px 16px -10px rgb(var(--accent) / 0.6);
+
+  &:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -12px rgb(var(--accent) / 0.7);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+  }
+}
+
+.key-pill {
+  flex: 0 0 auto;
+  max-width: 280px;
+  padding: 5px 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-align: center;
+  color: rgb(var(--muted));
+  background: rgb(var(--elev) / 0.7);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 999px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+
+  &.is-ok {
+    color: rgb(var(--success));
+    background: rgb(var(--success) / 0.1);
+    border-color: rgb(var(--success) / 0.45);
+  }
+
+  &.is-fail {
+    color: rgb(var(--danger));
+    background: rgb(var(--danger) / 0.1);
+    border-color: rgb(var(--danger) / 0.5);
   }
 }
 

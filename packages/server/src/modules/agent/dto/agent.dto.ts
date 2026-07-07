@@ -82,3 +82,34 @@ export class AgentChatDto {
   @MaxLength(10_000)
   message: string;
 }
+
+export class TestAgentConnectionDto {
+  @IsIn(AGENT_PROVIDER_PRESETS.map((preset) => preset.value))
+  provider: string;
+
+  @IsString()
+  @MaxLength(120)
+  model: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  apiKey?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(500)
+  baseUrl?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Max(64)
+  maxTokens?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  @Max(2)
+  temperature?: number;
+}

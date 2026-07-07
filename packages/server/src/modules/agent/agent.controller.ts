@@ -6,7 +6,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
 import { AgentService } from './agent.service';
 import { AgentQueryDto } from './dto/agent-query.dto';
-import { AgentChatDto, CreateAgentDto, UpdateAgentDto, UpdateAgentModelConfigDto } from './dto/agent.dto';
+import { AgentChatDto, CreateAgentDto, TestAgentConnectionDto, UpdateAgentDto, UpdateAgentModelConfigDto } from './dto/agent.dto';
 import { AgentStatus, AgentType } from './entities/agent.entity';
 
 @ApiTags('Agent')
@@ -32,6 +32,11 @@ export class AgentController {
   @Get('model-presets')
   modelPresets() { return this.agents.getModelPresets(); }
 
+  @Post('test-connection')
+  testConnection(@Body() dto: TestAgentConnectionDto) {
+    return this.agents.testConnection(dto);
+  }
+
   @Get('type/:type')
   byType(@Param('type') type: AgentType) { return this.agents.findByType(type); }
 
@@ -50,7 +55,6 @@ export class AgentController {
   }
 
   @Patch(':id/model-config')
-  @Roles(UserRole.ADMIN)
   updateModelConfig(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateAgentModelConfigDto,

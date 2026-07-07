@@ -10,6 +10,11 @@ export type AgentModelProvider =
   | 'kimi-code'
   | 'qwen'
   | 'zhipu'
+  | 'doubao'
+  | 'hunyuan'
+  | 'wenxin'
+  | 'baichuan'
+  | 'gemini'
   | 'siliconflow'
   | 'ollama'
   | 'local-openai'
@@ -135,6 +140,66 @@ export const AGENT_PROVIDER_PRESETS: AgentProviderPreset[] = [
     description: '智谱 AI GLM 系列，适合通用办公与知识处理。',
   },
   {
+    value: 'doubao',
+    label: '豆包 / 火山方舟',
+    region: 'domestic',
+    protocol: 'openai-compatible',
+    defaultBaseUrl: 'https://ark.cn-beijing.volces.com/api/v3',
+    defaultModel: 'doubao-seed-1-6',
+    apiKeyRequired: true,
+    models: [
+      { label: 'Doubao Seed 1.6', value: 'doubao-seed-1-6' },
+      { label: 'Doubao Seed 1.6 Thinking', value: 'doubao-seed-1-6-thinking' },
+      { label: 'Doubao Pro 32K', value: 'doubao-pro-32k' },
+    ],
+    description: '火山方舟 OpenAI 兼容接入，适合办公助手与企业知识问答。',
+  },
+  {
+    value: 'hunyuan',
+    label: '腾讯混元',
+    region: 'domestic',
+    protocol: 'openai-compatible',
+    defaultBaseUrl: 'https://api.hunyuan.cloud.tencent.com/v1',
+    defaultModel: 'hunyuan-turbos-latest',
+    apiKeyRequired: true,
+    models: [
+      { label: 'Hunyuan Turbos Latest', value: 'hunyuan-turbos-latest' },
+      { label: 'Hunyuan Turbo Latest', value: 'hunyuan-turbo-latest' },
+      { label: 'Hunyuan Lite', value: 'hunyuan-lite' },
+    ],
+    description: '腾讯混元 OpenAI 兼容 API，适合企业办公与客服场景。',
+  },
+  {
+    value: 'wenxin',
+    label: '百度文心 / 千帆',
+    region: 'domestic',
+    protocol: 'openai-compatible',
+    defaultBaseUrl: 'https://qianfan.baidubce.com/v2',
+    defaultModel: 'ernie-4.0-turbo-8k',
+    apiKeyRequired: true,
+    models: [
+      { label: 'ERNIE 4.0 Turbo 8K', value: 'ernie-4.0-turbo-8k' },
+      { label: 'ERNIE 4.5 Turbo 32K', value: 'ernie-4.5-turbo-32k' },
+      { label: 'ERNIE Speed 8K', value: 'ernie-speed-8k' },
+    ],
+    description: '百度智能云千帆 OpenAI 兼容模式，适合中文办公处理。',
+  },
+  {
+    value: 'baichuan',
+    label: '百川智能',
+    region: 'domestic',
+    protocol: 'openai-compatible',
+    defaultBaseUrl: 'https://api.baichuan-ai.com/v1',
+    defaultModel: 'Baichuan4-Turbo',
+    apiKeyRequired: true,
+    models: [
+      { label: 'Baichuan4 Turbo', value: 'Baichuan4-Turbo' },
+      { label: 'Baichuan3 Turbo', value: 'Baichuan3-Turbo' },
+      { label: 'Baichuan2 Turbo', value: 'Baichuan2-Turbo' },
+    ],
+    description: '百川智能 OpenAI 兼容接入，适合通用问答与文本处理。',
+  },
+  {
     value: 'siliconflow',
     label: '硅基流动',
     region: 'domestic',
@@ -179,6 +244,21 @@ export const AGENT_PROVIDER_PRESETS: AgentProviderPreset[] = [
       { label: 'Claude 3 Opus', value: 'claude-3-opus-latest' },
     ],
     description: 'Anthropic Messages API，适合写作、法务审阅和长对话。',
+  },
+  {
+    value: 'gemini',
+    label: 'Google Gemini',
+    region: 'international',
+    protocol: 'openai-compatible',
+    defaultBaseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+    defaultModel: 'gemini-2.0-flash',
+    apiKeyRequired: true,
+    models: [
+      { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' },
+      { label: 'Gemini 1.5 Pro', value: 'gemini-1.5-pro' },
+      { label: 'Gemini 1.5 Flash', value: 'gemini-1.5-flash' },
+    ],
+    description: 'Google Gemini OpenAI 兼容接口，适合多语言办公与长上下文任务。',
   },
   {
     value: 'ollama',
@@ -288,16 +368,30 @@ export function mergeAgentConfig(
   const current = normalizeAgentConfig(type, currentConfig);
   const provider = nextConfig.provider || current.provider;
   const preset = getProviderPreset(provider);
-  const apiKey =
-    nextConfig.apiKey === undefined || nextConfig.apiKey.includes('*')
-      ? current.apiKey
-      : nextConfig.apiKey;
+
+  // API Key 隔离：切换服务商时强制清空，避免密钥跨 provider 串用。
+  // 仅当用户在新 patch 里显式提供非 masked 的 key 时才使用。
+  const providerChanged =
+    typeof nextConfig.provider === 'string' && nextConfig.provider !== current.provider;
+  const rawKey = nextConfig.apiKey;
+  const isMasked = typeof rawKey === 'string' && rawKey.includes('*');
+  const isExplicit =
+    typeof rawKey === 'string' && rawKey.length > 0 && !isMasked;
+
+  let apiKey: string | undefined;
+  if (providerChanged) {
+    apiKey = isExplicit ? rawKey : undefined;
+  } else if (rawKey === undefined || isMasked) {
+    apiKey = current.apiKey;
+  } else {
+    apiKey = isExplicit ? rawKey : undefined;
+  }
 
   return {
     ...current,
     provider: preset.value,
     model: nextConfig.model ?? current.model ?? preset.defaultModel,
-    apiKey: apiKey || undefined,
+    apiKey,
     baseUrl: nextConfig.baseUrl ?? current.baseUrl ?? preset.defaultBaseUrl,
     temperature: nextConfig.temperature ?? current.temperature,
     maxTokens: nextConfig.maxTokens ?? current.maxTokens,
@@ -326,7 +420,8 @@ export function toAiProviderType(config: AgentModelConfig): AiProviderType {
   if (preset.protocol === 'anthropic') return 'anthropic';
   if (preset.protocol === 'ollama') return 'ollama';
   if (config.provider === 'deepseek') return 'deepseek';
-  return config.provider === 'custom-openai' ? 'openai-compatible' : config.provider;
+  if (preset.protocol === 'openai-compatible') return 'openai-compatible';
+  return 'openai-compatible';
 }
 
 function readString(value: unknown): string | undefined {

@@ -273,11 +273,28 @@
             </el-form-item>
 
             <el-form-item label="Base URL">
-              <el-input
+              <el-select
                 v-model="configForm.baseUrl"
+                filterable
+                allow-create
+                default-first-option
                 clearable
-                placeholder="例如 https://api.openai.com/v1 或 http://localhost:1234/v1"
-              />
+                style="width: 100%;"
+                placeholder="选择或输入 Base URL"
+                :empty-values="[null, undefined]"
+                :value-on-clear="''"
+                :popper-append-to-body="false"
+              >
+                <el-option
+                  v-for="url in baseUrlOptions"
+                  :key="url"
+                  :label="url"
+                  :value="url"
+                />
+              </el-select>
+              <small class="base-url-tips">
+                可从下拉里挑选常见地址，也可直接输入自定义 URL。
+              </small>
             </el-form-item>
           </div>
 
@@ -319,10 +336,50 @@
               OpenAI 兼容服务会请求 <code>/chat/completions</code>，Ollama 会请求 <code>/api/chat</code>。
             </span>
           </div>
+
+          <div class="model-test-panel" :class="{ 'is-stale': testResultStale, 'is-ok': !!testResult && testResult.ok, 'is-fail': !!testResult && !testResult.ok }">
+            <div class="model-test-head">
+              <span class="model-test-title">
+                模型连通测试
+                <small v-if="testResult?.reply || testResult?.error">· 原始返回</small>
+              </span>
+              <el-button size="small" :loading="testRunning" @click="handleTestConnection">{{ testResultStale ? '需重测' : (testRunning ? '测试中…' : '测试') }}</el-button>
+            </div>
+            <template v-if="testResult">
+              <div v-if="testResult.ok" class="model-test-body">
+                <div class="model-test-metrics">
+                  <div class="model-test-metric">
+                    <span class="metric-label">总耗时</span>
+                    <strong>{{ formatLatency(testResult.latencyMs) }}</strong>
+                  </div>
+                  <div class="model-test-metric">
+                    <span class="metric-label">输出 TOKEN</span>
+                    <strong>{{ testResult.completionTokens ?? 0 }}</strong>
+                  </div>
+                  <div class="model-test-metric">
+                    <span class="metric-label">吞吐</span>
+                    <strong>
+                      {{ testResult.tokensPerSec ? `${testResult.tokensPerSec} t/s` : '—' }}
+                    </strong>
+                  </div>
+                </div>
+                <pre v-if="testResult.reply" class="model-test-reply">{{ testResult.reply }}</pre>
+              </div>
+              <div v-else class="model-test-body model-test-error">
+                <strong>✗ {{ testResult.error || '连接失败' }}</strong>
+                <small>本次未保存该配置。请检查 API Key / 模型名 / Base URL 后重试。</small>
+              </div>
+              <div v-if="testResultStale" class="model-test-stale">配置已变更，请重新测试</div>
+            </template>
+            <div v-else class="model-test-empty">
+              填好上面字段后，点击「测试」按钮验证模型连通性，结果会显示在这里。
+            </div>
+          </div>
         </el-form>
       </template>
       <template #footer>
         <el-button @click="configDialogVisible = false">取消</el-button>
+        <el-button :loading="testRunning" @click="handleSaveAndTest">保存并测试</el-button>
         <el-button type="primary" :loading="configSaving" @click="saveAgentConfig">保存配置</el-button>
       </template>
     </el-dialog>
@@ -330,7 +387,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
 import {
@@ -338,9 +395,11 @@ import {
   getConfigurableAgents,
   startAgent,
   stopAgent,
+  testAgentConnection,
   updateAgentModelConfig,
 } from '@/api/agent'
 import type { Agent, AgentModelConfig, AgentModelProvider, AgentProviderPreset, AgentType } from '@/types'
+import { suggestBaseUrls } from '@/constants/llm'
 
 const userStore = useUserStore()
 const activeTab = ref('profile')
@@ -595,6 +654,19 @@ const agentConfigs = ref<AgentConfig[]>(Object.entries(agentDisplayMeta).map(([t
 })))
 const agentsLoading = ref(false)
 const configSaving = ref(false)
+const testRunning = ref(false)
+const testResult = ref<{
+  ok: boolean
+  latencyMs: number
+  reply?: string
+  error?: string
+  provider?: string
+  model?: string
+  completionTokens?: number
+  totalTokens?: number
+  tokensPerSec?: number
+} | null>(null)
+const testResultStale = ref(false)
 const agentStatusUpdating = reactive<Record<string, boolean>>({})
 
 const notificationSettings = reactive<Record<NotificationKey, boolean>>({
@@ -667,18 +739,109 @@ const configForm = reactive<AgentModelConfig>({
   apiKeyRequired: true,
 })
 const activeProviderPreset = computed(() => getProviderPreset(configForm.provider))
+const baseUrlOptions = computed(() =>
+  suggestBaseUrls(configForm.provider, activeProviderPreset.value?.defaultBaseUrl, configForm.baseUrl),
+)
 
 function handleConfigAgent(agent: AgentConfig) {
   currentConfigAgent.value = agent
   setConfigForm(agent.config, agent.type)
+  testResult.value = null
+  testResultStale.value = false
   configDialogVisible.value = true
+}
+
+// 任何字段改动都把测试结果标记为过期
+watch(
+  () => ({
+    provider: configForm.provider,
+    model: configForm.model,
+    apiKey: configForm.apiKey,
+    baseUrl: configForm.baseUrl,
+    temperature: configForm.temperature,
+    maxTokens: configForm.maxTokens,
+  }),
+  () => { testResultStale.value = !!testResult.value },
+  { deep: true },
+)
+
+function formatLatency(ms: number) {
+  if (!Number.isFinite(ms) || ms <= 0) return '—'
+  if (ms < 1000) return `${ms} ms`
+  return `${(ms / 1000).toFixed(2)} s`
+}
+
+async function handleTestConnection() {
+  if (!currentConfigAgent.value) return
+  if (!configForm.model) {
+    ElMessage.warning('请先选择模型')
+    return
+  }
+  if (!configForm.baseUrl) {
+    ElMessage.warning('请先填写 Base URL')
+    return
+  }
+  testRunning.value = true
+  try {
+    const res = await testAgentConnection({
+      provider: configForm.provider,
+      model: configForm.model,
+      apiKey: configForm.apiKey || undefined,
+      baseUrl: configForm.baseUrl,
+      maxTokens: Math.min(configForm.maxTokens || 64, 64),
+      temperature: 0,
+    })
+    testResult.value = res.data
+    testResultStale.value = false
+  } catch (err: any) {
+    const msg = err?.response?.data?.message || err?.message || '测试失败'
+    testResult.value = {
+      ok: false,
+      latencyMs: 0,
+      error: Array.isArray(msg) ? msg.join('；') : String(msg),
+    }
+    testResultStale.value = false
+  } finally {
+    testRunning.value = false
+  }
+}
+
+async function handleSaveAndTest() {
+  // 先复用 saveAgentConfig 流程；保存成功后自动跑一次测试
+  if (!currentConfigAgent.value?.id) {
+    ElMessage.warning('Agent 数据尚未同步，请确认后端服务可用')
+    return
+  }
+  if (!configForm.model || !configForm.baseUrl) {
+    ElMessage.warning('请先填写模型名和 Base URL')
+    return
+  }
+  configSaving.value = true
+  try {
+    const payload: AgentModelConfig = { ...configForm }
+    const res = await updateAgentModelConfig(currentConfigAgent.value.id, payload)
+    const updated = mapAgentToConfig(res.data)
+    const index = agentConfigs.value.findIndex((item) => item.id === updated.id || item.type === updated.type)
+    if (index >= 0) agentConfigs.value[index] = updated
+    currentConfigAgent.value = updated
+    ElMessage.success(`${updated.name} 配置已保存并测试中…`)
+  } finally {
+    configSaving.value = false
+  }
+  await handleTestConnection()
 }
 
 function handleProviderChange(provider: AgentModelProvider) {
   const preset = getProviderPreset(provider)
+  const previousProvider = configForm.provider
   configForm.model = preset.defaultModel
   configForm.baseUrl = preset.defaultBaseUrl
   configForm.apiKeyRequired = preset.apiKeyRequired
+  if (previousProvider !== provider) {
+    // 切换服务商：清空 API Key，防止跨 provider 串用
+    configForm.apiKey = ''
+    ElMessage.info(`已切换到 ${preset.label}，请为新服务商重新填写 API Key`)
+  }
 }
 
 async function saveAgentConfig() {
@@ -1112,6 +1275,15 @@ function providerTagType(region?: ProviderRegion) {
   column-gap: 18px;
 }
 
+.base-url-tips {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: rgb(var(--muted));
+}
+
 .password-form {
   max-width: 560px;
 }
@@ -1408,6 +1580,151 @@ function providerTagType(region?: ProviderRegion) {
     background: rgb(var(--surface) / 0.8);
     border-radius: 4px;
   }
+}
+
+// ============== 模型测试面板 ==============
+.model-test-panel {
+  margin-top: 18px;
+  padding: 14px 16px 16px;
+  background: rgb(var(--elev) / 0.5);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 0.875rem;
+  transition: border-color 0.2s ease, background 0.2s ease;
+
+  &.is-ok {
+    background: rgb(var(--success) / 0.06);
+    border-color: rgb(var(--success) / 0.45);
+  }
+
+  &.is-fail {
+    background: rgb(var(--danger) / 0.06);
+    border-color: rgb(var(--danger) / 0.5);
+  }
+
+  &.is-stale {
+    border-style: dashed;
+  }
+}
+
+.model-test-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+
+  .model-test-title {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgb(var(--text));
+
+    small {
+      margin-left: 6px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      font-weight: 500;
+      color: rgb(var(--muted));
+      letter-spacing: 0.04em;
+    }
+  }
+}
+
+.model-test-empty {
+  font-size: 12px;
+  color: rgb(var(--muted));
+  line-height: 1.6;
+}
+
+.model-test-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.model-test-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+
+  @media (max-width: 540px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.model-test-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: rgb(var(--surface) / 0.85);
+  border: 1px solid rgb(var(--line) / 0.55);
+  border-radius: 0.625rem;
+
+  .metric-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
+  }
+
+  strong {
+    font-family: var(--font-body);
+    font-size: 18px;
+    font-weight: 700;
+    color: rgb(var(--accent-strong));
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.model-test-reply {
+  margin: 0;
+  padding: 10px 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.55;
+  color: rgb(var(--text));
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--line) / 0.5);
+  border-radius: 0.5rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 110px;
+  overflow: auto;
+}
+
+.model-test-error {
+  padding: 10px 12px;
+  background: rgb(var(--surface));
+  border: 1px solid rgb(var(--danger) / 0.4);
+  border-radius: 0.5rem;
+
+  strong {
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: rgb(var(--danger));
+  }
+
+  small {
+    font-size: 11px;
+    color: rgb(var(--muted));
+    line-height: 1.6;
+  }
+}
+
+.model-test-stale {
+  margin-top: 8px;
+  padding: 6px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: rgb(var(--warning));
+  background: rgb(var(--warning) / 0.08);
+  border: 1px dashed rgb(var(--warning) / 0.5);
+  border-radius: 0.5rem;
 }
 
 @media (max-width: 1100px) {

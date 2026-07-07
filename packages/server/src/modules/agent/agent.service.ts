@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Agent, AgentStatus, AgentType } from './entities/agent.entity';
@@ -9,6 +9,7 @@ import {
   AGENT_PROVIDER_PRESETS,
   AgentModelConfig,
   defaultAgentConfig,
+  getProviderPreset,
   mergeAgentConfig,
   normalizeAgentConfig,
   sanitizeAgentConfig,
@@ -19,6 +20,8 @@ type SafeAgent = Omit<Agent, 'config'> & { config: AgentModelConfig };
 
 @Injectable()
 export class AgentService {
+  private readonly logger = new Logger(AgentService.name);
+
   constructor(
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
@@ -122,6 +125,81 @@ export class AgentService {
     return AGENT_PROVIDER_PRESETS;
   }
 
+  async testConnection(payload: {
+    provider: string;
+    model: string;
+    apiKey?: string;
+    baseUrl?: string;
+    maxTokens?: number;
+    temperature?: number;
+  }): Promise<{
+    ok: boolean;
+    latencyMs: number;
+    reply?: string;
+    error?: string;
+    provider: string;
+    model: string;
+    promptTokens?: number;
+    completionTokens?: number;
+    totalTokens?: number;
+    tokensPerSec?: number;
+  }> {
+    const startedAt = Date.now();
+    const preset = getProviderPreset(payload.provider);
+    const providerType = toAiProviderType({
+      provider: preset.value as never,
+      model: payload.model,
+      temperature: payload.temperature ?? 0,
+      maxTokens: payload.maxTokens ?? 64,
+      enableMemory: false,
+      enableTools: false,
+    } as AgentModelConfig);
+    try {
+      const response = await this.aiService.chat(
+        [{ role: 'user', content: '请用一句话证明服务可用，保持不超过 20 个字。' }],
+        {
+          provider: providerType,
+          model: payload.model,
+          apiKey: payload.apiKey,
+          baseUrl: payload.baseUrl || preset.defaultBaseUrl,
+          temperature: payload.temperature ?? 0,
+          maxTokens: payload.maxTokens ?? 64,
+          providerLabel: preset.value,
+          apiKeyRequired: preset.apiKeyRequired,
+        },
+      );
+      const latencyMs = Date.now() - startedAt;
+      const completionTokens = response.usage?.completionTokens || 0;
+      const promptTokens = response.usage?.promptTokens || 0;
+      const totalTokens = response.usage?.totalTokens || promptTokens + completionTokens;
+      const tokensPerSec =
+        completionTokens > 0 && latencyMs > 0
+          ? Number(((completionTokens / latencyMs) * 1000).toFixed(2))
+          : undefined;
+      return {
+        ok: true,
+        latencyMs,
+        reply: String(response.content || '').slice(0, 200),
+        provider: preset.value,
+        model: payload.model,
+        promptTokens,
+        completionTokens,
+        totalTokens,
+        tokensPerSec,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`testConnection failed for ${preset.value}/${payload.model}: ${msg}`);
+      return {
+        ok: false,
+        latencyMs: Date.now() - startedAt,
+        error: msg,
+        provider: preset.value,
+        model: payload.model,
+      };
+    }
+  }
+
   async updateModelConfig(
     id: string,
     data: UpdateAgentModelConfigDto,
@@ -173,21 +251,16 @@ export class AgentService {
 
   private async chatWithAgent(agent: Agent, message: string): Promise<{ reply: string }> {
     const config = normalizeAgentConfig(agent.type, agent.config);
-    let reply: string;
-    try {
-      reply = await this.aiService.simpleChat(message, config.systemPrompt, {
-        provider: toAiProviderType(config),
-        model: config.model,
-        apiKey: config.apiKey,
-        baseUrl: config.baseUrl,
-        temperature: config.temperature,
-        maxTokens: config.maxTokens,
-        providerLabel: config.provider,
-        apiKeyRequired: config.apiKeyRequired,
-      });
-    } catch {
-      reply = this.localFallback(agent.type, message);
-    }
+    const reply = await this.aiService.simpleChat(message, config.systemPrompt, {
+      provider: toAiProviderType(config),
+      model: config.model,
+      apiKey: config.apiKey,
+      baseUrl: config.baseUrl,
+      temperature: config.temperature,
+      maxTokens: config.maxTokens,
+      providerLabel: config.provider,
+      apiKeyRequired: config.apiKeyRequired,
+    });
     return { reply };
   }
 
