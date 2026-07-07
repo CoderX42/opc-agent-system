@@ -1,5 +1,51 @@
 // ==================== SCSS混入 ====================
 
+@use 'variables' as *;
+
+// Glassmorphism — drop-in replacement for retro panels.
+// Rely on the blue palette: surface (white) + accent-2 (light) + accent-3 (deeper).
+@mixin glass-panel {
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
+}
+
+@mixin glass-card {
+  border-radius: 1.25rem;
+  border: 1px solid rgb(var(--line) / 0.7);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    $shadow-soft;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.97), rgb(var(--surface) / 0.9)),
+    radial-gradient(circle at 18% 0%, rgb(var(--accent-2) / 0.08), transparent 18rem),
+    radial-gradient(circle at 100% 100%, rgb(var(--accent-3) / 0.06), transparent 16rem);
+  backdrop-filter: blur(16px);
+}
+
+@mixin glass-hero {
+  border-radius: 1.5rem;
+  border: 1px solid rgb(var(--line) / 0.6);
+  box-shadow: $shadow-soft;
+  background:
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.16),
+      rgb(var(--surface) / 0.95) 55%,
+      rgb(var(--accent-3) / 0.12) 100%);
+  backdrop-filter: blur(14px);
+}
+
+@mixin glass-tile {
+  border-radius: 1rem;
+  border: 1px solid rgb(var(--line) / 0.7);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.95), rgb(var(--elev) / 0.65));
+  backdrop-filter: blur(10px);
+  box-shadow: $shadow-sm;
+}
+
 // Flex布局
 @mixin flex-center {
   display: flex;
