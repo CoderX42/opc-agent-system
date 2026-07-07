@@ -108,9 +108,9 @@ export const initialAgents: OfficeAgent[] = [
 
 export const initialTasks: OfficeTask[] = [
 
-  { id: 'task-1', agentId: 'finance-agent', name: '生成本月利润分析报告', priority: 'high', status: 'running', progress: 72, updatedAt: nowTime(2) },
-  { id: 'task-2', agentId: 'service-agent', name: '回复 12 封售后邮件', priority: 'high', status: 'waiting', progress: 58, updatedAt: nowTime(3) },
-  { id: 'task-3', agentId: 'legal-agent', name: '审查屋顶光伏租赁合同', priority: 'high', status: 'error', progress: 41, updatedAt: nowTime(1) },
-  { id: 'task-4', agentId: 'admin-agent', name: '整理本周会议纪要', priority: 'medium', status: 'completed', progress: 100, updatedAt: nowTime(8) },
-  { id: 'task-5', agentId: 'finance-agent', name: '生成报税资料清单', priority: 'medium', status: 'running', progress: 35, updatedAt: nowTime(10) },
-  { id: 'task-6', agentId: 'service-agent', name: '起草客户赔付说明', priority: 'medium', status: 'waiting', progress: 64, updatedAt: nowTime(12) },]
+  { id: 'task-1', agentId: 'finance-agent', name: '生成本月利润分析报告', priority: 'high', status: 'running', progress: 72, updatedAt: nowTime(2), assignee: '小账', duration: '2h 10m', businessPath: '/finance/report' },
+  { id: 'task-2', agentId: 'service-agent', name: '回复 12 封售后邮件', priority: 'high', status: 'waiting', progress: 58, updatedAt: nowTime(3), assignee: '小应', duration: '1h 45m', businessPath: '/customer-service/ticket' },
+  { id: 'task-3', agentId: 'legal-agent', name: '审查屋顶光伏租赁合同', priority: 'high', status: 'error', progress: 41, updatedAt: nowTime(1), assignee: '小律', duration: '3h 05m', businessPath: '/legal/contract' },
+  { id: 'task-4', agentId: 'admin-agent', name: '整理本周会议纪要', priority: 'medium', status: 'completed', progress: 100, updatedAt: nowTime(8), assignee: '小行', duration: '40m', businessPath: '/admin/meeting' },
+  { id: 'task-5', agentId: 'finance-agent', name: '生成报税资料清单', priority: 'medium', status: 'running', progress: 35, updatedAt: nowTime(10), assignee: '小账', duration: '55m', businessPath: '/finance/transaction' },
+  { id: 'task-6', agentId: 'service-agent', name: '起草客户赔付说明', priority: 'medium', status: 'waiting', progress: 64, updatedAt: nowTime(12), assignee: '小应', duration: '1h 10m', businessPath: '/customer-service/conversation' },]

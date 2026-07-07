@@ -110,12 +110,12 @@ function progressColor(status: OfficeAgentStatus) {
 .task-queue {
   padding: 14px 16px 16px;
   color: #1a221d;
-  border: 2px solid #1f2a24;
-  background: #faf3e2;
+  border: 1px solid rgb(var(--line) / 0.6);
+  background: #f0e3ca;
   box-shadow:
-    inset 0 1px 0 #b7996e,
-    6px 8px 0 -1px rgba(31, 42, 36, 0.16),
-    12px 22px 40px -16px rgba(31, 42, 36, 0.32);
+    inset 0 1px 0 #a67c52,
+    5px 6px 0 #5b3f1f,
+    10px 18px 30px -12px rgba(62, 95, 62, 0.2);
   position: relative;
   animation: queue-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.3s both;
 }
@@ -204,7 +204,7 @@ function progressColor(status: OfficeAgentStatus) {
 .queue-scroll::-webkit-scrollbar-track { background: #f5ebd3; }
 .queue-scroll::-webkit-scrollbar-thumb {
   background: #b7996e;
-  border: 2px solid #f5ebd3;
+  border: 1px solid rgb(var(--line) / 0.6);
 }
 
 .task-card {
@@ -214,10 +214,10 @@ function progressColor(status: OfficeAgentStatus) {
   padding: 11px 12px 12px;
   color: #1a221d;
   text-align: left;
-  border: 2px solid rgba(31, 42, 36, 0.22);
-  border-radius: 0;
-  background: #f5ebd3;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 16px;
+  background: #f0e3ca; /* SDV wood card */
+  box-shadow: $shadow-sm;
   cursor: pointer;
   scroll-snap-align: start;
   transition: transform 160ms cubic-bezier(0.2, 0.7, 0.2, 1), border-color 160ms ease, box-shadow 160ms ease;
@@ -379,7 +379,7 @@ function progressColor(status: OfficeAgentStatus) {
 .task-card :deep(.el-progress) { margin: 0; }
 
 .task-card :deep(.el-tag) {
-  border-radius: 0 !important;
+  border-radius: 10px !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-size: 9px !important;
   font-weight: 700 !important;

@@ -38,6 +38,10 @@ export interface OfficeTask {
   status: OfficeAgentStatus
   progress: number
   updatedAt: string
+  // Extended for efficiency workbench table
+  assignee?: string
+  duration?: string // e.g. '1h 20m' or '45m'
+  businessPath?: string // e.g. '/finance/report'
 }
 
 export interface OfficeStats {

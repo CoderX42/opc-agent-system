@@ -562,7 +562,7 @@ function etaFromProgress(progress: number) {
   min-height: 34px;
   margin: 0;
   padding-inline: 8px;
-  border-radius: 0;
+  border-radius: 12px;
   font-family: 'Bricolage Grotesque', sans-serif;
   font-size: 11px;
   font-weight: 600;

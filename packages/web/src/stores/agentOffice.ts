@@ -1,8 +1,18 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { createOfficeEventSource, getOfficeState, parseOfficeStateEvent } from '@/api/office'
+import {
+  createOfficeEventSource,
+  getOfficeState,
+  parseOfficeStateEvent,
+  pauseAgent,
+  resumeAgent,
+  rerunAgent,
+  appendAgentCommand,
+  updateTaskStatus,
+  bulkUpdateTasks,
+} from '@/api/office'
 import { initialAgents, initialTasks, nowTime } from '@/views/office/data/mockOffice'
-import type { OfficeAgentLog, OfficeStats } from '@/types/office'
+import type { OfficeAgentLog, OfficeStats, OfficeAgentStatus } from '@/types/office'
 
 export type {
   OfficeAgent,
@@ -32,6 +42,10 @@ export const useAgentOfficeStore = defineStore('agentOffice', () => {
   const loading = ref(false)
   const error = ref('')
   const commandSubmitting = ref(false)
+
+  // For efficiency workbench task table
+  const selectedTaskIds = ref<string[]>([])
+  const taskSort = ref<{ prop: string; order: 'ascending' | 'descending' | null }>({ prop: 'updatedAt', order: 'descending' })
 
   const selectedAgent = computed(() => {
     return agents.value.find((agent) => agent.id === selectedAgentId.value) ?? agents.value[0]
@@ -98,33 +112,57 @@ export const useAgentOfficeStore = defineStore('agentOffice', () => {
     error.value = ''
     addLog(agentId, 'command', `已追加指令：${command}`)
     try {
+      await appendAgentCommand(agentId, command)
+      // refresh local state from latest if needed; optimistic update
       agent.currentTask = command
       agent.status = 'running'
       if (agent.progress >= 100) agent.progress = 5
+      // sync matching task
+      const t = tasks.value.find((x) => x.agentId === agentId)
+      if (t) { t.name = command; t.status = 'running'; t.progress = agent.progress; t.updatedAt = nowTime() }
+    } catch (e: any) {
+      error.value = '指令提交失败'
+      throw e
     } finally {
       commandSubmitting.value = false
     }
   }
 
-  function togglePause(agentId: string) {
+  async function togglePause(agentId: string) {
     const agent = agents.value.find((item) => item.id === agentId)
     if (!agent) return
 
-    if (agent.status === 'paused') {
-      agent.status = agent.previousStatus && agent.previousStatus !== 'paused' ? agent.previousStatus : 'running'
-      agent.previousStatus = undefined
-      addLog(agentId, 'system', '任务已继续运行')
-      return
+    const wasPaused = agent.status === 'paused'
+    try {
+      if (wasPaused) {
+        await resumeAgent(agentId)
+        agent.status = agent.previousStatus && agent.previousStatus !== 'paused' ? agent.previousStatus : 'running'
+        agent.previousStatus = undefined
+        addLog(agentId, 'system', '任务已继续运行')
+      } else {
+        await pauseAgent(agentId)
+        agent.previousStatus = agent.status
+        agent.status = 'paused'
+        addLog(agentId, 'system', '任务已暂停')
+      }
+    } catch {
+      // local only fallback already done in api
+      if (wasPaused) {
+        agent.status = agent.previousStatus && agent.previousStatus !== 'paused' ? agent.previousStatus : 'running'
+        agent.previousStatus = undefined
+      } else {
+        agent.previousStatus = agent.status
+        agent.status = 'paused'
+      }
     }
-
-    agent.previousStatus = agent.status
-    agent.status = 'paused'
-    addLog(agentId, 'system', '任务已暂停')
   }
 
-  function rerun(agentId: string) {
+  async function rerun(agentId: string) {
     const agent = agents.value.find((item) => item.id === agentId)
     if (!agent) return
+    try {
+      await rerunAgent(agentId)
+    } catch {}
     agent.status = 'running'
     agent.previousStatus = undefined
     agent.progress = 5
@@ -143,15 +181,95 @@ export const useAgentOfficeStore = defineStore('agentOffice', () => {
     void initialize()
   }
 
+  async function setTaskStatus(taskId: string, status: OfficeAgentStatus, progress?: number) {
+    try {
+      await updateTaskStatus(taskId, status, progress)
+      const task = tasks.value.find(t => t.id === taskId)
+      if (task) {
+        task.status = status
+        if (typeof progress === 'number') task.progress = progress
+        task.updatedAt = nowTime()
+        const agent = agents.value.find(a => a.id === task.agentId)
+        if (agent) {
+          agent.status = status
+          if (typeof progress === 'number') agent.progress = progress
+        }
+      }
+    } catch {}
+  }
+
+  async function bulkAction(action: 'pause' | 'resume' | 'rerun' | 'complete') {
+    const ids = selectedTaskIds.value.length ? [...selectedTaskIds.value] : []
+    if (!ids.length) return
+    try {
+      await bulkUpdateTasks(ids, action)
+    } catch {}
+    // optimistic apply on current
+    const nowStr = nowTime()
+    ids.forEach(id => {
+      const task = tasks.value.find(t => t.id === id)
+      if (!task) return
+      const agent = agents.value.find(a => a.id === task.agentId)
+      if (action === 'pause') {
+        if (agent) { agent.previousStatus = agent.status; agent.status = 'paused' }
+        task.status = 'paused'
+      } else if (action === 'resume') {
+        if (agent) { agent.status = agent.previousStatus || 'running'; agent.previousStatus = undefined }
+        task.status = agent?.status || 'running'
+      } else if (action === 'rerun') {
+        if (agent) { agent.status = 'running'; agent.progress = 5 }
+        task.status = 'running'
+        task.progress = 5
+      } else if (action === 'complete') {
+        if (agent) { agent.status = 'completed'; agent.progress = 100 }
+        task.status = 'completed'
+        task.progress = 100
+      }
+      task.updatedAt = nowStr
+    })
+    selectedTaskIds.value = []
+  }
+
+  function setSelectedTasks(ids: string[]) {
+    selectedTaskIds.value = ids
+  }
+
+  function setTaskSort(prop: string, order: 'ascending' | 'descending' | null) {
+    taskSort.value = { prop, order }
+  }
+
+  // Compute sorted tasks (client side, for table)
+  const sortedTasks = computed(() => {
+    const arr = [...tasks.value]
+    const { prop, order } = taskSort.value
+    if (!order || !prop) return arr
+    const dir = order === 'ascending' ? 1 : -1
+    return arr.sort((a: any, b: any) => {
+      let va = a[prop], vb = b[prop]
+      if (prop === 'priority') {
+        const rank: Record<string, number> = { high: 3, medium: 2, low: 1 }
+        va = rank[va] ?? 0; vb = rank[vb] ?? 0
+      } else if (prop === 'progress' || prop === 'updatedAt') {
+        // numeric or time string fallback to string compare
+      }
+      if (va < vb) return -1 * dir
+      if (va > vb) return 1 * dir
+      return 0
+    })
+  })
+
   return {
     agents,
     tasks,
+    sortedTasks,
     selectedAgentId,
     selectedAgent,
     stats,
     loading,
     error,
     commandSubmitting,
+    selectedTaskIds,
+    taskSort,
     initialize,
     retryInitialize,
     startRealtime,
@@ -160,5 +278,9 @@ export const useAgentOfficeStore = defineStore('agentOffice', () => {
     appendCommand,
     togglePause,
     rerun,
+    setTaskStatus,
+    bulkAction,
+    setSelectedTasks,
+    setTaskSort,
   }
 })

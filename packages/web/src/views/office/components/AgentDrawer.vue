@@ -36,7 +36,7 @@
 import { computed, onMounted, onBeforeUnmount, watch } from 'vue'
 import AgentAssistantPanel from '@/components/AgentAssistantPanel.vue'
 import type { AgentChatType } from '@/api/agent'
-import type { OfficeAgent } from '@/stores/agentOffice'
+import type { OfficeAgent } from '@/types/office'
 
 const props = defineProps<{ desk: OfficeAgent | null }>()
 const emit = defineEmits<{ close: [] }>()
@@ -163,7 +163,7 @@ watch(() => props.desk, (d) => {
 }
 .drawer-body :deep(.agent-assistant) {
   height: 100%;
-  border-radius: 0;
+  border-radius: 12px;
   border: 0;
   background: transparent;
 }

@@ -1,20 +1,30 @@
 <template>
   <section class="office-floorplan" aria-label="数字员工办公室地图">
-    <div class="floor-grid" aria-hidden="true"></div>
-    <div class="floor-corridor corridor-x" aria-hidden="true"></div>
-    <div class="floor-corridor corridor-y" aria-hidden="true"></div>
 
     <button
       v-for="(agent, idx) in agents"
       :key="agent.id"
       type="button"
       class="office-room"
-      :class="[`room-${agent.type}`, `status-${agent.status}`, { selected: selectedAgentId === agent.id }]"
+      :data-agent-id="agent.id"
+      :class="[
+        `room-${agent.type}`,
+        `status-${agent.status}`,
+        {
+          selected: selectedAgentId === agent.id,
+          highlighted: highlightStatus === agent.status,
+          dimmed: dimmedAgentIds.includes(agent.id),
+        },
+      ]"
       :style="{ '--accent': agent.accent, '--idx': idx }"
       :aria-label="`查看 ${agent.name}`"
       @click="$emit('select', agent.id)"
+      @pointerenter="onRoomEnter(agent, $event)"
+      @pointerleave="$emit('hover', null)"
+      @focusin="onRoomEnter(agent, $event)"
+      @focusout="$emit('hover', null)"
     >
-      <span class="room-backdrop" aria-hidden="true"></span>
+      <span class="room-backdrop" aria-hidden="true" :style="roomTileStyle(agent.type)"></span>
       <span class="room-zone-label">{{ String(idx + 1).padStart(2, '0') }}</span>
 
       <span class="room-header">
@@ -28,20 +38,23 @@
       </span>
 
       <span class="room-canvas" aria-hidden="true">
+        <!-- Window with outside view (SDV feel) -->
         <span class="room-window"><i></i><i></i><i></i></span>
+
+        <!-- Wall board / notes -->
         <span class="room-board">
           <i v-for="line in 3" :key="line"></i>
         </span>
-        <span class="room-desk">
-          <span class="desk-screen"><i></i><i></i></span>
-          <span class="desk-top"></span>
-          <span class="desk-chair"></span>
-        </span>
-        <span class="room-decor" :class="`decor-${agent.type}`">
-          <i v-for="item in 5" :key="item"></i>
-        </span>
+
+        <!-- Type-specific furniture using real sprites, arranged like SDV room -->
+        <span class="furniture furniture-desk" :style="furnitureStyle('desk', agent.type)"></span>
+        <span class="furniture furniture-chair" :style="furnitureStyle('chair', agent.type)"></span>
+        <span class="furniture furniture-shelf" :style="furnitureStyle('shelf', agent.type)"></span>
+        <span class="furniture furniture-decor" :style="furnitureStyle('decor', agent.type)"></span>
+
+        <!-- Agent seated naturally -->
         <span class="agent-seat" :class="{ 'is-resting': isResting(agent.status) }">
-          <AgentAvatar :type="agent.type" :status="avatarStatus(agent.status)" :size="isResting(agent.status) ? 72 : 88" />
+          <AgentAvatar :type="agent.type" :status="avatarStatus(agent.status)" :size="isResting(agent.status) ? 56 : 64" />
         </span>
       </span>
 
@@ -62,14 +75,34 @@
 import AgentAvatar from './AgentAvatar.vue'
 import type { OfficeAgent, OfficeAgentStatus } from '@/types/office'
 
-defineProps<{
-  agents: OfficeAgent[]
-  selectedAgentId: string
+withDefaults(
+  defineProps<{
+    agents: OfficeAgent[]
+    selectedAgentId: string
+    highlightStatus?: OfficeAgentStatus | null
+    dimmedAgentIds?: string[]
+  }>(),
+  {
+    highlightStatus: null,
+    dimmedAgentIds: () => [],
+  },
+)
+
+const emit = defineEmits<{
+  select: [agentId: string]
+  hover: [payload: { agent: OfficeAgent; x: number; y: number } | null]
 }>()
 
-defineEmits<{
-  select: [agentId: string]
-}>()
+function onRoomEnter(agent: OfficeAgent, event: Event) {
+  const target = event.currentTarget as HTMLElement | null
+  if (!target) return
+  const rect = target.getBoundingClientRect()
+  emit('hover', {
+    agent,
+    x: rect.left + rect.width / 2,
+    y: rect.top,
+  })
+}
 
 function statusLabel(status: OfficeAgentStatus) {
   return {
@@ -96,88 +129,96 @@ function avatarStatus(status: OfficeAgentStatus) {
 function isResting(status: OfficeAgentStatus) {
   return status === 'idle' || status === 'paused' || status === 'completed'
 }
+
+function furnitureStyle(kind: string, agentType?: string) {
+  // Real positions from the furniture sprite sheet (256x96, ~32px tiles)
+  // Redesigned layout: cozy SDV-style workstation per agent type
+  const positions: Record<string, Record<string, string>> = {
+    desk: { finance: '0px 0px', service: '0px 0px', legal: '-32px 0px', admin: '0px 0px' },
+    chair: { finance: '-64px 0px', service: '-64px 0px', legal: '-96px 0px', admin: '-64px 0px' },
+    shelf: { finance: '-96px -32px', service: '-64px -32px', legal: '-128px -32px', admin: '-96px -32px' },
+    decor: { finance: '0px -32px', service: '-32px -32px', legal: '0px -32px', admin: '-32px -32px' },
+  }
+  const type = agentType || 'finance'
+  let pos = (positions[kind] && positions[kind][type]) || '0px 0px'
+
+  return {
+    backgroundImage: `url('/pixel/furniture/office-furniture-pack.png')`,
+    backgroundSize: '256px 96px',
+    backgroundPosition: pos,
+    backgroundRepeat: 'no-repeat',
+  }
+}
+
+function roomTileStyle(type: string) {
+  const offsets: Record<string, string> = {
+    finance: '0px 0px',
+    service: '-64px 0px',
+    legal: '0px -32px',
+    admin: '-96px 0px',
+  }
+  return {
+    backgroundPosition: offsets[type] || '0px 0px',
+  }
+}
 </script>
 
 <style lang="scss" scoped>
 .office-floorplan {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(2, minmax(340px, 1fr));
-  gap: 28px;
-  min-width: 760px;
-  min-height: 660px;
-  padding: 28px;
-  border: 2px solid var(--forest, #1f2a24);
-  background:
-    linear-gradient(90deg, rgba(31, 42, 36, 0.04) 1px, transparent 1px) 0 0 / 42px 42px,
-    linear-gradient(rgba(31, 42, 36, 0.035) 1px, transparent 1px) 0 0 / 42px 42px,
-    rgba(255, 246, 226, 0.82);
-  box-shadow: 4px 5px 0 rgba(31, 42, 36, 0.12);
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  min-height: 300px;
+  padding: 16px;
+  background: rgb(var(--elev) / 0.4);
+  border-radius: 12px;
+  border: 1px solid rgb(var(--line) / 0.5);
   overflow: hidden;
 }
 
-.floor-grid,
-.floor-corridor {
-  position: absolute;
-  pointer-events: none;
-}
-
-.floor-grid {
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, transparent calc(50% - 26px), rgba(183, 153, 110, 0.26) calc(50% - 26px), rgba(183, 153, 110, 0.26) calc(50% + 26px), transparent calc(50% + 26px)),
-    linear-gradient(transparent calc(50% - 26px), rgba(183, 153, 110, 0.22) calc(50% - 26px), rgba(183, 153, 110, 0.22) calc(50% + 26px), transparent calc(50% + 26px));
-}
-
-.floor-corridor {
-  z-index: 0;
-  background:
-    repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.12) 0 1px, transparent 1px 14px),
-    rgba(183, 153, 110, 0.1);
-  border: 1px solid rgba(31, 42, 36, 0.1);
-}
-
-.corridor-x {
-  top: 50%;
-  left: 32px;
-  right: 32px;
-  height: 56px;
-  transform: translateY(-50%);
-}
-
-.corridor-y {
-  top: 32px;
-  bottom: 32px;
-  left: 50%;
-  width: 56px;
-  transform: translateX(-50%);
-}
+/* Removed chaotic floor-grid and corridors for clarity (Scheme A) */
 
 .office-room {
-  --accent: #4b8fcb;
+  --accent: #1677ff;
   position: relative;
   z-index: 1;
-  min-height: 300px;
-  padding: 18px;
-  border: 2px solid rgba(31, 42, 36, 0.72);
-  background: rgba(250, 243, 226, 0.82);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.38),
-    4px 5px 0 rgba(31, 42, 36, 0.12);
-  color: #2d241b;
+  min-height: 260px;
+  padding: 10px;
+  border: 1px solid rgb(var(--line) / 0.6);
+  background: rgb(var(--surface));
+  border-radius: 8px;
+  box-shadow: $shadow-sm;
+  color: rgb(var(--text));
   cursor: pointer;
   overflow: hidden;
   text-align: left;
-  transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
+  transition: all 200ms ease;
 }
 
-.office-room:hover,
-.office-room.selected {
-  background: rgba(255, 246, 226, 0.94);
-  transform: translate(-2px, -3px);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--accent) 44%, rgba(255, 255, 255, 0.38)),
-    7px 8px 0 rgba(31, 42, 36, 0.16);
+.office-room:hover {
+  border-color: rgb(var(--accent));
+  box-shadow: $shadow-md;
+}
+
+.office-room.selected,
+.office-room.highlighted {
+  border-color: rgb(var(--accent));
+  background: rgb(var(--elev));
+  box-shadow: $shadow-md;
+  z-index: 2;
+}
+
+.office-room.dimmed {
+  opacity: 0.42;
+  filter: grayscale(0.25);
+  transform: scale(0.98);
+}
+
+.office-room.dimmed:hover {
+  opacity: 0.72;
 }
 
 .office-room:focus-visible {
@@ -187,34 +228,55 @@ function isResting(status: OfficeAgentStatus) {
 
 .room-backdrop {
   position: absolute;
-  inset: 12px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--accent) 11%, #f5ebd3) 0 43%, transparent 43%),
-    linear-gradient(135deg, rgba(255, 246, 226, 0.92), rgba(245, 235, 211, 0.8));
-  border: 1px solid rgba(31, 42, 36, 0.12);
+  inset: 6px;
+  background: rgb(var(--elev) / 0.6);
+  border: 1px solid rgb(var(--line) / 0.4);
+  border-radius: 4px;
 }
+
+/* Type-specific room feel - subtle tints */
+.room-finance .room-backdrop { background: rgb(240 244 248 / 0.6); }
+.room-service .room-backdrop { background: rgb(240 248 244 / 0.6); }
+.room-legal .room-backdrop { background: rgb(248 244 240 / 0.6); }
+.room-admin .room-backdrop { background: rgb(248 240 244 / 0.6); }
 
 .room-backdrop::after {
   content: '';
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 56%;
-  background:
-    linear-gradient(90deg, rgba(31, 42, 36, 0.055) 1px, transparent 1px) 0 0 / 28px 28px,
-    linear-gradient(rgba(31, 42, 36, 0.045) 1px, transparent 1px) 0 0 / 28px 28px,
-    rgba(239, 230, 210, 0.84);
+  left: 3px;
+  right: 3px;
+  top: 3px;
+  bottom: 3px;
+  background: 
+    /* Top-left light source */
+    linear-gradient(135deg, rgba(255,255,255,0.35) 0%, transparent 40%),
+    /* Subtle side light */
+    linear-gradient(90deg, rgba(255,255,255,0.12) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Rim lighting on room */
+.office-room::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 
+    inset 0 0 12px rgba(255,255,255,0.2),
+    0 0 0 1px rgba(0,0,0,0.2);
 }
 
 .room-zone-label {
   position: absolute;
-  top: 22px;
-  right: 22px;
+  top: 10px;
+  right: 10px;
   z-index: 5;
   color: rgba(45, 36, 27, 0.22);
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 34px;
+  font-size: 24px;
   font-weight: 900;
   letter-spacing: -0.08em;
 }
@@ -230,204 +292,244 @@ function isResting(status: OfficeAgentStatus) {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 14px;
+  gap: 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid rgba(91, 63, 31, 0.15);
 }
 
 .room-header span:first-child {
   display: grid;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
 }
 
-.room-header em,
-.task-copy em {
-  color: rgba(45, 36, 27, 0.54);
-  font-size: 12px;
+.room-header em {
+  color: #8b5a2b;
+  font-size: 7px;
   font-style: normal;
   font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 .room-header strong {
-  color: var(--forest, #1f2a24);
+  color: #1f2a24;
   font-family: var(--font-display, Georgia, serif);
-  font-size: 20px;
+  font-size: 14px;
   font-style: italic;
   font-weight: 600;
-  line-height: 1.1;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.7);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .room-state {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 3px;
   min-width: max-content;
-  padding: 8px 10px;
-  border: 1.5px solid rgba(31, 42, 36, 0.16);
-  background: rgba(250, 243, 226, 0.78);
-  color: rgba(45, 36, 27, 0.68);
+  padding: 2px 4px;
+  border: 1px solid #5b3f1f;
+  background: rgba(244, 235, 218, 0.85);
+  color: #2a422a;
   font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
-  font-size: 12px;
+  font-size: 8px;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  box-shadow: 0 1px 1px rgba(0,0,0,0.1);
 }
 
 .room-state i {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: var(--accent);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 16%, transparent);
+  box-shadow: 0 0 0 1px #f4ebda, 0 0 3px var(--accent);
 }
 
-.room-state[data-status='error'] i { background: #d95951; box-shadow: 0 0 0 4px rgba(217, 89, 81, 0.16); }
-.room-state[data-status='waiting'] i { background: #f0a33a; box-shadow: 0 0 0 4px rgba(240, 163, 58, 0.16); }
+.room-state[data-status='error'] i { background: #d95951; box-shadow: 0 0 0 1px #f4ebda, 0 0 4px #d95951; }
+.room-state[data-status='waiting'] i { background: #f0a33a; box-shadow: 0 0 0 1px #f4ebda, 0 0 4px #f0a33a; }
 .room-state[data-status='idle'] i,
-.room-state[data-status='paused'] i { background: #938575; box-shadow: 0 0 0 4px rgba(147, 133, 117, 0.16); }
+.room-state[data-status='paused'] i { background: #938575; box-shadow: 0 0 0 1px #f4ebda, 0 0 3px #938575; }
+.room-state[data-status='running'] i { animation: status-pulse 1.6s ease-in-out infinite; }
 
 .room-canvas {
   display: block;
-  height: 172px;
-  margin-top: 12px;
+  height: 155px;
+  margin-top: 6px;
+  position: relative;
+  box-shadow: 
+    inset 0 0 20px rgba(0,0,0,0.15),
+    0 8px 16px -4px rgba(0,0,0,0.3);
 }
 
+/* Type & status specific lighting / animations on the canvas */
+.status-running .room-canvas::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, 
+    transparent 30%, 
+    rgba(91,143,168,0.12) 50%, 
+    transparent 70%);
+  animation: desk-light-sweep 2.8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+.room-finance .room-canvas::after { background: linear-gradient(90deg, transparent 30%, rgba(62,95,62,0.1) 50%, transparent 70%); }
+.room-service .room-canvas::after { background: linear-gradient(90deg, transparent 30%, rgba(211,139,79,0.1) 50%, transparent 70%); }
+
+@keyframes desk-light-sweep {
+  0% { transform: translateX(-30%); }
+  100% { transform: translateX(130%); }
+}
+
+/* Redesigned room presentation: cozy SDV pixel workstation */
 .room-window {
   position: absolute;
-  top: 8px;
-  right: 16px;
+  top: 2px;
+  right: 4px;
   display: grid;
-  grid-template-columns: repeat(3, 13px);
-  gap: 5px;
-  padding: 7px;
-  background: rgba(250, 243, 226, 0.72);
-  border: 1px solid rgba(31, 42, 36, 0.12);
+  grid-template-columns: repeat(3, 9px);
+  gap: 2px;
+  padding: 2px;
+  background: #d4e8f0;
+  border: 2px solid #5b3f1f;
+  z-index: 2;
 }
 
 .room-window i {
-  height: 30px;
-  background: linear-gradient(180deg, #bbdcff, #fff0cc);
+  height: 16px;
+  background: linear-gradient(180deg, #a8c9e0, #f0e3ca);
 }
 
 .room-board {
   position: absolute;
-  top: 24px;
-  left: 16px;
+  top: 8px;
+  left: 4px;
   display: grid;
-  gap: 6px;
-  width: 92px;
-  padding: 12px;
-  background: rgba(250, 243, 226, 0.68);
-  border: 1px solid rgba(31, 42, 36, 0.12);
+  gap: 2px;
+  width: 55px;
+  padding: 4px;
+  background: #e8d9c2;
+  border: 2px solid #5b3f1f;
+  z-index: 2;
 }
 
 .room-board i {
-  height: 6px;
-  background: color-mix(in srgb, var(--accent) 38%, rgba(66, 49, 32, 0.18));
+  height: 3px;
+  background: color-mix(in srgb, var(--accent) 40%, #8b5a2b);
 }
 
-.room-board i:nth-child(2) { width: 76%; }
-.room-board i:nth-child(3) { width: 58%; }
-
-.room-desk {
+/* Furniture sprites - arranged naturally like SDV room desks */
+.furniture {
   position: absolute;
-  right: 26px;
-  bottom: 14px;
-  width: 132px;
-  height: 94px;
+  image-rendering: pixelated;
+  pointer-events: none;
+  z-index: 4;
+  opacity: 0.95;
+  /* No strong hover lift on furniture */
+  filter: drop-shadow(2px 4px 3px rgba(0,0,0,0.35));
 }
 
-.desk-screen {
-  position: absolute;
-  top: 0;
-  left: 34px;
-  width: 64px;
-  height: 42px;
-  border: 5px solid #352a22;
-  background: #26384e;
-}
+/* Type-specific positions for distinct feel */
+.furniture-desk { right: 8px; bottom: 4px; width: 52px; height: 32px; }
+.furniture-chair { right: 42px; bottom: 0; width: 26px; height: 26px; }
+.furniture-shelf { left: 4px; top: 20px; width: 32px; height: 20px; }
+.furniture-decor { left: 60px; top: 8px; width: 18px; height: 18px; }
 
-.desk-screen i {
-  display: block;
-  width: 34px;
-  height: 4px;
-  margin: 10px auto 0;
-  background: color-mix(in srgb, var(--accent) 75%, #fff);
-  box-shadow: 0 10px 0 rgba(255, 255, 255, 0.42);
-}
+/* Per-type tweaks via room class */
+.room-finance .furniture-desk { right: 6px; }
+.room-service .furniture-chair { right: 38px; }
+.room-legal .furniture-shelf { left: 6px; }
+.room-admin .furniture-decor { left: 55px; }
 
-.desk-top {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 24px;
-  height: 28px;
-  background: linear-gradient(180deg, #fff8ea, #d3b286);
-  box-shadow: 0 12px 0 rgba(73, 51, 31, 0.1);
-}
+/* More aggressive type-specific animations / props */
+.room-finance .furniture-desk { animation: finance-ledger 4s ease-in-out infinite; }
+.room-service .furniture-chair { animation: service-ring 2.2s ease-in-out infinite; }
+.room-legal .furniture-shelf { animation: legal-pages 5.5s ease-in-out infinite; }
+.room-admin .furniture-decor { animation: admin-busy 1.8s steps(3, end) infinite; }
 
-.desk-chair {
-  position: absolute;
-  left: 44px;
-  bottom: 0;
-  width: 44px;
-  height: 28px;
-  background: color-mix(in srgb, var(--accent) 26%, #574132);
+@keyframes finance-ledger {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-1px) rotate(1deg); }
 }
-
-.room-decor {
-  position: absolute;
-  left: 18px;
-  bottom: 18px;
-  display: grid;
-  grid-template-columns: repeat(3, 16px);
-  gap: 7px;
+@keyframes service-ring {
+  0%, 100% { transform: translateY(0); }
+  25%, 75% { transform: translateY(-2px) scale(1.05); }
+  50% { transform: translateY(-3px); }
 }
-
-.room-decor i {
-  width: 16px;
-  height: 16px;
-  background: color-mix(in srgb, var(--accent) 52%, #fff1d8);
-  box-shadow: 0 6px 0 rgba(72, 50, 31, 0.11);
+@keyframes legal-pages {
+  0%, 100% { transform: translateX(0); }
+  40% { transform: translateX(1px); }
+  60% { transform: translateX(-1px); }
 }
-
-.decor-finance i { border-radius: 4px; }
-.decor-service i:nth-child(odd) { border-radius: 50%; }
-.decor-legal i { transform: skewX(-8deg); }
-.decor-admin i:nth-child(3n) { height: 24px; }
+@keyframes admin-busy {
+  0% { transform: translateY(0) rotate(0deg); }
+  33% { transform: translateY(-1px) rotate(-4deg); }
+  66% { transform: translateY(1px) rotate(4deg); }
+  100% { transform: translateY(0) rotate(0deg); }
+}
 
 .agent-seat {
   position: absolute;
-  left: 50%;
-  bottom: 12px;
-  z-index: 6;
+  left: 52%;
+  bottom: 6px;
+  z-index: 5;
   transform: translateX(-50%);
+  /* No hover scale on agent */
 }
 
 .agent-seat.is-resting {
-  left: 33%;
-  bottom: 18px;
-  transform: translateX(-50%) rotate(-5deg);
-  opacity: 0.84;
+  left: 42%;
+  bottom: 8px;
+  transform: translateX(-50%) rotate(-3deg);
+  opacity: 0.9;
 }
 
 .room-footer {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 16px;
-  min-height: 58px;
-  padding: 10px 12px 0;
+  gap: 8px;
+  min-height: 42px;
+  padding: 5px 8px 2px;
+  position: relative;
+  z-index: 6;
+  background: linear-gradient(to top, rgba(245, 235, 211, 0.75), transparent);
+  border-top: 1px dashed rgba(91, 63, 31, 0.3);
 }
 
 .task-copy {
   display: grid;
-  gap: 4px;
+  gap: 1px;
   min-width: 0;
+  background: rgba(250, 243, 226, 0.6);
+  padding: 1px 4px;
+  border-radius: 2px;
+  border: 1px solid rgba(91, 63, 31, 0.2);
+}
+
+.task-copy em {
+  color: #8b5a2b;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 
 .task-copy strong {
   overflow: hidden;
-  max-width: 210px;
-  font-size: 13px;
+  max-width: 115px;
+  font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: #1f2a24;
+  font-weight: 600;
+  line-height: 1.1;
 }
 
 .progress-ring {
@@ -435,46 +537,66 @@ function isResting(status: OfficeAgentStatus) {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  width: 54px;
-  height: 54px;
-  background:
-    radial-gradient(circle, #faf3e2 0 55%, transparent 56%),
-    conic-gradient(var(--accent) var(--progress), rgba(72, 53, 34, 0.12) 0);
-  border: 1.5px solid rgba(31, 42, 36, 0.16);
+  width: 36px;
+  height: 36px;
+  background: #faf3e2;
+  border: 2px solid #5b3f1f;
+  box-shadow: 
+    inset 0 0 0 1px #d9c8a8, 
+    0 1px 1px rgba(0,0,0,0.15),
+    /* Bevel effect */
+    inset 2px 2px 0 rgba(255,255,255,0.6),
+    inset -2px -2px 0 rgba(0,0,0,0.2);
 }
 
 .progress-ring b {
-  color: #2d241b;
-  font-size: 14px;
+  color: #1f2a24;
+  font-size: 9px;
+  font-weight: 700;
 }
 
 .status-running .room-state i {
-  animation: status-pulse 1.8s ease-in-out infinite;
+  animation: status-pulse 1.6s ease-in-out infinite;
 }
 
-.status-error {
-  animation: error-room-glow 1.6s ease-in-out infinite;
+.status-error .office-room {
+  animation: error-room-glow 2s ease-in-out infinite;
+}
+
+.status-waiting .room-state {
+  border-style: dashed;
 }
 
 @keyframes status-pulse {
-  0%, 100% { transform: scale(1); opacity: 0.86; }
-  50% { transform: scale(1.25); opacity: 1; }
+  0%, 100% { transform: scale(1); opacity: 0.9; }
+  50% { transform: scale(1.2); opacity: 1; }
 }
 
 @keyframes error-room-glow {
-  0%, 100% { box-shadow: inset 0 0 0 1px rgba(217, 89, 81, 0.18), 0 18px 34px rgba(64, 46, 27, 0.1); }
-  50% { box-shadow: inset 0 0 0 1px rgba(217, 89, 81, 0.42), 0 18px 38px rgba(217, 89, 81, 0.16); }
+  0%, 100% { box-shadow: 0 0 0 2px rgba(217, 89, 81, 0.15); }
+  50% { box-shadow: 0 0 0 4px rgba(217, 89, 81, 0.35); }
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 900px) {
+  .office-floorplan {
+    grid-template-columns: repeat(2, minmax(180px, 1fr));
+    min-width: 0;
+    min-height: 420px;
+  }
+  .room-canvas { height: 130px; }
+  .furniture-desk { width: 42px; height: 26px; }
+  .furniture-chair { width: 22px; height: 22px; }
+}
+@media (max-width: 640px) {
   .office-floorplan {
     grid-template-columns: 1fr;
-    min-width: 420px;
+    min-height: auto;
+    padding: 8px;
+    gap: 8px;
   }
-
-  .corridor-y,
-  .corridor-x {
-    display: none;
-  }
+  .office-room { min-height: 220px; padding: 6px; }
+  .room-canvas { height: 100px; }
+  .furniture-desk { width: 36px; height: 22px; }
+  .furniture-chair { width: 18px; height: 18px; }
 }
 </style>
