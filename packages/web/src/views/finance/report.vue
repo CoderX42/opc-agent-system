@@ -387,17 +387,17 @@ const reportSignal = computed(() => {
 })
 
 const FINANCE_COLORS = {
-  income: '#4f8f68',
-  expense: '#b94c34',
-  klineUp: '#d84a3a',
-  klineDown: '#2f9b63',
-  klineEmpty: '#a8ada7',
-  profit: '#2f6f7e',
-  brass: '#b7996e',
-  forest: '#1f2a24',
-  muted: '#6e7a72',
-  paper: '#faf3e2',
-  rule: 'rgba(31, 42, 36, 0.14)',
+  income: '#00a884',
+  expense: '#dc2626',
+  klineUp: '#22c55e',
+  klineDown: '#ef4444',
+  klineEmpty: '#94a3b8',
+  profit: '#1677ff',
+  brass: '#00b8ff',
+  forest: '#082558',
+  muted: '#3c5578',
+  paper: '#f5f8fd',
+  rule: 'rgba(13, 71, 161, 0.12)',
 }
 
 async function fetchOverview() {
@@ -918,21 +918,19 @@ onUnmounted(() => {
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.54fr);
   gap: 20px;
   margin-bottom: 16px;
-  padding: 18px 20px;
+  padding: 20px 24px;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
-    radial-gradient(circle at 90% 0%, rgba(217, 164, 65, 0.36), transparent 38%);
-  border: 2px solid $forest;
-  box-shadow: $shadow-md;
-  color: $cream;
+  background: linear-gradient(135deg, $primary-dark, $forest);
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-lg;
+  color: #fff;
 
   &::before {
     position: absolute;
-    inset: 8px;
+    inset: 0;
     pointer-events: none;
     content: '';
-    border: 1px solid rgba(250, 243, 226, 0.18);
+    background: radial-gradient(circle at 85% 15%, rgba(255,255,255,0.12), transparent 55%);
   }
 }
 
@@ -944,45 +942,47 @@ onUnmounted(() => {
 
 .hero-stamp {
   display: inline-flex;
-  padding: 3px 8px;
+  padding: 3px 10px;
   margin-bottom: 10px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: $forest;
-  background: $brass;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #fff;
+  background: rgba(255,255,255,0.22);
+  border-radius: 999px;
 }
 
 .report-hero h3 {
   margin-bottom: 8px;
-  font-family: var(--font-display);
-  font-size: clamp(24px, 3vw, 34px);
-  font-style: italic;
-  font-weight: 500;
-  line-height: 1;
+  font-family: var(--font-body);
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .report-hero p {
   max-width: 640px;
-  color: rgba(250, 243, 226, 0.74);
-  line-height: 1.7;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.6;
 }
 
 .report-ledger {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  border: 1px solid rgba(250, 243, 226, 0.16);
+  background: rgba(255,255,255,0.1);
+  border-radius: $border-radius-md;
+  overflow: hidden;
 }
 
 .report-ledger div {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-height: 96px;
-  padding: 14px;
-  border-right: 1px solid rgba(250, 243, 226, 0.16);
+  padding: 14px 16px;
+  border-right: 1px solid rgba(255,255,255,0.18);
 
   &:last-child {
     border-right: 0;

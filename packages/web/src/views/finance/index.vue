@@ -152,14 +152,14 @@ const recentTransactions = ref<any[]>([])
 const recentLoading = ref(false)
 
 const FINANCE_COLORS = {
-  income: '#4f8f68',
-  expense: '#b94c34',
-  profit: '#2f6f7e',
-  brass: '#b7996e',
-  forest: '#1f2a24',
-  muted: '#6e7a72',
-  paper: '#faf3e2',
-  rule: 'rgba(31, 42, 36, 0.14)',
+  income: '#1677ff',
+  expense: '#dc2626',
+  profit: '#00b8ff',
+  brass: '#0099cc',
+  forest: '#0d47a1',
+  muted: '#3c5578',
+  paper: '#ffffff',
+  rule: 'rgba(13, 71, 161, 0.12)',
 }
 
 const netProfitRate = computed(() => {
@@ -252,8 +252,8 @@ function renderTrendChart(monthlyTrend: Array<{ month: string; income: number; e
     color: [FINANCE_COLORS.income, FINANCE_COLORS.expense],
     tooltip: {
       trigger: 'axis',
-      backgroundColor: 'rgba(250, 243, 226, 0.96)',
-      borderColor: FINANCE_COLORS.forest,
+      backgroundColor: 'rgba(255, 255, 255, 0.96)',
+      borderColor: 'rgba(198, 222, 246, 0.8)',
       borderWidth: 1,
       textStyle: { color: FINANCE_COLORS.forest },
       valueFormatter: (value: number | string) => formatMoney(value),
@@ -289,8 +289,8 @@ function renderTrendChart(monthlyTrend: Array<{ month: string; income: number; e
         lineStyle: { width: 3 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(79, 143, 104, 0.24)' },
-            { offset: 1, color: 'rgba(79, 143, 104, 0.02)' },
+            { offset: 0, color: 'rgba(22, 119, 255, 0.24)' },
+            { offset: 1, color: 'rgba(22, 119, 255, 0.02)' },
           ]),
         },
         data: incomes,
@@ -303,8 +303,8 @@ function renderTrendChart(monthlyTrend: Array<{ month: string; income: number; e
         lineStyle: { width: 3 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(185, 76, 52, 0.2)' },
-            { offset: 1, color: 'rgba(185, 76, 52, 0.02)' },
+            { offset: 0, color: 'rgba(220, 38, 38, 0.2)' },
+            { offset: 1, color: 'rgba(220, 38, 38, 0.02)' },
           ]),
         },
         data: expenses,
@@ -317,11 +317,11 @@ function renderPieChart(categories: Array<{ category: string; amount: number }>)
   if (!pieChartRef.value) return
   if (!pieChart) pieChart = echarts.init(pieChartRef.value)
   pieChart.setOption({
-    color: ['#b94c34', '#d98f45', '#b7996e', '#8d704a', '#6e7a72', '#4f8f68', '#2f6f7e'],
+    color: ['#dc2626', '#ea580c', '#1677ff', '#00b8ff', '#00e0c6', '#3c5578', '#0d47a1'],
     tooltip: {
       trigger: 'item',
-      backgroundColor: 'rgba(250, 243, 226, 0.96)',
-      borderColor: FINANCE_COLORS.forest,
+      backgroundColor: 'rgba(255, 255, 255, 0.96)',
+      borderColor: 'rgba(198, 222, 246, 0.8)',
       borderWidth: 1,
       textStyle: { color: FINANCE_COLORS.forest },
       formatter: '{b}<br/>¥{c} · {d}%',
@@ -385,22 +385,15 @@ onUnmounted(() => {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 20px;
   margin-bottom: 16px;
-  padding: 18px 20px;
+  padding: 20px 24px;
   overflow: hidden;
-  background:
-    linear-gradient(135deg, rgba(31, 42, 36, 0.96), rgba(44, 58, 50, 0.92)),
-    radial-gradient(circle at 90% 10%, rgba(183, 153, 110, 0.35), transparent 34%);
-  border: 2px solid $forest;
-  box-shadow: $shadow-md;
-  color: $cream;
+  background: rgb(var(--surface) / 0.92);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  color: rgb(var(--text));
+  backdrop-filter: blur(12px);
 
-  &::before {
-    position: absolute;
-    inset: 8px;
-    pointer-events: none;
-    content: '';
-    border: 1px solid rgba(250, 243, 226, 0.18);
-  }
 }
 
 .finance-hero-copy,
@@ -411,29 +404,30 @@ onUnmounted(() => {
 
 .hero-stamp {
   display: inline-flex;
-  padding: 3px 8px;
+  padding: 3px 10px;
   margin-bottom: 10px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  color: $forest;
-  background: $brass;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(var(--accent));
+  background: rgb(var(--accent) / 0.1);
+  border-radius: 999px;
 }
 
 .finance-hero h3 {
   margin-bottom: 8px;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: clamp(24px, 3vw, 34px);
-  font-style: italic;
-  font-weight: 500;
-  line-height: 1;
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .finance-hero p {
   max-width: 620px;
-  color: rgba(250, 243, 226, 0.74);
-  line-height: 1.7;
+  color: rgb(var(--muted));
+  line-height: 1.6;
 }
 
 .finance-hero-metrics {
@@ -441,16 +435,18 @@ onUnmounted(() => {
   grid-template-columns: repeat(3, minmax(112px, 1fr));
   min-width: 390px;
   align-self: stretch;
-  border: 1px solid rgba(250, 243, 226, 0.16);
+  background: rgb(var(--elev) / 0.5);
+  border-radius: 1rem;
+  overflow: hidden;
 }
 
 .hero-metric {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 8px;
-  padding: 14px;
-  border-right: 1px solid rgba(250, 243, 226, 0.16);
+  gap: 6px;
+  padding: 14px 16px;
+  border-right: 1px solid rgb(var(--line) / 0.4);
 
   &:last-child {
     border-right: 0;
@@ -459,20 +455,19 @@ onUnmounted(() => {
   span {
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: 0.14em;
-    color: rgba(250, 243, 226, 0.62);
+    letter-spacing: 0.08em;
+    color: rgb(var(--muted));
   }
 
   strong {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 24px;
-    font-style: italic;
-    font-weight: 500;
-    color: $cream;
+    font-weight: 700;
+    color: rgb(var(--text));
     font-variant-numeric: tabular-nums;
 
     &.is-negative {
-      color: #ffb199;
+      color: rgb(var(--danger));
     }
   }
 }

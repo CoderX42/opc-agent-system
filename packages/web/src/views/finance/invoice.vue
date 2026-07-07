@@ -450,60 +450,63 @@ onMounted(fetchList)
 
 .page-subtitle {
   margin-top: 6px;
-  color: $text-secondary;
+  color: rgb(var(--muted));
   line-height: 1.7;
 }
 
 .invoice-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
   margin-bottom: 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: $shadow-sm;
 }
 
 .summary-item {
-  padding: 14px 16px;
-  border-right: 1px solid $rule;
-
-  &:last-child {
-    border-right: 0;
-  }
+  padding: 16px 18px;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.94));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
 
   span {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 700;
-    letter-spacing: 0.14em;
-    color: $brass-deep;
+    letter-spacing: 0.1em;
+    color: rgb(var(--muted));
+    text-transform: uppercase;
   }
 
   strong {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 24px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-weight: 700;
+    color: rgb(var(--text));
     font-variant-numeric: tabular-nums;
 
     &.is-warning {
-      color: $warning-color;
+      color: rgb(var(--warn));
     }
   }
 }
 
-.invoice-filter-bar { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 16px; 
+.invoice-filter-bar,
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
   align-items: center;
   padding: 14px 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.93));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .filter-copy {
@@ -512,7 +515,8 @@ onMounted(fetchList)
   strong {
     display: block;
     margin-top: 3px;
-    color: $forest;
+    color: rgb(var(--text));
+    font-weight: 600;
   }
 }
 
@@ -526,8 +530,8 @@ onMounted(fetchList)
 .invoice-no {
   font-family: var(--font-mono);
   font-size: 11px;
-  font-weight: 800;
-  color: $forest;
+  font-weight: 700;
+  color: rgb(var(--accent-strong));
   letter-spacing: 0.02em;
 }
 
@@ -537,13 +541,13 @@ onMounted(fetchList)
   gap: 3px;
 
   strong {
-    color: $forest;
+    color: rgb(var(--text));
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   span {
-    color: $text-secondary;
+    color: rgb(var(--muted));
     font-size: 11px;
   }
 }
@@ -551,30 +555,23 @@ onMounted(fetchList)
 .ledger-date {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .money-value,
 .tax-value {
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
 .money-value {
-  &.is-income {
-    color: $success-color;
-  }
-
-  &.is-expense {
-    color: $danger-color;
-  }
+  &.is-income { color: rgb(var(--success)); }
+  &.is-expense { color: rgb(var(--danger)); }
 }
 
-.tax-value {
-  color: $brass-deep;
-}
+.tax-value { color: rgb(var(--accent-strong)); }
 
 .table-actions {
   display: flex;
@@ -584,19 +581,21 @@ onMounted(fetchList)
 
 .invoice-upload {
   width: 100%;
-  padding: 12px;
-  background: color-mix(in srgb, $brass 6%, $cream);
-  border: 1.5px dashed rgba(31, 42, 36, 0.28);
+  padding: 14px;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.95), rgb(var(--elev) / 0.7));
+  border: 1px dashed rgb(var(--line) / 0.8);
+  border-radius: 1rem;
 }
 
 .invoice-upload-actions {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 12px;
 
   a {
-    color: $forest;
+    color: rgb(var(--accent-strong));
     font-size: 13px;
     font-weight: 600;
     text-decoration: underline;
@@ -607,37 +606,28 @@ onMounted(fetchList)
   margin: 0 0 14px 100px;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  color: $brass-deep;
+  color: rgb(var(--muted));
+  text-transform: uppercase;
 }
 
-.type-switch {
-  width: 100%;
-}
+.type-switch { width: 100%; }
 
-:deep(.type-switch .el-radio-button) {
-  width: 50%;
-}
-
-:deep(.type-switch .el-radio-button__inner) {
-  width: 100%;
-}
+:deep(.type-switch .el-radio-button) { width: 50%; }
+:deep(.type-switch .el-radio-button__inner) { width: 100%; }
 
 :deep(.invoice-table .is-pending-row td:first-child) {
-  box-shadow: inset 3px 0 0 $warning-color;
+  box-shadow: inset 4px 0 0 rgb(var(--warn));
 }
-
 :deep(.invoice-table .is-approved-row td:first-child) {
-  box-shadow: inset 3px 0 0 $success-color;
+  box-shadow: inset 4px 0 0 rgb(var(--success));
 }
-
 :deep(.invoice-table .is-rejected-row td:first-child) {
-  box-shadow: inset 3px 0 0 $danger-color;
+  box-shadow: inset 4px 0 0 rgb(var(--danger));
 }
-
 :deep(.invoice-table .is-draft-row td:first-child) {
-  box-shadow: inset 3px 0 0 $info-color;
+  box-shadow: inset 4px 0 0 rgb(var(--accent));
 }
 
 :deep(.finance-dialog .el-dialog__body) {
@@ -645,43 +635,13 @@ onMounted(fetchList)
 }
 
 @media (max-width: 760px) {
-  .invoice-page-header {
-    align-items: flex-start;
-  }
-
-  .invoice-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .summary-item:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .summary-item:nth-child(-n + 2) {
-    border-bottom: 1px solid $rule;
-  }
-
-  .invoice-filter-bar {
-    align-items: flex-start;
-  }
+  .invoice-page-header { align-items: flex-start; }
+  .invoice-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .invoice-filter-bar { align-items: flex-start; }
 }
 
 @media (max-width: 520px) {
-  .invoice-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-item {
-    border-right: 0;
-    border-bottom: 1px solid $rule;
-
-    &:last-child {
-      border-bottom: 0;
-    }
-  }
-
-  .form-section-title {
-    margin-left: 0;
-  }
+  .invoice-summary { grid-template-columns: 1fr; }
+  .form-section-title { margin-left: 0; }
 }
 </style>

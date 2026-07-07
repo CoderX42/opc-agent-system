@@ -340,32 +340,29 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.ledger-page-header {
-  align-items: flex-end;
-}
+.ledger-page-header { align-items: flex-end; }
 
 .page-subtitle {
   margin-top: 6px;
-  color: $text-secondary;
+  color: rgb(var(--muted));
   line-height: 1.7;
 }
 
 .ledger-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
   margin-bottom: 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: $shadow-sm;
 }
 
 .summary-item {
-  padding: 14px 16px;
-  border-right: 1px solid $rule;
-
-  &:last-child {
-    border-right: 0;
-  }
+  padding: 16px 18px;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.94));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
 
   span {
     display: block;
@@ -374,45 +371,44 @@ onMounted(fetchList)
     font-size: 9px;
     font-weight: 700;
     letter-spacing: 0.14em;
-    color: $brass-deep;
+    color: rgb(var(--muted));
+    text-transform: uppercase;
   }
 
   strong {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 24px;
-    font-style: italic;
-    font-weight: 500;
-    color: $forest;
+    font-weight: 700;
+    color: rgb(var(--text));
     font-variant-numeric: tabular-nums;
 
-    &.is-income {
-      color: $success-color;
-    }
-
-    &.is-expense {
-      color: $danger-color;
-    }
+    &.is-income { color: rgb(var(--success)); }
+    &.is-expense { color: rgb(var(--danger)); }
   }
 }
 
-.ledger-filter-bar { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 16px; 
+.ledger-filter-bar,
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
   align-items: center;
   padding: 14px 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.93));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .filter-copy {
   min-width: 112px;
-
   strong {
     display: block;
     margin-top: 3px;
-    color: $forest;
+    color: rgb(var(--text));
+    font-weight: 600;
   }
 }
 
@@ -423,40 +419,37 @@ onMounted(fetchList)
   flex-wrap: wrap;
 }
 
-.ledger-table-wrapper {
-  position: relative;
-}
+.ledger-table-wrapper { position: relative; }
 
 .ledger-date {
   font-family: var(--font-mono);
   font-size: 11px;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .category-pill,
 .account-chip {
   display: inline-flex;
   max-width: 100%;
-  padding: 3px 8px;
+  padding: 3px 10px;
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-overflow: ellipsis;
   white-space: nowrap;
+  border-radius: 999px;
 }
 
 .category-pill {
-  color: $brass-deep;
-  background: color-mix(in srgb, $brass 10%, $cream);
-  border: 1px solid rgba(183, 153, 110, 0.38);
+  color: rgb(var(--accent-strong));
+  background: rgb(var(--accent-2) / 0.14);
 }
 
 .account-chip {
-  color: $forest;
-  background: color-mix(in srgb, $forest 7%, $cream);
-  border: 1px solid rgba(31, 42, 36, 0.22);
+  color: rgb(var(--text));
+  background: rgb(var(--elev) / 0.8);
 }
 
 .party-cell {
@@ -465,13 +458,13 @@ onMounted(fetchList)
   gap: 3px;
 
   strong {
-    color: $forest;
+    color: rgb(var(--text));
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
   }
 
   span {
-    color: $text-secondary;
+    color: rgb(var(--muted));
     font-size: 11px;
   }
 }
@@ -479,21 +472,14 @@ onMounted(fetchList)
 .money-value {
   font-family: var(--font-mono);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 
-  &.is-income {
-    color: $success-color;
-  }
-
-  &.is-expense {
-    color: $danger-color;
-  }
+  &.is-income { color: rgb(var(--success)); }
+  &.is-expense { color: rgb(var(--danger)); }
 }
 
-.muted-text {
-  color: $text-secondary;
-}
+.muted-text { color: rgb(var(--muted)); }
 
 .table-actions {
   display: flex;
@@ -505,73 +491,33 @@ onMounted(fetchList)
   margin: 0 0 14px 100px;
   font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.14em;
-  color: $brass-deep;
+  color: rgb(var(--muted));
+  text-transform: uppercase;
 }
 
-.type-switch {
-  width: 100%;
-}
-
-:deep(.type-switch .el-radio-button) {
-  width: 50%;
-}
-
-:deep(.type-switch .el-radio-button__inner) {
-  width: 100%;
-}
+.type-switch { width: 100%; }
+:deep(.type-switch .el-radio-button) { width: 50%; }
+:deep(.type-switch .el-radio-button__inner) { width: 100%; }
 
 :deep(.ledger-table .is-income-row td:first-child) {
-  box-shadow: inset 3px 0 0 $success-color;
+  box-shadow: inset 4px 0 0 rgb(var(--success));
 }
-
 :deep(.ledger-table .is-expense-row td:first-child) {
-  box-shadow: inset 3px 0 0 $danger-color;
+  box-shadow: inset 4px 0 0 rgb(var(--danger));
 }
 
-:deep(.finance-dialog .el-dialog__body) {
-  padding-top: 20px;
-}
+:deep(.finance-dialog .el-dialog__body) { padding-top: 20px; }
 
 @media (max-width: 760px) {
-  .ledger-page-header {
-    align-items: flex-start;
-  }
-
-  .ledger-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .summary-item:nth-child(2n) {
-    border-right: 0;
-  }
-
-  .summary-item:nth-child(-n + 2) {
-    border-bottom: 1px solid $rule;
-  }
-
-  .ledger-filter-bar {
-    align-items: flex-start;
-  }
+  .ledger-page-header { align-items: flex-start; }
+  .ledger-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ledger-filter-bar { align-items: flex-start; }
 }
 
 @media (max-width: 520px) {
-  .ledger-summary {
-    grid-template-columns: 1fr;
-  }
-
-  .summary-item {
-    border-right: 0;
-    border-bottom: 1px solid $rule;
-
-    &:last-child {
-      border-bottom: 0;
-    }
-  }
-
-  .form-section-title {
-    margin-left: 0;
-  }
+  .ledger-summary { grid-template-columns: 1fr; }
+  .form-section-title { margin-left: 0; }
 }
 </style>
