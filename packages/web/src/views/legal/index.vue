@@ -121,7 +121,7 @@ const expiringList = ref<Contract[]>([])
 const monthlyStats = ref<Array<{ month: string; created: number; expired: number }>>([])
 
 const STATUS_COLORS: Record<string, string> = {
-  DRAFT: '#6e7a72', REVIEWING: '#d9a441', APPROVED: '#4f8f68', REJECTED: '#b94c34', SIGNED: '#1f2a24', EXPIRED: '#909399',
+  DRAFT: '#64748b', REVIEWING: '#d97706', APPROVED: '#00a884', REJECTED: '#dc2626', SIGNED: '#1677ff', EXPIRED: '#64748b',
 }
 
 const TYPE_MAP: Record<string, string> = { SALES: '销售', PURCHASE: '采购', SERVICE: '服务', NDA: '保密', EMPLOYMENT: '劳务', OTHER: '其他' }
@@ -187,7 +187,7 @@ function renderStatusChart() {
       radius: ['46%', '72%'],
       center: ['50%', '44%'],
       label: { color: '#445049' },
-      itemStyle: { borderColor: '#faf3e2', borderWidth: 3 },
+      itemStyle: { borderColor: '#fff', borderWidth: 2 },
       data: chartData,
     }],
   })
@@ -213,7 +213,7 @@ function renderMonthlyChart() {
     xAxis: { type: 'category', data: source.map(item => item.month), axisTick: { show: false } },
     yAxis: { type: 'value', splitLine: { lineStyle: { color: 'rgba(31, 42, 36, 0.1)' } } },
     series: [
-      { name: '新建', type: 'bar', data: source.map(item => item.created), barWidth: 18, itemStyle: { color: '#1f2a24' } },
+      { name: '新建', type: 'bar', data: source.map(item => item.created), barWidth: 18, itemStyle: { color: '#1677ff' } },
       { name: '到期', type: 'bar', data: source.map(item => item.expired), barWidth: 18, itemStyle: { color: '#b94c34' } },
     ],
   })
@@ -263,8 +263,10 @@ onUnmounted(() => {
   background:
     linear-gradient(135deg, rgba(250, 243, 226, 0.94), rgba(245, 235, 211, 0.9)),
     repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.05) 0 1px, transparent 1px 18px);
-  border: 2px solid $forest;
-  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.14);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(8px);
 
   &::after {
     position: absolute;

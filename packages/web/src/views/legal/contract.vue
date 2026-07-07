@@ -459,8 +459,10 @@ onMounted(fetchList)
   background:
     linear-gradient(135deg, rgba(250, 243, 226, 0.95), rgba(245, 235, 211, 0.9)),
     repeating-linear-gradient(90deg, rgba(31, 42, 36, 0.045) 0 1px, transparent 1px 18px);
-  border: 2px solid $forest;
-  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.14);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.5rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(8px);
 }
 
 .contract-hero-desc {
@@ -665,7 +667,7 @@ onMounted(fetchList)
   padding: 14px 16px;
   color: $cream;
   background: $forest;
-  border: 2px solid $forest;
+  border: 1px solid rgb(var(--line) / 0.7);
 
   span {
     font-family: var(--font-mono);
