@@ -16,6 +16,7 @@ import { KnowledgeModule } from './modules/knowledge/knowledge.module';
 import { AiModule } from './ai/ai.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { UploadModule } from './modules/upload/upload.module';
+import { OfficeModule } from './modules/office/office.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { UploadModule } from './modules/upload/upload.module';
     AiModule,
     MonitoringModule,
     UploadModule,
+    OfficeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
