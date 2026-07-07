@@ -39,15 +39,16 @@ withDefaults(defineProps<{
 .stats-card {
   position: relative;
   overflow: hidden;
-  background: $cream;
-  border: 2px solid $forest;
-  padding: 14px 16px 12px;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  background: #fff;
+  border: 1px solid $border-color;
+  padding: 16px 18px 14px;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
   transition: transform 160ms $transition-timing, box-shadow 160ms ease;
 
   &:hover {
-    transform: translateY(-3px);
-    box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.16);
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
   }
 
   &:hover .card-bar {
@@ -61,7 +62,7 @@ withDefaults(defineProps<{
   top: 0;
   left: 0;
   width: 100%;
-  height: 2px;
+  height: 3px;
   background: var(--stat-color);
   transform-origin: left;
   transform: scaleX(0.2);
@@ -72,40 +73,37 @@ withDefaults(defineProps<{
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .stats-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: $brass-deep;
+  color: $text-secondary;
 }
 
 .stats-icon {
   width: 32px;
   height: 32px;
-  color: $forest;
-  background: color-mix(in srgb, var(--stat-color) 12%, $cream-warm);
-  border: 1.5px solid $forest;
+  color: #fff;
+  background: var(--stat-color);
+  border-radius: $border-radius-md;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .stats-value {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 500;
-  font-style: italic;
-  font-variation-settings: 'opsz' 96;
+  font-family: var(--font-body);
+  font-size: 26px;
+  font-weight: 700;
   line-height: 1;
-  color: $forest;
-  margin-bottom: 8px;
+  color: $text-primary;
+  margin-bottom: 6px;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
 }
 
 .stats-trend {
@@ -118,15 +116,16 @@ withDefaults(defineProps<{
   display: inline-flex;
   align-items: center;
   gap: 2px;
-  padding: 3px 6px;
+  padding: 2px 8px;
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 999px;
   border: 1px solid currentColor;
 
-  &.is-up { color: $success-color; background: color-mix(in srgb, $success-color 8%, $cream); }
-  &.is-down { color: $danger-color; background: color-mix(in srgb, $danger-color 8%, $cream); }
+  &.is-up { color: $success-color; background: rgba(0,168,132,0.08); }
+  &.is-down { color: $danger-color; background: rgba(220,38,38,0.08); }
 }
 
 .trend-label {
@@ -134,6 +133,6 @@ withDefaults(defineProps<{
   font-size: 9px;
   font-weight: 500;
   color: $text-secondary;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 </style>

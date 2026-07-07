@@ -249,41 +249,38 @@ async function handleUserCommand(command: string) {
 .layout-aside {
   position: relative;
   z-index: 20;
-  background:
-    repeating-linear-gradient(90deg, rgba(250, 243, 226, 0.03) 0 1px, transparent 1px 24px),
-    $bg-sidebar;
+  background: rgb(var(--surface));
+  color: rgb(var(--text));
   transition: width $transition-duration $transition-timing;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-right: 2px solid rgba(250, 243, 226, 0.1);
+  border-right: 1px solid rgb(var(--line) / 0.6);
 }
 
 .logo-container {
-  height: 80px;
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
   padding: 0 18px;
   flex-shrink: 0;
-  border-bottom: 1px solid rgba(250, 243, 226, 0.1);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .logo-mark {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
-  flex: 0 0 40px;
-  color: $forest;
-  background: $brass;
-  border: 2px solid $forest;
-  font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 600;
-  font-style: italic;
-  box-shadow: 3px 3px 0 rgba(250, 243, 226, 0.1);
+  flex: 0 0 36px;
+  color: #fff;
+  background: linear-gradient(135deg, #0d47a1, #1677ff);
+  border-radius: 12px;
+  font-family: var(--font-body);
+  font-size: 18px;
+  font-weight: 700;
 }
 
 .logo-copy {
@@ -293,39 +290,38 @@ async function handleUserCommand(command: string) {
 }
 
 .logo-text {
-  color: #faf3e2;
-  font-family: var(--font-display);
+  color: rgb(var(--text));
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
-  font-style: italic;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   white-space: nowrap;
 }
 
 .logo-caption {
-  margin-top: 2px;
-  color: rgba(250, 243, 226, 0.46);
+  margin-top: 1px;
+  color: rgb(var(--muted));
   font-family: var(--font-mono);
   font-size: 9px;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .menu-label {
-  padding: 14px 24px 10px;
-  color: rgba(250, 243, 226, 0.32);
+  padding: 12px 18px 8px;
+  color: rgba(255,255,255,0.35);
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .sidebar-menu {
-  --el-menu-active-color: $brass;
+  --el-menu-active-color: rgb(var(--accent));
   --el-menu-bg-color: transparent;
-  --el-menu-hover-bg-color: rgba(250, 243, 226, 0.06);
-  --el-menu-text-color: #e8e0d2;
+  --el-menu-hover-bg-color: rgb(var(--elev));
+  --el-menu-text-color: rgb(var(--muted));
 
   border-right: none;
   background-color: transparent;
@@ -336,10 +332,10 @@ async function handleUserCommand(command: string) {
 
   :deep(.el-menu-item),
   :deep(.el-sub-menu__title) {
-    height: 46px;
-    margin: 3px 10px;
-    color: #e8e0d2;
-    border: 1.5px solid transparent;
+    height: 44px;
+    margin: 2px 8px;
+    color: rgb(var(--muted));
+    border-radius: 12px;
     transition: all 160ms ease;
 
     .el-icon,
@@ -348,123 +344,116 @@ async function handleUserCommand(command: string) {
     }
 
     &:hover {
-      color: #faf3e2;
-      background-color: rgba(250, 243, 226, 0.06);
-      border-color: rgba(183, 153, 110, 0.2);
+      color: rgb(var(--text));
+      background-color: rgb(var(--elev));
     }
 
     &.is-active {
-      color: $brass;
-      background-color: rgba(183, 153, 110, 0.1);
-      border-color: rgba(183, 153, 110, 0.4);
-      box-shadow: inset 3px 0 $brass;
+      color: rgb(var(--accent-strong));
+      background: rgb(var(--accent) / 0.1);
+      font-weight: 600;
     }
   }
 
   :deep(.el-sub-menu.is-open > .el-sub-menu__title) {
-    color: #faf3e2;
-    background-color: rgba(250, 243, 226, 0.06);
+    color: rgb(var(--text));
+    background-color: rgb(var(--elev) / 0.6);
   }
 
   :deep(.el-menu--inline) {
-    margin: 2px 10px 6px;
-    padding: 4px 0;
-    background-color: rgba(31, 42, 36, 0.3);
-    border: 1px solid rgba(250, 243, 226, 0.08);
+    margin: 2px 6px 4px;
+    padding: 2px 0;
+    background-color: rgb(var(--elev) / 0.5);
+    border-radius: 12px;
   }
 
   :deep(.el-sub-menu .el-menu-item) {
     min-width: auto;
-    margin: 2px 6px;
-    padding-left: 42px !important;
-    color: #e8e0d2;
-    background-color: transparent;
-    border: 1px solid transparent;
+    margin: 1px 4px;
+    padding-left: 40px !important;
+    color: rgb(var(--muted));
 
     &:hover {
-      color: #faf3e2;
-      background-color: rgba(250, 243, 226, 0.06);
-      border-color: rgba(183, 153, 110, 0.15);
+      color: rgb(var(--text));
+      background-color: rgb(var(--elev));
     }
 
     &.is-active {
-      color: $brass;
-      background-color: rgba(183, 153, 110, 0.1);
-      border-color: rgba(183, 153, 110, 0.3);
-      box-shadow: inset 3px 0 $brass;
+      color: rgb(var(--accent-strong));
+      background: rgb(var(--accent) / 0.08);
     }
   }
 }
 
 :global(.el-menu--popup) {
-  --el-menu-active-color: $brass;
-  --el-menu-bg-color: #26302a;
-  --el-menu-hover-bg-color: rgba(250, 243, 226, 0.08);
-  --el-menu-text-color: #e8e0d2;
+  --el-menu-active-color: #fff;
+  --el-menu-bg-color: #0f2a4a;
+  --el-menu-hover-bg-color: rgba(255,255,255,0.08);
+  --el-menu-text-color: rgba(255,255,255,0.85);
 
   padding: 6px;
-  background-color: #26302a;
-  border: 2px solid $forest;
-  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.2);
+  background-color: #0f2a4a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: $border-radius-md;
+  box-shadow: $shadow-lg;
 }
 
 :global(.el-menu--popup .el-menu-item) {
-  height: 40px;
-  color: #e8e0d2;
-  border: 1px solid transparent;
+  height: 38px;
+  color: rgba(255,255,255,0.85);
+  border-radius: $border-radius-sm;
 
   &:hover {
-    color: #faf3e2;
-    background-color: rgba(250, 243, 226, 0.08);
-    border-color: rgba(183, 153, 110, 0.2);
+    color: #fff;
+    background-color: rgba(255,255,255,0.08);
   }
 
   &.is-active {
-    color: $brass;
-    background-color: rgba(183, 153, 110, 0.1);
-    border-color: rgba(183, 153, 110, 0.3);
+    color: #fff;
+    background: linear-gradient(90deg, $forest, $primary-light);
   }
 }
 
 .system-status {
   display: flex;
   align-items: center;
-  gap: 11px;
-  min-height: 62px;
-  margin: 12px;
-  padding: 12px;
-  color: #e8e0d2;
-  background: rgba(250, 243, 226, 0.04);
-  border: 1.5px solid rgba(250, 243, 226, 0.1);
+  gap: 10px;
+  min-height: 52px;
+  margin: 10px 12px;
+  padding: 10px 12px;
+  color: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: $border-radius-md;
 
   &.is-collapsed { justify-content: center; }
 }
 
 .status-pulse {
-  width: 9px;
-  height: 9px;
-  flex: 0 0 9px;
-  background: #8dd8a3;
-  border: 2px solid rgba(141, 216, 163, 0.28);
-  animation: status-blink 1.2s steps(2, jump-none) infinite;
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  animation: status-blink 2s ease-in-out infinite;
 }
 
-@keyframes status-blink { 50% { opacity: 0.35; } }
+@keyframes status-blink { 50% { opacity: 0.6; } }
 
 .status-copy {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 
   strong { 
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 12px;
-    font-weight: 500;
-    font-style: italic;
+    font-weight: 600;
   }
   span { 
-    color: rgba(232, 224, 210, 0.45); 
+    color: rgba(255,255,255,0.45); 
     font-family: var(--font-mono);
     font-size: 9px; 
     white-space: nowrap;
@@ -479,16 +468,15 @@ async function handleUserCommand(command: string) {
 }
 
 .layout-header {
-  background: rgba(250, 243, 226, 0.92);
+  background: rgb(var(--surface) / 0.96);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  border-bottom: 2px solid $forest;
+  border-bottom: 1px solid rgb(var(--line) / 0.7);
   backdrop-filter: blur(18px);
   z-index: 10;
   flex-shrink: 0;
-  box-shadow: 0 2px 0 rgba(183, 153, 110, 0.2) inset;
 }
 
 .header-left {
@@ -498,51 +486,46 @@ async function handleUserCommand(command: string) {
 }
 
 .collapse-btn {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   padding: 0;
-  background: $cream;
-  border: 2px solid $forest;
+  background: rgb(var(--surface) / 0.7);
+  border: 1px solid rgb(var(--line));
+  border-radius: 12px;
   cursor: pointer;
-  color: $forest;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
-  transition: color $transition-duration, transform $transition-duration, box-shadow $transition-duration;
+  color: rgb(var(--muted));
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 
   &:hover {
-    color: $forest;
-    transform: translateY(-2px);
-    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.14);
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--elev));
+    transform: translateY(-1px);
   }
 }
 
 .route-heading {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 
   strong {
-    font-family: var(--font-display);
-    font-size: 17px;
-    font-weight: 500;
-    font-style: italic;
-    letter-spacing: -0.01em;
-    color: $forest;
+    font-family: var(--font-body);
+    font-size: 16px;
+    font-weight: 600;
+    color: $text-primary;
   }
 }
 
 .route-eyebrow {
-  color: $brass-deep;
+  color: $text-secondary;
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.16em;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
@@ -553,27 +536,24 @@ async function handleUserCommand(command: string) {
 }
 
 .header-icon {
-  width: 38px;
-  height: 38px;
+  width: 36px;
+  height: 36px;
   display: grid;
   place-items: center;
   padding: 0;
-  background: $cream;
-  border: 2px solid $forest;
+  background: rgb(var(--surface) / 0.7);
+  border: 1px solid rgb(var(--line));
+  border-radius: 12px;
   cursor: pointer;
-  color: $forest;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
-  transition: color $transition-duration, transform $transition-duration, box-shadow $transition-duration;
+  color: rgb(var(--muted));
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 
   &:hover {
-    color: $forest;
-    transform: translateY(-2px);
-    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
-  }
-
-  &:active {
-    transform: translateY(1px);
-    box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.14);
+    color: rgb(var(--accent));
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--elev));
+    transform: translateY(-1px);
   }
 }
 
@@ -583,32 +563,36 @@ async function handleUserCommand(command: string) {
 }
 
 .command-search {
-  width: 230px;
-  height: 38px;
+  width: 220px;
+  height: 36px;
   display: flex;
   align-items: center;
   gap: 9px;
-  padding: 0 9px 0 12px;
-  color: $text-secondary;
-  background: $cream-warm;
-  border: 2px solid $forest;
+  padding: 0 10px 0 12px;
+  color: rgb(var(--muted));
+  background: rgb(var(--surface) / 0.7);
+  border: 1px solid rgb(var(--line));
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
-  transition: all 160ms ease;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--elev));
+    color: rgb(var(--text));
+    transform: translateY(-1px);
   }
 
   span { flex: 1; text-align: left; font-size: 12px; }
   kbd {
-    padding: 2px 5px;
+    padding: 1px 6px;
     font-size: 9px;
     font-family: var(--font-mono);
-    color: $forest;
-    background: $cream;
-    border: 1px solid $forest;
+    color: rgb(var(--muted));
+    background: rgb(var(--elev));
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 4px;
   }
 }
 
@@ -616,28 +600,29 @@ async function handleUserCommand(command: string) {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 8px 6px 6px;
-  border: 2px solid $forest;
-  background: $cream;
+  padding: 4px 8px 4px 4px;
+  border: 1px solid rgb(var(--line));
+  background: rgb(var(--surface) / 0.7);
+  border-radius: 12px;
   cursor: pointer;
-  box-shadow: 3px 3px 0 rgba(31, 42, 36, 0.12);
-  transition: all 160ms ease;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.16);
+    border-color: rgb(var(--accent) / 0.5);
+    background: rgb(var(--elev));
+    transform: translateY(-1px);
   }
 }
 
 .user-info :deep(.el-avatar) {
-  width: 36px;
-  height: 36px;
-  background: $brass;
-  color: $forest;
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
-  border: 2px solid $forest;
+  width: 32px;
+  height: 32px;
+  background: $forest;
+  color: #fff;
+  font-family: var(--font-body);
+  font-weight: 600;
+  border: 1px solid rgba(255,255,255,0.3);
 }
 
 .user-copy {
@@ -646,11 +631,10 @@ async function handleUserCommand(command: string) {
   min-width: 0;
 
   .user-name {
-    font-family: var(--font-display);
+    font-family: var(--font-body);
     font-size: 13px;
-    font-weight: 500;
-    font-style: italic;
-    color: $forest;
+    font-weight: 600;
+    color: $text-primary;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -660,13 +644,13 @@ async function handleUserCommand(command: string) {
     font-family: var(--font-mono);
     font-size: 9px;
     font-weight: 500;
-    letter-spacing: 0.12em;
-    color: $brass-deep;
+    letter-spacing: 0.08em;
+    color: $text-secondary;
     text-transform: uppercase;
   }
 }
 
-.user-arrow { color: $forest; font-size: 14px; }
+.user-arrow { color: $text-secondary; font-size: 14px; }
 
 .layout-main {
   flex: 1;

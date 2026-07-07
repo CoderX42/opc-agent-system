@@ -1,56 +1,90 @@
-$page-bg: #efe6d2;
-$page-bg-deep: #e5d8be;
-$cream: #faf3e2;
-$cream-warm: #f5ebd3;
-$ink: #1a221d;
-$forest: #1f2a24;
-$forest-soft: #2c3a32;
-$brass: #b7996e;
-$brass-deep: #8d704a;
-$rule: rgba(31, 42, 36, 0.18);
-$rule-strong: rgba(31, 42, 36, 0.42);
+// Exact match to yzy-official-website design system
+// https://github.com style: 科技蓝 + 智慧蓝 + 云海蓝 + 未来青 + 云雾白
+// No retro line/outline style. Large rounded, glassmorphism, soft shadows.
 
-$primary-color: #1f2a24;
-$primary-light: #2c3a32;
-$primary-dark: #151d1a;
-$accent-color: #b7996e;
+:root {
+  color-scheme: light;
 
-$success-color: #4f8f68;
-$warning-color: #d9a441;
-$danger-color: #b94c34;
-$info-color: #6e7a72;
+  --bg: 245 248 253;           /* #F5F8FD 云雾白 */
+  --surface: 255 255 255;
+  --elev: 236 246 255;
+  --text: 8 37 88;
+  --muted: 60 85 120;
+  --faint: 111 134 166;
+  --line: 198 222 246;
+  --shadow: 13 71 161;
+  --accent: 22 119 255;        /* #1677FF 智慧蓝 */
+  --accent-strong: 13 71 161;  /* #0D47A1 科技蓝 */
+  --accent-2: 0 184 255;       /* #00B8FF 云海蓝 */
+  --accent-3: 0 224 198;       /* #00E0C6 未来青 */
+  --on-accent: 255 255 255;
+  --ring: 0 184 255;
 
-$text-primary: #1a221d;
-$text-regular: #445049;
-$text-secondary: #6e7a72;
-$text-placeholder: #9ba5a0;
+  --success: 0 168 132;
+  --warn: 217 119 6;
+  --danger: 220 38 38;
+}
 
-$bg-color: #efe6d2;
-$bg-white: #faf3e2;
-$bg-page: #efe6d2;
-$bg-sidebar: #1f2a24;
+// SCSS fallbacks (for existing $var usage)
+$page-bg: #f5f8fd;
+$page-bg-deep: #ecf2fa;
+$cream: #ffffff;
+$cream-warm: #f8fbff;
+$ink: #082558;
+$forest: #1677ff;
+$forest-soft: #0d47a1;
+$brass: #00b8ff;
+$brass-deep: #0099cc;
 
-$border-color: rgba(31, 42, 36, 0.18);
-$border-light: rgba(31, 42, 36, 0.12);
-$border-lighter: rgba(31, 42, 36, 0.08);
+$rule: rgba(13, 71, 161, 0.12);
+$rule-strong: rgba(13, 71, 161, 0.22);
+
+$primary-color: #1677ff;
+$primary-light: #3a8cff;
+$primary-dark: #0d47a1;
+$accent-color: #00e0c6;
+
+$success-color: #00a884;
+$warning-color: #d97706;
+$danger-color: #dc2626;
+$info-color: #1677ff;
+
+$text-primary: #082558;
+$text-regular: #2f4568;
+$text-secondary: #3c5578;
+$text-placeholder: #6f86a6;
+
+$bg-color: #f5f8fd;
+$bg-white: #ffffff;
+$bg-page: #f5f8fd;
+$bg-sidebar: #0a2540;
+
+$border-color: #c6def6;
+$border-light: #d8e8f7;
+$border-lighter: #e8f1fa;
 
 $sidebar-width: 248px;
 $sidebar-collapsed-width: 76px;
 $header-height: 72px;
 $footer-height: 48px;
 
-$border-radius-sm: 0;
-$border-radius-md: 0;
-$border-radius-lg: 0;
-$border-radius-xl: 0;
+// YZY style: large rounded
+$border-radius-sm: 8px;
+$border-radius-md: 12px;
+$border-radius-lg: 16px;
+$border-radius-xl: 24px;
+$border-radius-2xl: 32px;
 
-$shadow-sm: 4px 4px 0 rgba(31, 42, 36, 0.12);
-$shadow-md: 6px 8px 0 -1px rgba(31, 42, 36, 0.16), 12px 22px 40px -16px rgba(31, 42, 36, 0.32);
-$shadow-lg: 8px 12px 0 -2px rgba(31, 42, 36, 0.2), 16px 28px 60px -16px rgba(31, 42, 36, 0.42);
+// Soft shadows matching yzy
+$shadow-sm: 0 1px 2px rgb(13 71 161 / 0.06);
+$shadow-md: 0 6px 16px -4px rgb(13 71 161 / 0.12), 0 3px 6px -2px rgb(13 71 161 / 0.08);
+$shadow-lg: 0 18px 50px -20px rgb(13 71 161 / 0.18), 0 8px 16px -6px rgb(13 71 161 / 0.1);
+$shadow-soft: 0 18px 50px -28px rgb(13 71 161 / 0.5);
+$shadow-glow: 0 0 70px -18px rgb(0 184 255 / 0.55);
 
-$transition-duration: 0.22s;
-$transition-timing: cubic-bezier(0.2, 0.7, 0.2, 1);
+$transition-duration: 0.2s;
+$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
 
-$font-display: 'Fraunces', 'STSong', 'Songti SC', 'Georgia', serif;
-$font-body: 'Bricolage Grotesque', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-$font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', monospace;
+$font-display: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
+$font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
+$font-mono: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;

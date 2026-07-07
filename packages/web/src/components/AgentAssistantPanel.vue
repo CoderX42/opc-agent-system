@@ -246,7 +246,7 @@ defineExpose({ receivePrompt })
 .console-chat {
   flex: 1;
   border: none;
-  border-radius: 0;
+  border-radius: $border-radius-md;
   background: transparent;
 }
 
