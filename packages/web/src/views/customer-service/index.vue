@@ -220,26 +220,27 @@ function initCharts() {
   if (trendChartRef.value) {
     const chart = echarts.init(trendChartRef.value)
     chart.setOption({
-      color: ['#2f8f67', '#d9a441'],
+      color: ['#1677ff', '#ea580c'],
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#1f2a24',
-        borderWidth: 0,
-        textStyle: { color: '#faf3e2', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 },
-        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(31, 42, 36, 0.06)' } },
+        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        borderColor: 'rgba(198, 222, 246, 0.8)',
+        borderWidth: 1,
+        textStyle: { color: '#082558', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11 },
+        axisPointer: { type: 'shadow', shadowStyle: { color: 'rgba(13, 71, 161, 0.06)' } },
       },
       grid: { left: 8, right: 10, top: 26, bottom: 4, containLabel: true },
       xAxis: {
         type: 'category',
         data: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
         axisTick: { show: false },
-        axisLine: { lineStyle: { color: 'rgba(31, 42, 36, 0.26)' } },
-        axisLabel: { color: '#6e7a72', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
+        axisLine: { lineStyle: { color: 'rgba(13, 71, 161, 0.18)' } },
+        axisLabel: { color: '#3c5578', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
       },
       yAxis: {
         type: 'value',
-        splitLine: { lineStyle: { color: 'rgba(31, 42, 36, 0.1)', type: 'dashed' } },
-        axisLabel: { color: '#6e7a72', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
+        splitLine: { lineStyle: { color: 'rgba(13, 71, 161, 0.08)', type: 'dashed' } },
+        axisLabel: { color: '#3c5578', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
       },
       series: [
         {
@@ -247,7 +248,7 @@ function initCharts() {
           type: 'bar',
           barWidth: 18,
           data: [12, 15, 10, 18, 22, 16, 8],
-          itemStyle: { color: '#2f8f67', borderRadius: [3, 3, 0, 0] },
+          itemStyle: { color: '#1677ff', borderRadius: [8, 8, 0, 0] },
         },
         {
           name: '已解决工单',
@@ -255,9 +256,9 @@ function initCharts() {
           smooth: true,
           symbolSize: 7,
           data: [8, 12, 7, 14, 18, 12, 6],
-          lineStyle: { width: 3, color: '#d9a441' },
-          itemStyle: { color: '#d9a441', borderColor: '#1f2a24', borderWidth: 1 },
-          areaStyle: { color: 'rgba(217, 164, 65, 0.12)' },
+          lineStyle: { width: 3, color: '#ea580c' },
+          itemStyle: { color: '#00b8ff', borderColor: '#fff', borderWidth: 2 },
+          areaStyle: { color: 'rgba(234, 88, 12, 0.12)' },
         },
       ],
     })
@@ -267,26 +268,27 @@ function initCharts() {
   if (channelChartRef.value) {
     const chart = echarts.init(channelChartRef.value)
     chart.setOption({
-      color: ['#2f8f67', '#d9a441', '#4f8f68', '#b94c34'],
+      color: ['#1677ff', '#ea580c', '#00b8ff', '#3c5578'],
       tooltip: {
         trigger: 'item',
-        backgroundColor: '#1f2a24',
-        borderWidth: 0,
-        textStyle: { color: '#faf3e2', fontFamily: 'JetBrains Mono, monospace', fontSize: 11 },
+        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        borderColor: 'rgba(198, 222, 246, 0.8)',
+        borderWidth: 1,
+        textStyle: { color: '#082558', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace', fontSize: 11 },
       },
       legend: {
         bottom: 0,
         icon: 'circle',
         itemWidth: 8,
         itemHeight: 8,
-        textStyle: { color: '#6e7a72', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
+        textStyle: { color: '#3c5578', fontFamily: 'JetBrains Mono, monospace', fontSize: 10 },
       },
       series: [{
         type: 'pie', radius: ['40%', '70%'],
         center: ['50%', '45%'],
         padAngle: 3,
-        itemStyle: { borderColor: '#faf3e2', borderWidth: 3 },
-        label: { color: '#1f2a24', fontFamily: 'Bricolage Grotesque, sans-serif' },
+        itemStyle: { borderColor: '#fff', borderWidth: 3 },
+        label: { color: '#082558', fontFamily: 'PingFang SC, system-ui, sans-serif' },
         data: [
           { value: 45, name: '网页' },
           { value: 25, name: '电话' },
@@ -317,8 +319,8 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .service-overview-page {
-  --service-green: #2f8f67;
-  --service-gold: #d9a441;
+  --service-green: #00b8ff;
+  --service-gold: #ea580c;
 }
 
 .service-hero {
@@ -327,12 +329,16 @@ onUnmounted(() => {
   gap: 18px;
   align-items: stretch;
   margin-bottom: 18px;
-  padding: 20px;
+  padding: 22px 24px;
   background:
-    linear-gradient(135deg, rgba(47, 143, 103, 0.12), transparent 42%),
-    linear-gradient(180deg, $cream, $cream-warm);
-  border: 2px solid $forest;
-  box-shadow: 6px 8px 0 rgba(31, 42, 36, 0.12);
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.15),
+      rgb(var(--surface) / 0.96) 50%,
+      rgb(var(--accent-3) / 0.1) 100%);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.25rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .hero-copy {
@@ -343,20 +349,19 @@ onUnmounted(() => {
 }
 
 .page-title {
-  margin-top: 6px;
-  font-family: var(--font-display);
-  font-size: clamp(25px, 2.4vw, 34px);
-  font-weight: 500;
-  font-style: italic;
-  font-variation-settings: 'opsz' 96, 'SOFT' 30;
-  color: $forest;
+  margin-top: 8px;
+  font-family: var(--font-body);
+  font-size: clamp(24px, 2.4vw, 34px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: rgb(var(--text));
 }
 
 .hero-subtitle {
   max-width: 720px;
   margin-top: 8px;
   line-height: 1.7;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 }
 
 .hero-metrics {
@@ -366,14 +371,15 @@ onUnmounted(() => {
   margin-top: 16px;
 
   span {
-    padding: 5px 9px;
+    padding: 6px 12px;
     font-family: var(--font-mono);
     font-size: 10px;
-    font-weight: 700;
+    font-weight: 600;
     letter-spacing: 0.08em;
-    color: $forest;
-    background: rgba(255, 255, 255, 0.42);
-    border: 1px solid rgba(31, 42, 36, 0.16);
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--surface) / 0.6);
+    border: 1px solid rgb(var(--line) / 0.6);
+    border-radius: 999px;
   }
 }
 
@@ -385,37 +391,42 @@ onUnmounted(() => {
 }
 
 .signal-card {
-  padding: 14px;
-  color: $cream;
+  padding: 16px 18px;
   background:
-    linear-gradient(135deg, rgba(217, 164, 65, 0.18), transparent 45%),
-    $forest;
-  border: 1px solid rgba(250, 243, 226, 0.22);
-  box-shadow: inset 0 0 0 1px rgba(250, 243, 226, 0.08);
+    linear-gradient(135deg,
+      rgb(var(--accent-2) / 0.18),
+      rgb(var(--surface) / 0.96) 60%,
+      rgb(var(--accent-3) / 0.12));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-sm;
+  backdrop-filter: blur(10px);
 
   strong {
     display: block;
     margin-top: 8px;
-    font-family: var(--font-display);
-    font-size: 26px;
-    font-style: italic;
-    font-weight: 500;
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: rgb(var(--text));
   }
 
   small {
     display: block;
     margin-top: 8px;
     line-height: 1.5;
-    color: rgba(250, 243, 226, 0.72);
+    color: rgb(var(--muted));
   }
 }
 
 .signal-label {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.18em;
-  color: $brass;
+  color: rgb(var(--accent-strong));
+  text-transform: uppercase;
 }
 
 .page-actions {
@@ -430,30 +441,19 @@ onUnmounted(() => {
 }
 
 .service-card {
-  :deep(.el-card__header) {
-    padding: 14px 16px;
-  }
-
-  :deep(.el-card__body) {
-    padding: 16px;
-  }
+  :deep(.el-card__header) { padding: 14px 18px; }
+  :deep(.el-card__body) { padding: 16px; }
 }
 
-.chart-card {
-  margin-bottom: 16px;
-}
+.chart-card { margin-bottom: 16px; }
+.recent-card { margin-top: 0; }
 
-.recent-card {
-  margin-top: 0;
-}
-
-.card-title { 
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-style: italic;
-  font-size: 15px;
-  font-variation-settings: 'opsz' 96;
-  color: $forest;
+.card-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  color: rgb(var(--text));
 }
 
 .card-header {
@@ -467,38 +467,42 @@ onUnmounted(() => {
     margin-top: 3px;
     font-family: var(--font-mono);
     font-size: 9px;
-    font-style: normal;
     font-weight: 600;
     letter-spacing: 0.08em;
-    color: $text-placeholder;
+    text-transform: uppercase;
+    color: rgb(var(--faint));
   }
 }
 
 .chart-legend {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  color: $text-secondary;
+  font-size: 10px;
+  font-weight: 600;
+  color: rgb(var(--muted));
 
   span {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgb(var(--surface) / 0.6);
+    border: 1px solid rgb(var(--line) / 0.5);
   }
 
   i {
     width: 8px;
     height: 8px;
     display: inline-block;
-    background: var(--service-green);
+    border-radius: 50%;
+    background: rgb(var(--success));
   }
 
   .is-ticket {
-    background: var(--service-gold);
+    background: rgb(var(--warn));
   }
 }
 
@@ -514,8 +518,9 @@ onUnmounted(() => {
 
   strong {
     display: block;
-    color: $forest;
-    font-weight: 700;
+    color: rgb(var(--text));
+    font-weight: 600;
+    font-size: 13px;
   }
 
   small {
@@ -523,24 +528,25 @@ onUnmounted(() => {
     margin-top: 2px;
     font-family: var(--font-mono);
     font-size: 10px;
-    color: $text-placeholder;
+    color: rgb(var(--faint));
   }
 }
 
 .customer-mark {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  font-family: var(--font-display);
-  font-size: 16px;
-  font-style: italic;
-  color: $cream;
-  background: $forest;
-  border: 1.5px solid $forest;
-  box-shadow: 2px 2px 0 rgba(31, 42, 36, 0.12);
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background:
+    linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-strong)));
+  border-radius: 12px;
+  box-shadow: 0 6px 18px -8px rgb(var(--accent));
 }
 
 .channel-pill {
@@ -548,19 +554,18 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   min-width: 42px;
-  padding: 4px 7px;
+  padding: 4px 10px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: 0.08em;
-  color: $forest;
-  border: 1px solid currentColor;
-  background: color-mix(in srgb, $brass 12%, $cream);
+  border-radius: 999px;
+  background: rgb(var(--surface) / 0.6);
 
-  &.is-web { color: #2f8f67; }
-  &.is-phone { color: #b94c34; }
-  &.is-email { color: #8d704a; }
-  &.is-wechat { color: #4f8f68; }
+  &.is-web { color: rgb(var(--accent)); background: rgb(var(--accent) / 0.1); }
+  &.is-phone { color: rgb(var(--danger)); background: rgb(var(--danger) / 0.1); }
+  &.is-email { color: rgb(var(--muted)); background: rgb(var(--elev)); }
+  &.is-wechat { color: rgb(var(--success)); background: rgb(var(--success) / 0.1); }
 }
 
 .table-empty {
@@ -568,47 +573,30 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
   padding: 28px 0;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 
   strong {
-    color: $forest;
-    font-family: var(--font-display);
+    color: rgb(var(--text));
+    font-family: var(--font-body);
     font-size: 16px;
-    font-style: italic;
-    font-weight: 500;
+    font-weight: 600;
   }
 
-  span {
-    font-size: 12px;
-  }
+  span { font-size: 12px; }
 }
 
 @media (max-width: 960px) {
-  .service-hero {
-    grid-template-columns: 1fr;
-  }
-
-  .page-actions {
-    justify-content: flex-start;
-  }
+  .service-hero { grid-template-columns: 1fr; }
+  .page-actions { justify-content: flex-start; }
 }
 
 @media (max-width: 640px) {
-  .service-hero {
-    padding: 16px;
-  }
-
-  .hero-metrics {
-    flex-direction: column;
-  }
-
+  .service-hero { padding: 16px; }
+  .hero-metrics { flex-direction: column; }
   .card-header {
     align-items: flex-start;
     flex-direction: column;
   }
-
-  .chart-container {
-    height: 260px;
-  }
+  .chart-container { height: 260px; }
 }
 </style>

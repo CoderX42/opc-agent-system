@@ -392,79 +392,69 @@ onMounted(fetchList)
 </script>
 
 <style lang="scss" scoped>
-.ticket-page-header {
-  align-items: flex-end;
-}
+.ticket-page-header { align-items: flex-end; }
 
 .page-subtitle {
   max-width: 620px;
   margin-top: 6px;
-  color: $text-secondary;
+  color: rgb(var(--muted));
   line-height: 1.6;
 }
 
 .ticket-summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 16px;
 }
 
 .summary-item {
-  position: relative;
-  overflow: hidden;
   min-height: 92px;
-  padding: 14px 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
-
-  &::after {
-    position: absolute;
-    right: -18px;
-    bottom: -28px;
-    width: 82px;
-    height: 82px;
-    content: '';
-    border: 1px solid currentColor;
-    opacity: 0.18;
-    transform: rotate(12deg);
-  }
+  padding: 16px 18px;
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.93));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(10px);
 
   span {
-    color: $brass-deep;
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 800;
+    font-weight: 700;
     letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--muted));
   }
 
   strong {
     display: block;
     margin-top: 12px;
-    color: $forest;
-    font-family: var(--font-display);
-    font-size: 30px;
-    font-style: italic;
-    font-weight: 500;
+    color: rgb(var(--text));
+    font-family: var(--font-body);
+    font-size: 28px;
+    font-weight: 700;
     line-height: 1;
   }
 
-  &.is-open { color: #2f8f67; }
-  &.is-progress { color: #d9a441; }
-  &.is-urgent { color: #b94c34; }
-  &.is-resolved { color: #4f8f68; }
+  &.is-open strong { color: rgb(var(--accent)); }
+  &.is-progress strong { color: rgb(var(--warn)); }
+  &.is-urgent strong { color: rgb(var(--danger)); }
+  &.is-resolved strong { color: rgb(var(--success)); }
 }
 
-.filter-bar { 
-  display: flex; 
-  gap: 12px; 
-  margin-bottom: 16px; 
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
   align-items: center;
   padding: 14px 16px;
-  background: $cream;
-  border: 2px solid $forest;
-  box-shadow: 4px 4px 0 rgba(31, 42, 36, 0.12);
+  background:
+    linear-gradient(145deg, rgb(var(--surface) / 0.98), rgb(var(--surface) / 0.93));
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 1.125rem;
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(12px);
 }
 
 .filter-items {
@@ -474,13 +464,8 @@ onMounted(fetchList)
   flex-wrap: wrap;
 }
 
-.filter-control {
-  width: 128px;
-}
-
-.keyword-input {
-  width: min(340px, 100%);
-}
+.filter-control { width: 128px; }
+.keyword-input { width: min(340px, 100%); }
 
 .filter-actions {
   display: flex;
@@ -490,7 +475,7 @@ onMounted(fetchList)
 }
 
 .filter-hint {
-  color: $text-placeholder;
+  color: rgb(var(--faint));
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.06em;
@@ -508,14 +493,14 @@ onMounted(fetchList)
   min-width: 0;
 
   strong {
-    color: $forest;
+    color: rgb(var(--text));
     font-size: 13px;
-    font-weight: 700;
+    font-weight: 600;
     @include text-ellipsis(1);
   }
 
   small {
-    color: $text-secondary;
+    color: rgb(var(--muted));
     font-size: 12px;
     line-height: 1.45;
     @include text-ellipsis(1);
@@ -524,43 +509,44 @@ onMounted(fetchList)
 
 .ticket-no {
   width: fit-content;
-  padding: 2px 6px;
-  color: $brass-deep;
-  background: color-mix(in srgb, $brass 10%, $cream);
-  border: 1px solid rgba(31, 42, 36, 0.16);
+  padding: 3px 10px;
+  color: rgb(var(--accent-strong));
+  background: rgb(var(--accent-2) / 0.14);
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
+  border-radius: 999px;
 }
 
 .priority-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 40px;
-  padding: 4px 8px;
+  min-width: 44px;
+  padding: 4px 12px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.12em;
-  color: $info-color;
-  background: color-mix(in srgb, $info-color 8%, $cream);
-  border: 1px solid currentColor;
+  border-radius: 999px;
+
+  color: rgb(var(--accent));
+  background: rgb(var(--accent) / 0.1);
 
   &.is-medium {
-    color: $forest;
-    background: color-mix(in srgb, $brass 10%, $cream);
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.18);
   }
 
   &.is-high {
-    color: $warning-color;
-    background: color-mix(in srgb, $warning-color 10%, $cream);
+    color: rgb(var(--warn));
+    background: rgb(var(--warn) / 0.1);
   }
 
   &.is-urgent {
-    color: $danger-color;
-    background: color-mix(in srgb, $danger-color 10%, $cream);
+    color: rgb(var(--danger));
+    background: rgb(var(--danger) / 0.1);
   }
 }
 
@@ -571,36 +557,37 @@ onMounted(fetchList)
   min-width: 0;
 
   span {
-    width: 25px;
-    height: 25px;
+    width: 28px;
+    height: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     flex: 0 0 auto;
-    color: $cream;
-    background: $forest;
-    border: 1px solid $forest;
+    color: #fff;
+    background:
+      linear-gradient(135deg, rgb(var(--accent)), rgb(var(--accent-strong)));
     font-family: var(--font-mono);
     font-size: 9px;
-    font-weight: 800;
+    font-weight: 700;
+    border-radius: 10px;
   }
 
   strong {
-    color: $text-regular;
+    color: rgb(var(--text));
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
     @include text-ellipsis(1);
   }
 
   &.empty {
     span {
-      color: $text-placeholder;
-      background: transparent;
-      border-style: dashed;
+      color: rgb(var(--faint));
+      background: rgb(var(--surface) / 0.6);
+      box-shadow: inset 0 0 0 1px rgb(var(--line) / 0.6);
     }
 
     strong {
-      color: $text-placeholder;
+      color: rgb(var(--faint));
       font-weight: 500;
     }
   }
@@ -611,21 +598,18 @@ onMounted(fetchList)
   flex-direction: column;
   gap: 4px;
   padding: 28px 0;
-  color: $text-secondary;
+  color: rgb(var(--muted));
 
   strong {
-    color: $forest;
-    font-family: var(--font-display);
+    color: rgb(var(--text));
+    font-family: var(--font-body);
     font-size: 16px;
-    font-style: italic;
-    font-weight: 500;
+    font-weight: 600;
   }
 }
 
 @media (max-width: 960px) {
-  .ticket-summary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .ticket-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 640px) {
@@ -634,9 +618,7 @@ onMounted(fetchList)
     flex-direction: column;
   }
 
-  .ticket-summary {
-    grid-template-columns: 1fr;
-  }
+  .ticket-summary { grid-template-columns: 1fr; }
 
   .filter-bar,
   .filter-actions {
@@ -645,8 +627,6 @@ onMounted(fetchList)
   }
 
   .filter-control,
-  .keyword-input {
-    width: 100%;
-  }
+  .keyword-input { width: 100%; }
 }
 </style>

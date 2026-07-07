@@ -735,7 +735,7 @@ onMounted(fetchConversations)
 
 .chat-input {
   padding: 14px 16px 16px;
-  border-top: 2px solid $forest;
+  border-top: 1px solid rgb(var(--line) / 0.6);
   display: flex;
   gap: 12px;
   align-items: flex-end;
@@ -801,7 +801,7 @@ onMounted(fetchConversations)
   margin-bottom: 14px;
   color: $cream;
   background: $forest;
-  border: 2px solid $forest;
+  border: 1px solid rgb(var(--line) / 0.7);
   box-shadow: 5px 5px 0 rgba(31, 42, 36, 0.12);
   font-family: var(--font-display);
   font-size: 22px;
