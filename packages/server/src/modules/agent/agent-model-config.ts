@@ -402,13 +402,15 @@ export function mergeAgentConfig(
   };
 }
 
+/**
+ * API Key 一律按原值保存、原值返回。
+ * 前端展示用 `<el-input type="password">` 已经自带遮罩，无需在服务端做掩码。
+ */
 export function sanitizeAgentConfig(config: AgentModelConfig): AgentModelConfig {
-  return {
-    ...config,
-    apiKey: maskApiKey(config.apiKey),
-  };
+  return { ...config, apiKey: config.apiKey };
 }
 
+// 保留 maskApiKey 以便将来需要在某个具体位置做展示遮罩时直接复用
 export function maskApiKey(apiKey?: string): string | undefined {
   if (!apiKey) return undefined;
   if (apiKey.length <= 8) return '********';

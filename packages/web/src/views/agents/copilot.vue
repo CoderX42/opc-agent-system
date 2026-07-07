@@ -5,12 +5,6 @@
         <span class="live-pill"><i aria-hidden="true" /> LIVE</span>
         <span class="topbar-title">{{ activeAgent.name }} · COPILOT</span>
       </div>
-<<<<<<< HEAD
-=======
-      <div class="topbar-actions">
-        <button type="button" class="topbar-btn" title="新窗口打开" @click="openNewWindow">⛶</button>
-      </div>
->>>>>>> refs/remotes/origin/main
     </header>
     <div class="copilot-stage">
       <!-- ============ 主体两列：左 rail / 右控制台 ============ -->
@@ -366,7 +360,6 @@ function sendPrompt(prompt: string) {
   chatRef.value?.receivePrompt(prompt)
 }
 
-<<<<<<< HEAD
 // ============== 模型选择 ==============
 const configuredAgents = ref<Agent[]>([])
 const providerPresets = ref<AgentProviderPreset[]>([])
@@ -537,12 +530,6 @@ async function saveCurrentModelConfig(patch: Partial<Agent['config']>) {
 watch(activeType, () => {
   // 配置切换由 currentConfiguredAgent computed 自动响应，无需额外动作
 })
-=======
-function openNewWindow() {
-  const url = `${window.location.origin}/agents/copilot${route.query.agent ? `?agent=${route.query.agent}` : ''}`
-  window.open(url, '_blank', 'noopener,noreferrer')
-}
->>>>>>> refs/remotes/origin/main
 </script>
 
 <style lang="scss" scoped>
@@ -566,13 +553,6 @@ function openNewWindow() {
 
 // ============== 顶部工具条 ==============
 .copilot-topbar {
-<<<<<<< HEAD
-=======
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: 12px;
->>>>>>> refs/remotes/origin/main
   max-width: 1320px;
   margin: 0 auto 12px;
   padding: 8px 14px;
@@ -597,44 +577,6 @@ function openNewWindow() {
   color: rgb(var(--muted));
 }
 
-<<<<<<< HEAD
-=======
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.topbar-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 700;
-  color: rgb(var(--muted));
-  background: rgb(var(--surface) / 0.8);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 0.625rem;
-  cursor: pointer;
-  transition: all 0.15s ease;
-
-  &:hover {
-    color: rgb(var(--text));
-    border-color: rgb(var(--accent) / 0.5);
-    background: rgb(var(--elev));
-  }
-
-  &.active {
-    color: rgb(var(--on-accent));
-    background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
-    border-color: transparent;
-  }
-}
-
->>>>>>> refs/remotes/origin/main
 .live-pill {
   display: inline-flex;
   align-items: center;
