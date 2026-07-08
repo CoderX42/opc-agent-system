@@ -83,18 +83,6 @@
       </div>
     </div>
 
-    <!-- 底部：可排序任务表格 + 批量操作 + 跳转业务详情 -->
-    <div class="task-dock">
-      <TaskTable
-        :tasks="filteredTasks"
-        :agents="agents"
-        :selected-agent-id="selectedAgentId"
-        @select="selectAndFocus"
-        @bulk-action="handleBulkAction"
-        @update-task="handleQuickTaskUpdate"
-      />
-    </div>
-
     <!-- 保留原有对话/日志/指令浮层（必要时使用） -->
     <OfficeLogDialog v-model="logDialogVisible" :agent="selectedAgent" />
     <OfficeCommandDialog
@@ -119,7 +107,6 @@ import OfficeLogDialog from './components/OfficeLogDialog.vue'
 import OfficeMapViewport from './components/OfficeMapViewport.vue'
 import OfficeScene from './components/OfficeScene.vue'
 import OfficeToolbar from './components/OfficeToolbar.vue'
-import TaskTable from './components/TaskTable.vue'
 import { useAgentOfficeStore } from '@/stores/agentOffice'
 import type { OfficeAgent, OfficeAgentStatus } from '@/types/office'
 import './styles/office.scss'
@@ -130,15 +117,12 @@ const router = useRouter()
 
 const {
   agents,
-  tasks,
-  sortedTasks,
   selectedAgentId,
   selectedAgent,
   stats,
   loading,
   error,
   commandSubmitting,
-  selectedTaskIds,
 } = storeToRefs(store)
 
 const viewMode = ref<'list' | 'kanban' | 'map'>('kanban')
@@ -166,18 +150,6 @@ const filteredAgents = computed(() => {
   }
   if (activeFilters.value.length) {
     res = res.filter(a => activeFilters.value.includes(a.status))
-  }
-  return res
-})
-
-const filteredTasks = computed(() => {
-  let res = sortedTasks.value.length ? sortedTasks.value : tasks.value
-  const q = searchTerm.value.trim().toLowerCase()
-  if (q) {
-    res = res.filter(t =>
-      t.name.toLowerCase().includes(q) ||
-      (t.assignee || '').toLowerCase().includes(q)
-    )
   }
   return res
 })
@@ -231,18 +203,6 @@ async function submitCommand(rawCommand: string) {
   } catch {
     ElMessage.error(error.value || '指令提交失败')
   }
-}
-
-async function handleBulkAction(action: 'pause' | 'resume' | 'rerun' | 'complete', ids?: string[]) {
-  if (ids && ids.length) {
-    store.setSelectedTasks(ids)
-  }
-  await store.bulkAction(action)
-  ElMessage.success('批量操作已执行')
-}
-
-async function handleQuickTaskUpdate(taskId: string, status: OfficeAgentStatus) {
-  await store.setTaskStatus(taskId, status)
 }
 
 function handleMoveAgent(agentId: string, targetStatus: OfficeAgentStatus) {
