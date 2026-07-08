@@ -7,7 +7,7 @@
         <p class="page-subtitle">快速识别等待中的客户、查看上下文，并把回复交给客服 Agent 协同处理。</p>
       </div>
       <div class="page-actions">
-        <el-button icon="Refresh" :loading="conversationLoading" @click="fetchConversations">刷新</el-button>
+        <el-button icon="Refresh" :loading="conversationLoading" @click="() => fetchConversations()">刷新</el-button>
         <el-button type="primary" icon="Plus" @click="handleCreateConversation">新建对话</el-button>
       </div>
     </div>
@@ -61,6 +61,20 @@
                 <span class="conv-dot" :class="`is-${conv.status.toLowerCase()}`"></span>
               </div>
             </div>
+          </div>
+          <div v-if="conversationTotal > 0" class="conversation-pagination">
+            <el-pagination
+              v-model:current-page="conversationPage"
+              v-model:page-size="conversationPageSize"
+              :total="conversationTotal"
+              :page-sizes="[10, 15, 20, 30]"
+              :pager-count="5"
+              layout="total, prev, pager, next, sizes"
+              background
+              small
+              @current-change="handlePageChange"
+              @size-change="handleSizeChange"
+            />
           </div>
         </el-card>
       </el-col>
@@ -178,6 +192,9 @@ const createFormRef = ref<FormInstance>()
 
 const conversationList = ref<Conversation[]>([])
 const conversationLoading = ref(false)
+const conversationTotal = ref(0)
+const conversationPage = ref(1)
+const conversationPageSize = ref(15)
 const messages = ref<Message[]>([])
 const messagesLoading = ref(false)
 const sending = ref(false)
@@ -206,13 +223,20 @@ const createRules: FormRules = {
   channel: [{ required: true, message: '请选择渠道', trigger: 'change' }],
 }
 
-async function fetchConversations() {
+async function fetchConversations(page?: number) {
+  if (typeof page === 'number') conversationPage.value = page
   conversationLoading.value = true
   try {
-    const res = await getConversationList({ page: 1, pageSize: 50 })
+    const res = await getConversationList({
+      page: conversationPage.value,
+      pageSize: conversationPageSize.value,
+      status: statusFilter.value === 'ALL' ? undefined : statusFilter.value,
+    })
     conversationList.value = res.data.items || []
+    conversationTotal.value = res.data.total ?? conversationList.value.length
   } catch {
     conversationList.value = []
+    conversationTotal.value = 0
   } finally {
     conversationLoading.value = false
   }
@@ -371,9 +395,23 @@ function getStatusText(status: string) {
 }
 
 function getStatusCount(status: 'ALL' | Conversation['status']) {
-  if (status === 'ALL') return conversationList.value.length
-  return conversationList.value.filter((item) => item.status === status).length
+  if (status === 'ALL') return conversationTotal.value || conversationList.value.length
+  // 状态已走服务端筛选,各 tab 总数需要单独查询,这里返回占位
+  return '—'
 }
+
+function handlePageChange(page: number) {
+  fetchConversations(page)
+}
+
+function handleSizeChange(size: number) {
+  conversationPageSize.value = size
+  fetchConversations(1)
+}
+
+watch(statusFilter, () => {
+  fetchConversations(1)
+})
 
 watch(() => selectedConversation.value?.id, (id) => {
   if (!id) messages.value = []
@@ -395,20 +433,25 @@ onMounted(fetchConversations)
 }
 
 .conversation-layout {
-  min-height: calc(100vh - 172px);
+  height: calc(100vh - 172px);
 }
 
 .conversation-list-col,
 .conversation-chat-col {
-  min-height: 0;
+  height: 100%;
 }
 
 .conversation-list-card {
   height: 100%;
+  display: flex;
+  flex-direction: column;
 
   :deep(.el-card__body) {
     padding: 0;
-    height: calc(100% - 112px);
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: hidden;
   }
 }
@@ -456,9 +499,23 @@ onMounted(fetchConversations)
 }
 
 .conversation-list {
-  height: 100%;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   @include custom-scrollbar;
+}
+
+.conversation-pagination {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  border-top: 1px solid $rule;
+  background: $cream;
+
+  :deep(.el-pagination) {
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
 }
 
 .conversation-item {
@@ -572,8 +629,11 @@ onMounted(fetchConversations)
   height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 0;
+
   :deep(.el-card__body) {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     padding: 0;
@@ -810,11 +870,16 @@ onMounted(fetchConversations)
 
 @media (max-width: 1200px) {
   .conversation-layout {
-    min-height: auto;
+    height: auto;
+  }
+
+  .conversation-list-col,
+  .conversation-chat-col {
+    height: auto;
   }
 
   .conversation-list-card {
-    height: 420px;
+    height: 460px;
     margin-bottom: 16px;
   }
 

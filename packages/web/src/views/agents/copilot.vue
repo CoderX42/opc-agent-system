@@ -5,6 +5,26 @@
         <span class="live-pill"><i aria-hidden="true" /> LIVE</span>
         <span class="topbar-title">{{ activeAgent.name }} · COPILOT</span>
       </div>
+      <div class="topbar-right">
+        <button
+          type="button"
+          class="topbar-btn"
+          :class="{ 'is-active': drawerType === 'model' }"
+          @click="openDrawer('model')"
+        >
+          <span class="topbar-btn-glyph" aria-hidden="true">⚙</span>
+          <span>模型</span>
+        </button>
+        <button
+          type="button"
+          class="topbar-btn"
+          :class="{ 'is-active': drawerType === 'supervisor' }"
+          @click="openDrawer('supervisor')"
+        >
+          <span class="topbar-btn-glyph" aria-hidden="true">◴</span>
+          <span>编排</span>
+        </button>
+      </div>
     </header>
     <div class="copilot-stage">
       <!-- ============ 主体两列：左 rail / 右控制台 ============ -->
@@ -113,66 +133,108 @@
             </div>
           </article>
 
-          <!-- 模型接入 -->
-          <div class="model-strip glass-card" :class="{ 'needs-key': currentModelInfo.needsApiKey }">
-            <div class="model-strip-main">
-              <span class="model-label">模型接入</span>
-              <select
-                class="model-select provider-select"
-                :value="currentConfiguredAgent?.config?.provider || ''"
+          <!-- Chat 控制台 -->
+          <AgentAssistantPanel
+            :key="activeAgent.type"
+            ref="chatRef"
+            :agent-id="currentConfiguredAgent?.id"
+            :type="activeAgent.type"
+            :title="`${activeAgent.name} Copilot`"
+            :icon="activeAgent.icon"
+            :color="activeAgent.color"
+            :placeholder="activeAgent.placeholder"
+            :suggestions="activeAgent.suggestions"
+            :session-id="`agent-copilot-${activeAgent.type}`"
+          />
+        </main>
+      </section>
+    </div>
+
+    <el-drawer
+      v-model="drawerOpen"
+      :title="drawerTitle"
+      direction="rtl"
+      size="440px"
+      :with-header="true"
+      class="copilot-drawer"
+    >
+      <template v-if="drawerType === 'model'">
+        <div class="drawer-section">
+          <p class="drawer-section-desc">为「{{ activeAgent.name }}」选择服务商、模型、Base URL;支持一键测试连通性。</p>
+
+          <el-form label-position="top" class="model-form">
+            <el-form-item label="服务商">
+              <el-select
+                :model-value="currentConfiguredAgent?.config?.provider || ''"
                 :disabled="modelSaving || !currentConfiguredAgent"
+                placeholder="加载中…"
                 @change="handleProviderSelect"
               >
-                <option v-if="!currentConfiguredAgent" value="">加载中…</option>
-                <option v-for="preset in providerPresets" :key="preset.value" :value="preset.value">
-                  {{ preset.label }}
-                </option>
-              </select>
-              <select
-                class="model-select"
-                :value="currentModelInfo.model"
+                <el-option
+                  v-for="preset in providerPresets"
+                  :key="preset.value"
+                  :value="preset.value"
+                  :label="preset.label"
+                />
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="模型">
+              <el-select
+                :model-value="currentModelInfo.model"
                 :disabled="modelSaving || !currentConfiguredAgent"
+                placeholder="选择模型"
                 @change="handleModelSelect"
               >
-                <option v-if="!currentModelOptions.length && !currentModelInfo.model" value="">选择模型</option>
-                <option v-for="model in currentModelOptions" :key="model.value" :value="model.value">
-                  {{ model.label }}
-                </option>
-                <option v-if="currentModelInfo.model && !currentModelInPreset" :value="currentModelInfo.model">
-                  {{ currentModelInfo.model }}
-                </option>
-              </select>
-              <select
-                class="model-select baseurl-presets"
-                :value="''"
+                <el-option
+                  v-for="model in currentModelOptions"
+                  :key="model.value"
+                  :value="model.value"
+                  :label="model.label"
+                />
+                <el-option
+                  v-if="currentModelInfo.model && !currentModelInPreset"
+                  :value="currentModelInfo.model"
+                  :label="currentModelInfo.model"
+                />
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="常用 Base URL">
+              <el-select
+                v-model="baseUrlPreset"
                 :disabled="!currentProviderPreset"
+                placeholder="选择常用地址"
                 @change="handleBaseUrlPresetSelect"
-                title="常用 Base URL"
               >
-                <option value="">常用 Base URL…</option>
-                <option
+                <el-option
                   v-for="url in commonBaseUrls"
                   :key="url"
                   :value="url"
-                >{{ url }}</option>
-              </select>
-              <input
-                type="text"
-                class="model-input"
-                placeholder="Base URL（可留空使用默认）"
-                :value="currentBaseUrl"
+                  :label="url"
+                />
+              </el-select>
+            </el-form-item>
+
+            <el-form-item label="Base URL（留空使用默认）">
+              <el-input
+                :model-value="currentBaseUrl"
                 :disabled="modelSaving || !currentConfiguredAgent"
+                placeholder="https://…"
                 @blur="handleBaseUrlChange"
               />
-              <button
-                type="button"
-                class="test-btn"
-                :disabled="testing || !currentConfiguredAgent"
-                @click="handleTestConnection"
-              >
-                {{ testing ? '测试中…' : '↻ 测试连接' }}
-              </button>
-            </div>
+            </el-form-item>
+          </el-form>
+
+          <div class="drawer-actions">
+            <button
+              type="button"
+              class="test-btn"
+              :disabled="testing || !currentConfiguredAgent"
+              @click="handleTestConnection"
+            >
+              {{ testing ? '测试中…' : '↻ 测试连接' }}
+            </button>
             <span
               class="key-pill"
               :class="{
@@ -190,21 +252,54 @@
               <template v-else>{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</template>
             </span>
           </div>
+        </div>
+      </template>
 
-          <!-- Chat 控制台 -->
-          <AgentAssistantPanel
-            :key="activeAgent.type"
-            ref="chatRef"
-            :type="activeAgent.type"
-            :title="`${activeAgent.name} Copilot`"
-            :icon="activeAgent.icon"
-            :color="activeAgent.color"
-            :placeholder="activeAgent.placeholder"
-            :suggestions="activeAgent.suggestions"
-          />
-        </main>
-      </section>
-    </div>
+      <template v-else-if="drawerType === 'supervisor'">
+        <div class="drawer-section" :style="{ '--agent-accent': activeAgent.color }">
+          <p class="drawer-section-desc">一句话需求,Supervisor 自动识别意图并路由到对应 Agent 协同完成。</p>
+
+          <el-form label-position="top" class="model-form">
+            <el-form-item label="任务描述">
+              <el-input
+                v-model="supervisorMessage"
+                type="textarea"
+                :rows="3"
+                placeholder="例如：分析客户合作风险"
+                @keydown.enter.exact.prevent="runSupervisor"
+              />
+            </el-form-item>
+          </el-form>
+
+          <div class="drawer-actions">
+            <button
+              type="button"
+              class="test-btn"
+              :disabled="supervising"
+              @click="runSupervisor"
+            >
+              {{ supervising ? '编排中…' : '启动协作' }}
+            </button>
+          </div>
+
+          <div v-if="supervisorResult" class="supervisor-result">
+            <div class="agent-tags">
+              <span class="intent-tag">{{ supervisorResult.plan.intent }}</span>
+              <span v-for="agent in supervisorResult.plan.agents" :key="agent" class="agent-tag">
+                {{ agentName(agent) }}
+              </span>
+            </div>
+            <ol class="plan-list">
+              <li v-for="step in supervisorResult.plan.steps" :key="`${step.agentType}-${step.taskType}`">
+                <strong>{{ agentName(step.agentType) }}</strong>
+                <span>{{ step.reason }}</span>
+              </li>
+            </ol>
+            <p class="supervisor-reply">{{ supervisorResult.reply }}</p>
+          </div>
+        </div>
+      </template>
+    </el-drawer>
   </div>
 </template>
 
@@ -219,6 +314,7 @@ import {
   updateAgentModelConfig,
   type AgentChatType,
 } from '@/api/agent'
+import { superviseAgentTask, type SupervisorResult } from '@/api/agent-runtime'
 import type { Agent, AgentProviderPreset } from '@/types'
 import { suggestBaseUrls } from '@/constants/llm'
 
@@ -360,7 +456,59 @@ function sendPrompt(prompt: string) {
   chatRef.value?.receivePrompt(prompt)
 }
 
+// ============== 侧边抽屉(模型接入 / Supervisor 编排) ==============
+type DrawerType = 'model' | 'supervisor' | null
+const drawerType = ref<DrawerType>(null)
+const drawerOpen = ref(false)
+const drawerTitle = computed(() => {
+  if (drawerType.value === 'model') return '模型接入'
+  if (drawerType.value === 'supervisor') return '多 Agent 协作编排'
+  return ''
+})
+function openDrawer(type: DrawerType) {
+  if (drawerType.value === type) {
+    // 再次点击同按钮 → 切换关闭
+    drawerOpen.value = false
+    return
+  }
+  drawerType.value = type
+  drawerOpen.value = true
+}
+watch(drawerOpen, (open) => {
+  if (!open) {
+    // 关闭后清空类型,避免下次默认打开沿用上一次的脏状态
+    setTimeout(() => {
+      if (!drawerOpen.value) drawerType.value = null
+    }, 250)
+  }
+})
+
+const supervising = ref(false)
+const supervisorMessage = ref('分析客户合作风险')
+const supervisorResult = ref<SupervisorResult | null>(null)
+
+function agentName(type: AgentChatType) {
+  return agents.find((agent) => agent.type === type)?.name || type
+}
+
+async function runSupervisor() {
+  const message = supervisorMessage.value.trim()
+  if (!message || supervising.value) return
+  supervising.value = true
+  try {
+    const res = await superviseAgentTask({
+      message,
+      sessionId: 'agent-copilot-supervisor',
+      metadata: { source: 'agent-copilot' },
+    })
+    supervisorResult.value = res.data
+  } finally {
+    supervising.value = false
+  }
+}
+
 // ============== 模型选择 ==============
+const baseUrlPreset = ref<string>('')
 const configuredAgents = ref<Agent[]>([])
 const providerPresets = ref<AgentProviderPreset[]>([])
 const modelSaving = ref(false)
@@ -420,8 +568,7 @@ async function loadModelSettings() {
   }
 }
 
-async function handleProviderSelect(event: Event) {
-  const provider = (event.target as HTMLSelectElement).value
+async function handleProviderSelect(provider: string) {
   const preset = providerPresets.value.find((item) => item.value === provider)
   if (!preset) return
   const previousProvider = currentConfiguredAgent.value?.config?.provider
@@ -439,8 +586,7 @@ async function handleProviderSelect(event: Event) {
   }
 }
 
-async function handleModelSelect(event: Event) {
-  const model = (event.target as HTMLSelectElement).value
+async function handleModelSelect(model: string) {
   if (!model) return
   testResult.value = null
   await saveCurrentModelConfig({ model })
@@ -456,14 +602,12 @@ async function handleBaseUrlChange(event: Event) {
   await saveCurrentModelConfig({ baseUrl: next })
 }
 
-async function handleBaseUrlPresetSelect(event: Event) {
-  const select = event.target as HTMLSelectElement
-  const url = select.value
+async function handleBaseUrlPresetSelect(url: string) {
   if (!url) return
   testResult.value = null
   await saveCurrentModelConfig({ baseUrl: url })
-  // 重置 select 回 placeholder，避免重复点同一项不触发
-  select.value = ''
+  // 选完即重置,placeholder 重新出现,允许重复选同一项
+  baseUrlPreset.value = ''
 }
 
 async function handleTestConnection() {
@@ -528,6 +672,7 @@ async function saveCurrentModelConfig(patch: Partial<Agent['config']>) {
 
 // 切换 Agent 时，回到该 Agent 的当前配置
 watch(activeType, () => {
+  baseUrlPreset.value = ''
   // 配置切换由 currentConfiguredAgent computed 自动响应，无需额外动作
 })
 </script>
@@ -553,6 +698,10 @@ watch(activeType, () => {
 
 // ============== 顶部工具条 ==============
 .copilot-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   max-width: 1320px;
   margin: 0 auto 12px;
   padding: 8px 14px;
@@ -569,12 +718,56 @@ watch(activeType, () => {
   gap: 10px;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .topbar-title {
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.14em;
   color: rgb(var(--muted));
+}
+
+.topbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(var(--muted));
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+
+  .topbar-btn-glyph {
+    font-size: 14px;
+    line-height: 1;
+    color: rgb(var(--faint));
+    transition: color 0.18s ease;
+  }
+
+  &:hover {
+    color: rgb(var(--text));
+    background: rgb(var(--elev) / 0.6);
+  }
+
+  &.is-active {
+    color: rgb(var(--accent-strong));
+    background: rgb(var(--accent-2) / 0.12);
+    border-color: rgb(var(--accent) / 0.4);
+
+    .topbar-btn-glyph {
+      color: var(--agent-accent, rgb(var(--accent-strong)));
+    }
+  }
 }
 
 .live-pill {
@@ -958,28 +1151,17 @@ watch(activeType, () => {
 .brief-card {
   --agent-accent: #{$primary-color};
   position: relative;
-  padding: 22px 24px 20px;
-  background:
-    linear-gradient(135deg,
-      rgb(var(--accent-2) / 0.15),
-      rgb(var(--surface) / 0.96) 50%,
-      rgb(var(--accent-3) / 0.12) 100%);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.25rem;
-  box-shadow: $shadow-md;
-  backdrop-filter: blur(14px);
-  overflow: hidden;
-  transition: box-shadow 0.4s ease;
+  padding: 12px 16px;
+  background: rgb(var(--surface) / 0.6);
+  border: 1px dashed rgb(var(--line) / 0.5);
+  border-radius: 0.875rem;
+  box-shadow: none;
+  transition: border-color 0.3s ease;
 
-  &::after {
-    content: '';
-    position: absolute;
-    right: -40px;
-    bottom: -40px;
-    width: 180px;
-    height: 180px;
-    background: radial-gradient(circle, rgb(var(--agent-accent) / 0.18), transparent 70%);
-    pointer-events: none;
+  &::after { content: none; }
+
+  &:hover {
+    border-color: rgb(var(--line) / 0.8);
   }
 }
 
@@ -987,72 +1169,78 @@ watch(activeType, () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 6px;
 }
 
 .brief-kicker {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: rgb(var(--accent-strong));
+  color: rgb(var(--faint));
 }
 
 .brief-live {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  color: rgb(var(--success));
-  padding: 4px 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: rgb(var(--muted));
+  padding: 2px 8px;
   border-radius: 999px;
-  background: rgb(var(--success) / 0.1);
+  background: transparent;
+  border: 1px solid rgb(var(--line) / 0.5);
 
   i {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
     background: rgb(var(--success));
     border-radius: 50%;
-    box-shadow: 0 0 0 3px rgb(var(--success) / 0.2);
-    animation: pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 0 2px rgb(var(--success) / 0.18);
+    animation: pulse 1.8s ease-in-out infinite;
   }
 }
 
 .brief-main {
-  margin-bottom: 18px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
 .brief-name {
-  margin: 0 0 6px;
+  margin: 0;
   font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 26px;
-  letter-spacing: -0.02em;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
   color: rgb(var(--text));
 }
 
 .brief-desc {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
+  font-size: 12px;
+  line-height: 1.5;
   color: rgb(var(--muted));
-  max-width: 640px;
+  max-width: 720px;
 }
 
 .brief-meta {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.4fr;
-  gap: 16px;
-  padding-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding-top: 8px;
+  border-top: 1px dashed rgb(var(--line) / 0.4);
 }
 
 .meta-col {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  align-items: baseline;
   gap: 6px;
   min-width: 0;
 }
@@ -1060,16 +1248,16 @@ watch(activeType, () => {
 .meta-label {
   font-family: var(--font-mono);
   font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgb(var(--muted));
+  color: rgb(var(--faint));
 }
 
 .meta-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: rgb(var(--text));
+  font-size: 12px;
+  font-weight: 500;
+  color: rgb(var(--muted));
 }
 
 .meta-actions-row {
@@ -1081,125 +1269,122 @@ watch(activeType, () => {
 .meta-action {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
+  gap: 4px;
+  padding: 3px 9px;
   font-family: var(--font-body);
-  font-size: 12px;
-  font-weight: 600;
-  color: rgb(var(--accent-strong));
-  background: rgb(var(--surface) / 0.8);
-  border: 1px solid rgb(var(--line) / 0.6);
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(var(--muted));
+  background: transparent;
+  border: 1px solid rgb(var(--line) / 0.5);
   border-radius: 999px;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 
   .meta-action-arrow {
     font-family: var(--font-body);
-    font-size: 11px;
+    font-size: 10px;
   }
 
   &:hover {
-    background: rgb(var(--accent-2) / 0.12);
-    border-color: rgb(var(--accent) / 0.5);
-    transform: translateY(-1px);
+    color: rgb(var(--accent-strong));
+    border-color: rgb(var(--accent) / 0.45);
+    background: rgb(var(--accent-2) / 0.08);
   }
 }
 
-// ============== 模型接入 strip ==============
-.model-strip {
-  --agent-accent: #{$primary-color};
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background:
-    linear-gradient(135deg, rgb(var(--accent-2) / 0.12), rgb(var(--surface) / 0.96) 60%, rgb(var(--accent-3) / 0.08) 100%);
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 1.125rem;
-  box-shadow: $shadow-sm;
-  backdrop-filter: blur(10px);
+// ============== 侧边抽屉(模型接入 / Supervisor 编排) ==============
+.copilot-drawer {
+  :deep(.el-drawer__header) {
+    margin-bottom: 0;
+    padding: 18px 22px 14px;
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 600;
+    color: rgb(var(--text));
+    border-bottom: 1px solid rgb(var(--line) / 0.5);
+  }
 
-  &.needs-key {
-    border-color: rgb(var(--warning) / 0.5);
-    box-shadow: 0 0 0 1px rgb(var(--warning) / 0.18), $shadow-sm;
+  :deep(.el-drawer__body) {
+    padding: 0;
   }
 }
 
-.model-strip-main {
+.drawer-section {
   display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 22px 28px;
 }
 
-.model-label {
-  flex: 0 0 auto;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgb(var(--muted));
-}
-
-.model-select,
-.model-input {
-  height: 32px;
-  min-width: 0;
-  padding: 0 10px;
-  font-family: var(--font-body);
+.drawer-section-desc {
+  margin: 0;
   font-size: 12px;
-  font-weight: 500;
-  color: rgb(var(--text));
-  background: rgb(var(--surface) / 0.85);
-  border: 1px solid rgb(var(--line) / 0.7);
-  border-radius: 999px;
-  outline: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
-
-  &:focus {
-    border-color: rgb(var(--accent) / 0.55);
-    background: rgb(var(--surface));
-  }
-
-  &:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-  }
-}
-
-.provider-select {
-  min-width: 150px;
-  font-weight: 600;
-}
-
-.model-select:not(.provider-select) {
-  min-width: 180px;
-}
-
-.baseurl-presets {
-  min-width: 150px;
-  font-family: var(--font-mono);
-  font-size: 11px;
+  line-height: 1.6;
   color: rgb(var(--muted));
-  background: rgb(var(--elev) / 0.7);
 }
 
-.model-input {
-  flex: 1 1 220px;
-  min-width: 180px;
-  font-family: var(--font-mono);
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: rgb(var(--text));
+.model-form {
+  :deep(.el-form-item) {
+    margin-bottom: 14px;
+
+    &:last-child { margin-bottom: 0; }
+  }
+
+  :deep(.el-form-item__label) {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(var(--faint));
+    line-height: 1.4;
+    padding-bottom: 4px;
+  }
+
+  :deep(.el-select),
+  :deep(.el-input) {
+    width: 100%;
+  }
+
+  :deep(.el-input__wrapper),
+  :deep(.el-textarea__inner) {
+    background: rgb(var(--surface) / 0.85);
+    box-shadow: 0 0 0 1px rgb(var(--line) / 0.7);
+    border-radius: 10px;
+    transition: box-shadow 0.15s ease;
+  }
+
+  :deep(.el-input__wrapper.is-focus),
+  :deep(.el-textarea__inner:focus) {
+    box-shadow: 0 0 0 1px rgb(var(--accent) / 0.55);
+  }
+
+  :deep(.el-input.is-disabled .el-input__wrapper),
+  :deep(.el-textarea.is-disabled .el-textarea__inner) {
+    opacity: 0.55;
+  }
+
+  :deep(.el-input__inner),
+  :deep(.el-textarea__inner) {
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: rgb(var(--text));
+  }
+}
+
+.drawer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
 }
 
 .test-btn {
   flex: 0 0 auto;
-  height: 32px;
-  padding: 0 14px;
+  height: 34px;
+  padding: 0 16px;
   font-family: var(--font-mono);
   font-size: 11px;
   font-weight: 700;
@@ -1226,7 +1411,7 @@ watch(activeType, () => {
 
 .key-pill {
   flex: 0 0 auto;
-  max-width: 280px;
+  max-width: 100%;
   padding: 5px 12px;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -1253,6 +1438,67 @@ watch(activeType, () => {
     background: rgb(var(--danger) / 0.1);
     border-color: rgb(var(--danger) / 0.5);
   }
+}
+
+.supervisor-result {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 12px;
+  border-top: 1px dashed rgb(var(--line) / 0.8);
+}
+
+.agent-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.intent-tag,
+.agent-tag {
+  padding: 4px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.intent-tag {
+  color: rgb(var(--on-accent));
+  background: linear-gradient(135deg, rgb(var(--accent-strong)), rgb(var(--accent)));
+}
+
+.agent-tag {
+  color: rgb(var(--accent-strong));
+  background: rgb(var(--accent-2) / 0.1);
+  border: 1px solid rgb(var(--accent) / 0.24);
+}
+
+.plan-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: rgb(var(--muted));
+  font-size: 12px;
+
+  strong {
+    margin-right: 8px;
+    color: rgb(var(--text));
+  }
+}
+
+.supervisor-reply {
+  max-height: 160px;
+  margin: 12px 0 0;
+  padding: 12px;
+  overflow: auto;
+  white-space: pre-wrap;
+  color: rgb(var(--text));
+  background: rgb(var(--elev) / 0.55);
+  border: 1px solid rgb(var(--line) / 0.45);
+  border-radius: 12px;
+  line-height: 1.6;
 }
 
 // ============== 动画 ==============
