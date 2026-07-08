@@ -859,12 +859,12 @@
   padding: 12px 16px;
   align-items: stretch;
   flex: 1;
-  min-height: 0;
+  min-height: 720px;
 }
 
 .agent-area {
-  flex: 1 1 calc(100% - 540px);
-  min-width: 520px;
+  flex: 1 1 calc(100% - 640px);
+  min-width: 440px;
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--line) / 0.7);
   border-radius: 1.5rem;
@@ -875,10 +875,10 @@
 }
 
 .copilot-area {
-  flex: 0 0 clamp(480px, 38vw, 620px);
-  max-width: 620px;
-  min-width: 460px;
-  min-height: 0;
+  flex: 0 0 clamp(600px, 46vw, 780px);
+  max-width: 780px;
+  min-width: 560px;
+  min-height: 720px;
 }
 
 .copilot-area > * {

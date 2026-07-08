@@ -397,6 +397,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
   background: transparent;
   overflow: hidden;
   font-family: var(--font-body, 'Source Serif 4', 'Noto Serif SC', Georgia, serif);
@@ -405,9 +406,12 @@ onBeforeUnmount(() => {
 // ============== 消息流:蓝图纸 ==============
 .chat-messages {
   position: relative;
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
-  padding: 28px 28px 28px 64px;
+  overflow-x: hidden;
+  padding: 18px 20px 18px 56px;
+  scroll-behavior: smooth;
   background-color: #fbfaf3;
   background-image:
     // 蓝图方格

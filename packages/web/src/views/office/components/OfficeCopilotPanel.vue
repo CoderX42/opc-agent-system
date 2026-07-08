@@ -926,9 +926,11 @@ watch(configuredAgents, (agents) => {
 
 .chat-wrap {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: 560px;
   overflow: hidden;
   border-top: 1px solid rgba(13, 71, 161, 0.18);
+  display: flex;
+  flex-direction: column;
 }
 
 .log-stream {
@@ -989,7 +991,7 @@ watch(configuredAgents, (agents) => {
 }
 
 .log-list {
-  max-height: 140px;
+  max-height: 108px;
   padding: 0 10px 6px;
   overflow: auto;
   font-family: var(--font-mono);
@@ -1053,6 +1055,7 @@ watch(configuredAgents, (agents) => {
 
   .chat-wrap {
     padding-bottom: 4px;
+    min-height: 60vh;
   }
 
   .log-stream {
