@@ -17,6 +17,7 @@ import { AiModule } from './ai/ai.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { OfficeModule } from './modules/office/office.module';
+import { AgentRuntimeModule } from './core/agent-runtime/agent-runtime.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { OfficeModule } from './modules/office/office.module';
     MonitoringModule,
     UploadModule,
     OfficeModule,
+    AgentRuntimeModule,
   ],
   controllers: [AppController],
   providers: [AppService],
