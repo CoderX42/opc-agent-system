@@ -94,58 +94,67 @@
             class="brief-card"
             :style="{ '--agent-accent': activeAgent.color }"
           >
-            <div class="brief-top">
-              <span class="brief-kicker">任务简报 · {{ activeAgent.code }}</span>
-              <span class="brief-live">
-                <i></i> 在线
-              </span>
+            <div class="brief-stamp" aria-hidden="true">
+              <span class="stamp-ring"></span>
+              <span class="stamp-orb">{{ activeAgent.code }}</span>
             </div>
 
-            <div class="brief-main">
-              <h3 class="brief-name">{{ activeAgent.name }}</h3>
-              <p class="brief-desc">{{ activeAgent.longDescription }}</p>
-            </div>
+            <div class="brief-body">
+              <div class="brief-top">
+                <span class="brief-kicker">任务简报 · {{ activeAgent.code }}</span>
+                <span class="brief-live">
+                  <i></i> 在线
+                </span>
+              </div>
 
-            <div class="brief-meta">
-              <div class="meta-col">
-                <span class="meta-label">能力</span>
-                <span class="meta-value">{{ activeAgent.capability }}</span>
+              <div class="brief-main">
+                <h3 class="brief-name">{{ activeAgent.name }}</h3>
+                <p class="brief-desc">{{ activeAgent.longDescription }}</p>
               </div>
-              <div class="meta-col">
-                <span class="meta-label">响应速度</span>
-                <span class="meta-value">{{ activeAgent.sla }}</span>
-              </div>
-              <div class="meta-col meta-actions">
-                <span class="meta-label">快捷跳转</span>
-                <div class="meta-actions-row">
-                  <button
-                    v-for="action in activeAgent.actions"
-                    :key="action.path"
-                    type="button"
-                    class="meta-action"
-                    @click="$router.push(action.path)"
-                  >
-                    <span class="meta-action-arrow">↗</span>
-                    {{ action.label }}
-                  </button>
+
+              <div class="brief-meta">
+                <div class="meta-col">
+                  <span class="meta-label">能力</span>
+                  <span class="meta-value">{{ activeAgent.capability }}</span>
+                </div>
+                <div class="meta-col">
+                  <span class="meta-label">响应速度</span>
+                  <span class="meta-value">{{ activeAgent.sla }}</span>
+                </div>
+                <div class="meta-col meta-actions">
+                  <span class="meta-label">快捷跳转</span>
+                  <div class="meta-actions-row">
+                    <button
+                      v-for="action in activeAgent.actions"
+                      :key="action.path"
+                      type="button"
+                      class="meta-action"
+                      @click="$router.push(action.path)"
+                    >
+                      <span class="meta-action-arrow">↗</span>
+                      {{ action.label }}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </article>
 
           <!-- Chat 控制台 -->
-          <AgentAssistantPanel
-            :key="activeAgent.type"
-            ref="chatRef"
-            :agent-id="currentConfiguredAgent?.id"
-            :type="activeAgent.type"
-            :title="`${activeAgent.name} Copilot`"
-            :icon="activeAgent.icon"
-            :color="activeAgent.color"
-            :placeholder="activeAgent.placeholder"
-            :suggestions="activeAgent.suggestions"
-            :session-id="`agent-copilot-${activeAgent.type}`"
-          />
+          <div class="atelier-host">
+            <AgentAssistantPanel
+              :key="activeAgent.type"
+              ref="chatRef"
+              :agent-id="currentConfiguredAgent?.id"
+              :type="activeAgent.type"
+              :title="`${activeAgent.name} Copilot`"
+              :icon="activeAgent.icon"
+              :color="activeAgent.color"
+              :placeholder="activeAgent.placeholder"
+              :suggestions="activeAgent.suggestions"
+              :session-id="`agent-copilot-${activeAgent.type}`"
+            />
+          </div>
         </main>
       </section>
     </div>
@@ -804,7 +813,7 @@ watch(activeType, () => {
   display: grid;
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 28px;
-  align-items: start;
+  align-items: stretch;
   animation: rise 0.9s 0.1s $transition-timing both;
 }
 
@@ -1145,40 +1154,98 @@ watch(activeType, () => {
   flex-direction: column;
   gap: 18px;
   min-width: 0;
+  min-height: calc(100vh - 200px);
 }
 
-// --- Brief card ---
+.atelier-host {
+  flex: 1 1 auto;
+  min-height: 640px;
+  display: flex;
+}
+
+// --- Brief card (Atelier Blue 同步) ---
 .brief-card {
   --agent-accent: #{$primary-color};
   position: relative;
-  padding: 12px 16px;
-  background: rgb(var(--surface) / 0.6);
-  border: 1px dashed rgb(var(--line) / 0.5);
-  border-radius: 0.875rem;
-  box-shadow: none;
-  transition: border-color 0.3s ease;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 14px;
+  padding: 14px 18px 12px;
+  background: rgba(255, 253, 243, 0.78);
+  border: 1px solid rgba(13, 71, 161, 0.18);
+  border-radius: 4px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 8px 18px -14px rgba(13, 27, 42, 0.18);
 
-  &::after { content: none; }
-
-  &:hover {
-    border-color: rgb(var(--line) / 0.8);
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(13, 71, 161, 0.04) 1px, transparent 1px);
+    background-size: 100% 22px;
+    background-position: 0 22px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.55), transparent 80%);
   }
+
+  > * { position: relative; z-index: 1; }
+}
+
+.brief-stamp {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 40%, #b8893a);
+  border-radius: 4px;
+  background: linear-gradient(135deg, #fffdf3 0%, #f5ecd2 100%);
+  box-shadow:
+    0 3px 0 color-mix(in srgb, var(--agent-accent) 26%, transparent),
+    0 1px 0 rgba(255, 255, 255, 0.6) inset;
+  transform: rotate(-3deg);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  .brief-card:hover & { transform: rotate(-5deg) translateY(-1px); }
+
+  .stamp-ring {
+    position: absolute;
+    inset: 4px;
+    border: 1px solid color-mix(in srgb, var(--agent-accent) 50%, transparent);
+    border-radius: 2px;
+  }
+}
+
+.stamp-orb {
+  font-family: 'Source Serif 4', 'Noto Serif SC', Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--agent-accent);
+  letter-spacing: 0.04em;
+}
+
+.brief-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .brief-top {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
 }
 
 .brief-kicker {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgb(var(--faint));
+  color: #8a5a18;
 }
 
 .brief-live {
@@ -1186,21 +1253,21 @@ watch(activeType, () => {
   align-items: center;
   gap: 5px;
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  color: rgb(var(--muted));
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: transparent;
-  border: 1px solid rgb(var(--line) / 0.5);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: color-mix(in srgb, var(--agent-accent) 70%, #082558);
+  padding: 1px 8px;
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 24%, transparent);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--agent-accent) 8%, transparent);
 
   i {
     width: 5px;
     height: 5px;
-    background: rgb(var(--success));
+    background: var(--agent-accent);
     border-radius: 50%;
-    box-shadow: 0 0 0 2px rgb(var(--success) / 0.18);
+    box-shadow: 0 0 6px var(--agent-accent);
     animation: pulse 1.8s ease-in-out infinite;
   }
 }
@@ -1210,24 +1277,26 @@ watch(activeType, () => {
   align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin: 2px 0 4px;
 }
 
 .brief-name {
   margin: 0;
   font-family: var(--font-body);
   font-weight: 600;
-  font-size: 15px;
+  font-style: italic;
+  font-size: 18px;
   letter-spacing: -0.01em;
-  color: rgb(var(--text));
+  color: #082558;
 }
 
 .brief-desc {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.5;
-  color: rgb(var(--muted));
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #3c5578;
   max-width: 720px;
+  font-style: italic;
 }
 
 .brief-meta {
@@ -1235,7 +1304,7 @@ watch(activeType, () => {
   flex-wrap: wrap;
   gap: 8px 18px;
   padding-top: 8px;
-  border-top: 1px dashed rgb(var(--line) / 0.4);
+  border-top: 1px dashed rgba(13, 71, 161, 0.18);
 }
 
 .meta-col {
@@ -1247,17 +1316,18 @@ watch(activeType, () => {
 
 .meta-label {
   font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgb(var(--faint));
+  color: #8a5a18;
 }
 
 .meta-value {
   font-size: 12px;
-  font-weight: 500;
-  color: rgb(var(--muted));
+  font-weight: 600;
+  color: #082558;
+  font-variant-numeric: tabular-nums;
 }
 
 .meta-actions-row {
@@ -1271,25 +1341,29 @@ watch(activeType, () => {
   align-items: center;
   gap: 4px;
   padding: 3px 9px;
-  font-family: var(--font-body);
-  font-size: 11px;
+  font-family: 'Source Serif 4', 'Noto Serif SC', Georgia, serif;
+  font-size: 11.5px;
+  font-style: italic;
   font-weight: 500;
-  color: rgb(var(--muted));
-  background: transparent;
-  border: 1px solid rgb(var(--line) / 0.5);
-  border-radius: 999px;
+  color: #082558;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 22%, rgba(13, 71, 161, 0.18));
+  border-radius: 2px;
   cursor: pointer;
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  transition: all 0.18s ease;
 
   .meta-action-arrow {
-    font-family: var(--font-body);
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
     font-size: 10px;
+    font-style: normal;
+    color: var(--agent-accent);
   }
 
   &:hover {
-    color: rgb(var(--accent-strong));
-    border-color: rgb(var(--accent) / 0.45);
-    background: rgb(var(--accent-2) / 0.08);
+    color: #fff;
+    background: var(--agent-accent);
+    border-color: var(--agent-accent);
+    .meta-action-arrow { color: #fff; }
   }
 }
 
@@ -1528,11 +1602,18 @@ watch(activeType, () => {
     gap: 8px;
   }
   .brief-meta { grid-template-columns: 1fr 1fr; }
+  .copilot-workspace { min-height: 0; }
+  .atelier-host { min-height: 520px; }
 }
 
 @media (max-width: 720px) {
   .copilot-page { padding: 24px 18px 40px; }
   .agent-rail { grid-template-columns: 1fr; }
   .brief-meta { grid-template-columns: 1fr; }
+  .brief-card { grid-template-columns: 44px minmax(0, 1fr); padding: 12px 14px 10px; }
+  .brief-stamp { width: 44px; height: 44px; }
+  .stamp-orb { font-size: 14px; }
+  .brief-name { font-size: 16px; }
+  .atelier-host { min-height: 480px; }
 }
 </style>
