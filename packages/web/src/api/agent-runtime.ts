@@ -112,7 +112,7 @@ export interface VoiceChatResult {
 }
 
 export function executeAgentTask(data: ExecuteAgentTaskPayload) {
-  return post<ApiResponse<AgentExecutionResult>>('/agent-runtime/tasks', data)
+  return post<ApiResponse<AgentExecutionResult>>('/agent-runtime/tasks', data, { timeout: 60000 })
 }
 
 export function getAgentTask(id: string) {
