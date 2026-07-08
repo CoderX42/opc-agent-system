@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post, Query, Request, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -8,6 +8,8 @@ import { AgentService } from './agent.service';
 import { AgentQueryDto } from './dto/agent-query.dto';
 import { AgentChatDto, CreateAgentDto, TestAgentConnectionDto, UpdateAgentDto, UpdateAgentModelConfigDto } from './dto/agent.dto';
 import { AgentStatus, AgentType } from './entities/agent.entity';
+
+type AuthRequest = { user: { id: string } };
 
 @ApiTags('Agent')
 @ApiBearerAuth('JWT')
@@ -41,8 +43,12 @@ export class AgentController {
   byType(@Param('type') type: AgentType) { return this.agents.findByType(type); }
 
   @Post('type/:type/chat')
-  chatByType(@Param('type') type: AgentType, @Body() dto: AgentChatDto) {
-    return this.agents.chatByType(type, dto.message);
+  chatByType(
+    @Request() req: AuthRequest,
+    @Param('type') type: AgentType,
+    @Body() dto: AgentChatDto,
+  ) {
+    return this.agents.chatByType(type, dto.message, req.user.id);
   }
 
   @Get(':id')
@@ -75,7 +81,11 @@ export class AgentController {
   stop(@Param('id', ParseUUIDPipe) id: string) { return this.agents.setStatus(id, AgentStatus.INACTIVE); }
 
   @Post(':id/chat')
-  chat(@Param('id', ParseUUIDPipe) id: string, @Body() dto: AgentChatDto) {
-    return this.agents.chat(id, dto.message);
+  chat(
+    @Request() req: AuthRequest,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: AgentChatDto,
+  ) {
+    return this.agents.chat(id, dto.message, req.user.id);
   }
 }

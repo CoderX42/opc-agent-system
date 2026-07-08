@@ -15,6 +15,7 @@ import {
   sanitizeAgentConfig,
   toAiProviderType,
 } from './agent-model-config';
+import { FinanceService } from '../finance/finance.service';
 
 type SafeAgent = Omit<Agent, 'config'> & { config: AgentModelConfig };
 
@@ -26,6 +27,7 @@ export class AgentService {
     @InjectRepository(Agent)
     private readonly agentRepository: Repository<Agent>,
     private readonly aiService: AiService,
+    private readonly financeService: FinanceService,
   ) {}
 
   async create(data: CreateAgentDto): Promise<SafeAgent> {
@@ -214,17 +216,21 @@ export class AgentService {
     return this.toSafeAgent(saved);
   }
 
-  async chat(id: string, message: string): Promise<{ reply: string }> {
+  async chat(id: string, message: string, ownerId: string): Promise<{ reply: string }> {
     const agent = await this.findRawOne(id);
     if (agent.status !== AgentStatus.ACTIVE) {
       throw new NotFoundException('Agent 当前不可用');
     }
-    return this.chatWithAgent(agent, message);
+    return this.chatWithAgent(agent, message, ownerId);
   }
 
-  async chatByType(type: AgentType, message: string): Promise<{ reply: string }> {
+  async chatByType(
+    type: AgentType,
+    message: string,
+    ownerId: string,
+  ): Promise<{ reply: string }> {
     const agent = await this.ensureDefaultAgent(type);
-    return this.chatWithAgent(agent, message);
+    return this.chatWithAgent(agent, message, ownerId);
   }
 
   private async ensureDefaultAgent(type: AgentType): Promise<Agent> {
@@ -249,19 +255,60 @@ export class AgentService {
     );
   }
 
-  private async chatWithAgent(agent: Agent, message: string): Promise<{ reply: string }> {
+  private async chatWithAgent(
+    agent: Agent,
+    message: string,
+    ownerId: string,
+  ): Promise<{ reply: string }> {
     const config = normalizeAgentConfig(agent.type, agent.config);
-    const reply = await this.aiService.simpleChat(message, config.systemPrompt, {
-      provider: toAiProviderType(config),
-      model: config.model,
-      apiKey: config.apiKey,
-      baseUrl: config.baseUrl,
-      temperature: config.temperature,
-      maxTokens: config.maxTokens,
-      providerLabel: config.provider,
-      apiKeyRequired: config.apiKeyRequired,
-    });
-    return { reply };
+    const context = await this.buildAgentDataContext(agent.type, ownerId);
+    const systemPrompt = this.buildDataAwareSystemPrompt(
+      config.systemPrompt,
+      context.instructions,
+    );
+    const userMessage = context.content
+      ? `用户问题：${message}\n\n数据库查询结果：\n${context.content}`
+      : message;
+
+    try {
+      const reply = await this.aiService.simpleChat(userMessage, systemPrompt, {
+        provider: toAiProviderType(config),
+        model: config.model,
+        apiKey: config.apiKey,
+        baseUrl: config.baseUrl,
+        temperature: config.temperature,
+        maxTokens: config.maxTokens,
+        providerLabel: config.provider,
+        apiKeyRequired: config.apiKeyRequired,
+      });
+      return { reply };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Agent chat failed, using local fallback: ${message}`);
+      return { reply: this.localFallback(agent.type, userMessage) };
+    }
+  }
+
+  private async buildAgentDataContext(
+    type: AgentType,
+    ownerId: string,
+  ): Promise<{ instructions?: string; content?: string }> {
+    if (type !== AgentType.FINANCE) return {};
+
+    const data = await this.financeService.getAgentContext(ownerId);
+    return {
+      instructions:
+        '回答财务数据问题时，必须优先使用“数据库查询结果”中的真实数据；不要编造金额、日期、分类或交易记录。若数据库没有相关数据，请明确说明未查询到。',
+      content: JSON.stringify(data, null, 2),
+    };
+  }
+
+  private buildDataAwareSystemPrompt(
+    basePrompt?: string,
+    dataInstructions?: string,
+  ): string | undefined {
+    if (!dataInstructions) return basePrompt;
+    return [basePrompt, dataInstructions].filter(Boolean).join('\n\n');
   }
 
   private localFallback(type: AgentType, message: string): string {

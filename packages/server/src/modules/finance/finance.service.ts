@@ -366,6 +366,46 @@ export class FinanceService {
     };
   }
 
+  async getAgentContext(ownerId: string) {
+    const [overview, recentTransactions, recentInvoices] = await Promise.all([
+      this.getOverview(ownerId),
+      this.transactionRepository.find({
+        where: { ownerId },
+        order: { date: 'DESC', createdAt: 'DESC' },
+        take: 10,
+      }),
+      this.invoiceRepository.find({
+        where: { ownerId },
+        order: { date: 'DESC', createdAt: 'DESC' },
+        take: 10,
+      }),
+    ]);
+
+    return {
+      overview,
+      recentTransactions: recentTransactions.map((item) => ({
+        date: this.formatDate(this.toLocalDate(item.date)),
+        type: item.type,
+        amount: Number(item.amount),
+        category: item.category,
+        account: item.account,
+        counterparty: item.counterparty,
+        description: item.description,
+      })),
+      recentInvoices: recentInvoices.map((item) => ({
+        date: this.formatDate(this.toLocalDate(item.date)),
+        type: item.type,
+        amount: Number(item.amount),
+        category: item.category,
+        status: item.status,
+        invoiceNo: item.invoiceNo,
+        vendor: item.vendor,
+        customerName: item.customerName,
+        description: item.description,
+      })),
+    };
+  }
+
   private mergeMonthlyTrend(
     ...groups: Array<Array<{ month: string; income: string | number; expense: string | number }>>
   ) {
