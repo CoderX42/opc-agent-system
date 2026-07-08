@@ -1,7 +1,7 @@
 <template>
   <section class="agent-atelier" :style="{ '--agent-accent': color }">
     <!-- 值班工匠胸卡 -->
-    <header class="badge-card">
+    <header v-if="!hideBadgeCard" class="badge-card">
       <div class="badge-stamp" aria-hidden="true">
         <span class="stamp-ring"></span>
         <span class="stamp-ring stamp-ring-2"></span>
@@ -143,12 +143,14 @@ const props = withDefaults(
     suggestions?: string[]
     runtimeEnabled?: boolean
     sessionId?: string
+    hideBadgeCard?: boolean
   }>(),
   {
     color: '#155e52',
     placeholder: '直接向这个 Agent 描述你要处理的事情...',
     suggestions: () => [],
     runtimeEnabled: true,
+    hideBadgeCard: false,
   },
 )
 

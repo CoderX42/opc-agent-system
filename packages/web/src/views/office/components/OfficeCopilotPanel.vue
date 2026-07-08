@@ -168,6 +168,7 @@
         :placeholder="currentOpt.placeholder"
         :suggestions="currentOpt.suggestions"
         :session-id="`office-copilot-${activeType}`"
+        hide-badge-card
       />
     </div>
 
