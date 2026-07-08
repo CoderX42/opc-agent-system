@@ -105,7 +105,138 @@ function getSenderName(role: string) {
 }
 
 function formatContent(content: string) {
-  return content.replace(/\n/g, '<br/>')
+  return renderMarkdownCard(content)
+}
+
+function renderMarkdownCard(content: string) {
+  const lines = content.replace(/\r\n/g, '\n').split('\n')
+  const blocks: string[] = []
+  let paragraph: string[] = []
+
+  function flushParagraph() {
+    if (!paragraph.length) return
+    blocks.push(`<p class="md-p">${paragraph.map(inlineMarkdown).join('<br/>')}</p>`)
+    paragraph = []
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index]
+    const trimmed = line.trim()
+
+    if (!trimmed) {
+      flushParagraph()
+      continue
+    }
+
+    const heading = /^(#{1,4})\s+(.+)$/.exec(trimmed)
+    if (heading) {
+      flushParagraph()
+      const level = Math.min(heading[1].length, 4)
+      blocks.push(`<h${level} class="md-h md-h${level}">${inlineMarkdown(heading[2])}</h${level}>`)
+      continue
+    }
+
+    if (/^---+$/.test(trimmed)) {
+      flushParagraph()
+      blocks.push('<hr class="md-hr"/>')
+      continue
+    }
+
+    if (isMarkdownTableStart(lines, index)) {
+      flushParagraph()
+      const tableLines: string[] = [lines[index], lines[index + 1]]
+      index += 2
+      while (index < lines.length && lines[index].trim().startsWith('|')) {
+        tableLines.push(lines[index])
+        index += 1
+      }
+      index -= 1
+      blocks.push(renderTable(tableLines))
+      continue
+    }
+
+    if (/^>\s?/.test(trimmed)) {
+      flushParagraph()
+      const quoteLines = [trimmed.replace(/^>\s?/, '')]
+      while (index + 1 < lines.length && /^>\s?/.test(lines[index + 1].trim())) {
+        index += 1
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ''))
+      }
+      blocks.push(`<blockquote class="md-quote">${quoteLines.map(inlineMarkdown).join('<br/>')}</blockquote>`)
+      continue
+    }
+
+    if (/^[-*]\s+/.test(trimmed) || /^\d+[.)]\s+/.test(trimmed)) {
+      flushParagraph()
+      const ordered = /^\d+[.)]\s+/.test(trimmed)
+      const items: string[] = []
+      while (index < lines.length) {
+        const item = lines[index].trim()
+        const match = ordered ? /^\d+[.)]\s+(.+)$/.exec(item) : /^[-*]\s+(.+)$/.exec(item)
+        if (!match) break
+        items.push(`<li>${inlineMarkdown(match[1])}</li>`)
+        index += 1
+      }
+      index -= 1
+      blocks.push(`<${ordered ? 'ol' : 'ul'} class="md-list">${items.join('')}</${ordered ? 'ol' : 'ul'}>`)
+      continue
+    }
+
+    paragraph.push(line)
+  }
+
+  flushParagraph()
+  return `<div class="feishu-md-card">${blocks.join('')}</div>`
+}
+
+function isMarkdownTableStart(lines: string[], index: number) {
+  const current = lines[index]?.trim()
+  const next = lines[index + 1]?.trim()
+  return Boolean(
+    current?.startsWith('|') &&
+    next?.startsWith('|') &&
+    /^\|?[\s:-]+(\|[\s:-]+)+\|?$/.test(next),
+  )
+}
+
+function renderTable(lines: string[]) {
+  const rows = lines.map(splitTableRow)
+  const header = rows[0] || []
+  const body = rows.slice(2)
+  return `
+    <div class="md-table-wrap">
+      <table class="md-table">
+        <thead><tr>${header.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join('')}</tr></thead>
+        <tbody>${body.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
+      </table>
+    </div>
+  `
+}
+
+function splitTableRow(line: string) {
+  return line
+    .trim()
+    .replace(/^\|/, '')
+    .replace(/\|$/, '')
+    .split('|')
+    .map((cell) => cell.trim())
+}
+
+function inlineMarkdown(value: string) {
+  return escapeHtml(value)
+    .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(^|\s)\*([^*]+)\*/g, '$1<em>$2</em>')
+}
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
 }
 
 function scrollToBottom() {
@@ -244,8 +375,12 @@ onMounted(scrollToBottom)
 }
 
 .message-body {
-  max-width: 72%;
+  max-width: min(86%, 760px);
   min-width: 0;
+}
+
+.user .message-body {
+  max-width: min(76%, 620px);
 }
 
 .message-meta {
@@ -274,8 +409,8 @@ onMounted(scrollToBottom)
 
 .message-bubble {
   position: relative;
-  padding: 11px 14px;
-  border-radius: 12px;
+  padding: 13px 15px;
+  border-radius: 16px;
   background: rgba(255, 255, 255, 0.95);
   border: 1px solid rgba(26, 36, 33, 0.1);
   color: $text-primary;
@@ -294,8 +429,156 @@ onMounted(scrollToBottom)
 
 .agent .message-bubble {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--agent-accent) 5%, white), rgba(255, 255, 255, 0.95));
+    linear-gradient(180deg, color-mix(in srgb, var(--agent-accent) 4%, white), rgba(255, 255, 255, 0.98));
   border-color: color-mix(in srgb, var(--agent-accent) 22%, transparent);
+  box-shadow:
+    0 18px 46px rgba(15, 23, 42, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.75) inset;
+}
+
+.agent .message-bubble::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  border-radius: 16px 0 0 16px;
+  background: linear-gradient(180deg, var(--agent-accent), color-mix(in srgb, var(--agent-accent) 34%, white));
+}
+
+.agent .message-bubble :deep(.feishu-md-card) {
+  display: grid;
+  gap: 10px;
+}
+
+.message-bubble :deep(.md-p) {
+  margin: 0;
+  color: #243447;
+}
+
+.message-bubble :deep(.md-h) {
+  position: relative;
+  margin: 6px 0 2px;
+  color: #17233d;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+
+.message-bubble :deep(.md-h1) {
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 18%, rgba(23, 35, 61, 0.08));
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--agent-accent) 10%, white), rgba(255, 255, 255, 0.86));
+  font-size: 18px;
+}
+
+.message-bubble :deep(.md-h2) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+  font-size: 15px;
+}
+
+.message-bubble :deep(.md-h2::before) {
+  content: '';
+  width: 7px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--agent-accent);
+}
+
+.message-bubble :deep(.md-h3),
+.message-bubble :deep(.md-h4) {
+  font-size: 14px;
+}
+
+.message-bubble :deep(.md-hr) {
+  width: 100%;
+  height: 1px;
+  margin: 2px 0;
+  border: 0;
+  background: linear-gradient(90deg, transparent, rgba(23, 35, 61, 0.16), transparent);
+}
+
+.message-bubble :deep(.md-list) {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 10px 12px 10px 30px;
+  border: 1px solid rgba(23, 35, 61, 0.08);
+  border-radius: 13px;
+  background: rgba(248, 250, 252, 0.72);
+}
+
+.message-bubble :deep(.md-list li) {
+  padding-left: 2px;
+}
+
+.message-bubble :deep(.md-quote) {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-left: 4px solid #f59e0b;
+  border-radius: 12px;
+  color: #7a4b00;
+  background: linear-gradient(135deg, rgba(255, 251, 235, 0.98), rgba(255, 255, 255, 0.86));
+}
+
+.message-bubble :deep(.md-table-wrap) {
+  overflow: auto;
+  border: 1px solid rgba(23, 35, 61, 0.1);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+}
+
+.message-bubble :deep(.md-table) {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.message-bubble :deep(.md-table th) {
+  padding: 10px 12px;
+  color: #17233d;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--agent-accent) 10%, white), #f8fafc);
+  border-bottom: 1px solid rgba(23, 35, 61, 0.1);
+  font-weight: 900;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.message-bubble :deep(.md-table td) {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(23, 35, 61, 0.07);
+  color: #344256;
+  vertical-align: top;
+}
+
+.message-bubble :deep(.md-table tr:last-child td) {
+  border-bottom: 0;
+}
+
+.message-bubble :deep(.md-table tbody tr:hover) {
+  background: color-mix(in srgb, var(--agent-accent) 5%, white);
+}
+
+.message-bubble :deep(.md-code) {
+  padding: 2px 5px;
+  border-radius: 6px;
+  color: color-mix(in srgb, var(--agent-accent) 78%, #17233d);
+  background: color-mix(in srgb, var(--agent-accent) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--agent-accent) 18%, transparent);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.92em;
+}
+
+.message-bubble :deep(strong) {
+  color: #17233d;
+  font-weight: 900;
 }
 
 .system .message-bubble {
