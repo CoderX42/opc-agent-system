@@ -846,10 +846,11 @@
 .workbench-office {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   background: rgb(var(--bg));
   color: rgb(var(--text));
   font-family: var(--font-body);
+  overflow: hidden;
 }
 
 .main-split {
@@ -862,20 +863,22 @@
 }
 
 .agent-area {
-  flex: 1 1 62%;
+  flex: 1 1 calc(100% - 540px);
   min-width: 520px;
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--line) / 0.7);
   border-radius: 1.5rem;
   padding: 12px;
   box-shadow: $shadow-soft;
-  min-height: 420px;
+  min-height: 0;
   overflow: auto;
 }
 
 .copilot-area {
-  flex: 0 0 360px;
-  max-width: 380px;
+  flex: 0 0 clamp(480px, 38vw, 620px);
+  max-width: 620px;
+  min-width: 460px;
+  min-height: 0;
 }
 
 .copilot-area > * {
@@ -883,12 +886,15 @@
 }
 
 .task-dock {
+  flex: 0 0 auto;
+  max-height: 32vh;
   margin: 8px 16px 16px;
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--line) / 0.7);
   border-radius: 1.5rem;
   padding: 8px;
   box-shadow: $shadow-sm;
+  overflow: auto;
 }
 
 /* Modern list/kanban inside agent area */
@@ -900,6 +906,6 @@
 
 @media (max-width: 1100px) {
   .main-split { flex-direction: column; }
-  .copilot-area { max-width: 100%; flex: none; }
+  .copilot-area { max-width: 100%; min-width: 0; flex: none; }
   .agent-area { min-width: 0; }
 }
