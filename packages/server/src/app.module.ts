@@ -18,6 +18,7 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { OfficeModule } from './modules/office/office.module';
 import { AgentRuntimeModule } from './core/agent-runtime/agent-runtime.module';
+import { VoiceModule } from './core/voice/voice.module';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { AgentRuntimeModule } from './core/agent-runtime/agent-runtime.module';
     UploadModule,
     OfficeModule,
     AgentRuntimeModule,
+    VoiceModule,
   ],
   controllers: [AppController],
   providers: [AppService],
