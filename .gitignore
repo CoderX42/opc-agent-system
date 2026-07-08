@@ -5,6 +5,7 @@ dist/
 *.log
 .DS_Store
 coverage/
+release/
 .turbo/
 .trae/
 package-lock.json

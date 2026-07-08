@@ -6,6 +6,12 @@ interface ImportMetaEnv {
   readonly VITE_API_TIMEOUT: string
 }
 
+interface Window {
+  opcDesktop?: {
+    apiBaseUrl?: string
+  }
+}
+
 interface ImportMeta {
   readonly env: ImportMetaEnv
 }

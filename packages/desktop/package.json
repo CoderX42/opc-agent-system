@@ -1,0 +1,46 @@
+{
+  "name": "opc-agent-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OPC Agent System macOS desktop app",
+  "main": "src/main.cjs",
+  "scripts": {
+    "dev": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder --mac dmg"
+  },
+  "devDependencies": {
+    "electron": "^31.7.7",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.opc.agent-system",
+    "productName": "OPC Agent System",
+    "directories": {
+      "output": "../../release"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "../web/dist",
+        "to": "web"
+      },
+      {
+        "from": "../server/dist",
+        "to": "server"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "target": [
+        "dmg"
+      ]
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    }
+  }
+}

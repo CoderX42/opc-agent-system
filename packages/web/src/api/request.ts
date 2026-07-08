@@ -19,9 +19,12 @@ interface RefreshSession {
   refreshToken: string
 }
 
+const desktopApiBaseUrl = window.opcDesktop?.apiBaseUrl
+const apiBaseUrl = desktopApiBaseUrl || import.meta.env.VITE_API_BASE_URL || '/api'
+
 /** 创建Axios实例 */
 const service: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL,
+  baseURL: apiBaseUrl,
   timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 15000,
   headers: {
     'Content-Type': 'application/json',
