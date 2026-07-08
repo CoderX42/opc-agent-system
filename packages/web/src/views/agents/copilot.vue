@@ -640,17 +640,25 @@ watch(activeType, () => {
 // ============== 页面底色 + 玻璃拟态 ==============
 .copilot-page {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
   padding: 18px 24px 28px;
   color: rgb(var(--text));
   font-family: var(--font-body);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .copilot-stage {
   position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
   max-width: 1320px;
+  width: 100%;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 // ============== 顶部工具条 ==============
@@ -762,6 +770,8 @@ watch(activeType, () => {
   grid-template-columns: 340px minmax(0, 1fr);
   gap: 28px;
   align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
   animation: rise 0.9s 0.1s $transition-timing both;
 }
 
@@ -772,6 +782,11 @@ watch(activeType, () => {
   gap: 22px;
   position: sticky;
   top: 12px;
+  align-self: stretch;
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .rail-block {
@@ -1102,12 +1117,15 @@ watch(activeType, () => {
   flex-direction: column;
   gap: 18px;
   min-width: 0;
-  min-height: calc(100vh - 200px);
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .atelier-host {
   flex: 1 1 auto;
   min-height: 640px;
+  max-height: 100%;
   display: flex;
 }
 
