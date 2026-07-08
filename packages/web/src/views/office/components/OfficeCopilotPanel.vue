@@ -477,10 +477,11 @@ watch(configuredAgents, (agents) => {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: rgb(var(--surface));
-  border: 1px solid rgb(var(--line) / 0.6);
-  border-radius: 12px;
+  background: transparent;
+  border: 1px solid rgba(13, 71, 161, 0.18);
+  border-radius: 4px;
   overflow: hidden;
+  box-shadow: 0 12px 32px -18px rgba(13, 27, 42, 0.2);
 }
 
 .panel-head {
@@ -927,6 +928,7 @@ watch(configuredAgents, (agents) => {
   flex: 1 1 auto;
   min-height: 0;
   overflow: hidden;
+  border-top: 1px solid rgba(13, 71, 161, 0.18);
 }
 
 .log-stream {
