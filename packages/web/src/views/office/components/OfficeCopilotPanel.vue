@@ -11,13 +11,13 @@
           :style="{ '--accent': opt.color }"
           @click="setActiveType(opt.type)"
         >
-          {{ opt.code }}
+          {{ opt.tabLabel }}
         </button>
       </div>
     </div>
 
     <div class="model-strip" :class="{ 'needs-key': currentModelInfo.needsApiKey }">
-      <div>
+      <div class="model-strip-main">
         <span class="model-label">模型接入</span>
         <select
           class="model-select provider-select"
@@ -42,8 +42,68 @@
             {{ currentModelInfo.model }}
           </option>
         </select>
+        <select
+          class="model-select baseurl-presets"
+          :value="''"
+          :disabled="!currentProviderPreset"
+          title="常用 Base URL"
+          @change="handleBaseUrlPresetSelect"
+        >
+          <option value="">常用 URL…</option>
+          <option v-for="url in commonBaseUrls" :key="url" :value="url">{{ url }}</option>
+        </select>
+        <input
+          type="text"
+          class="model-input"
+          placeholder="Base URL"
+          :value="currentBaseUrl"
+          :disabled="modelSaving || !currentConfiguredAgent"
+          @blur="handleBaseUrlChange"
+        />
+        <button
+          type="button"
+          class="test-connection-btn"
+          :disabled="testing || !currentConfiguredAgent"
+          @click="handleTestConnection"
+        >
+          {{ testing ? '测试中…' : '测试连接' }}
+        </button>
       </div>
-      <span class="key-pill">{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</span>
+      <span
+        class="key-pill"
+        :class="{
+          'is-ok': !!testResult && testResult.ok,
+          'is-fail': !!testResult && !testResult.ok,
+        }"
+        :title="testResult?.error || ''"
+      >
+        <template v-if="testing">测试中…</template>
+        <template v-else-if="testResult">
+          {{ testResult.ok
+            ? `✓ ${testResult.latencyMs}ms${testResult.reply ? ` · ${testResult.reply.slice(0, 18)}` : ''}`
+            : `✗ ${testResult.error || '连接失败'}` }}
+        </template>
+        <template v-else>{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</template>
+      </span>
+    </div>
+
+    <div class="office-supervisor-bar">
+      <input
+        v-model="supervisorMessage"
+        class="supervisor-field"
+        placeholder="Supervisor：例如 分析客户合作风险"
+        @keyup.enter="runSupervisor"
+      />
+      <button class="supervisor-btn" :disabled="supervising" @click="runSupervisor">
+        {{ supervising ? '运行中' : '协作' }}
+      </button>
+    </div>
+
+    <div v-if="supervisorResult" class="office-supervisor-result">
+      <span class="intent">{{ supervisorResult.plan.intent }}</span>
+      <span v-for="agent in supervisorResult.plan.agents" :key="agent" class="agent-pill">
+        {{ agent }}
+      </span>
     </div>
 
     <div class="chat-wrap">
@@ -56,15 +116,20 @@
         :color="currentOpt.color"
         :placeholder="currentOpt.placeholder"
         :suggestions="currentOpt.suggestions"
+        :session-id="`office-copilot-${activeType}`"
       />
     </div>
 
-    <div class="log-stream">
-      <div class="log-head">
-        <span>最近日志流</span>
-        <button class="mini-btn" @click="emit('view-full-logs')">展开全部</button>
+    <div class="log-stream" :class="{ 'is-collapsed': logCollapsed }">
+      <div class="log-head" @click="logCollapsed = !logCollapsed">
+        <span class="log-head-title">
+          <span class="caret" aria-hidden="true">▸</span>
+          最近日志流
+          <em v-if="!logCollapsed">({{ recentLogs.length }})</em>
+        </span>
+        <button class="mini-btn" @click.stop="emit('view-full-logs')">展开全部</button>
       </div>
-      <div class="log-list">
+      <div v-show="!logCollapsed" class="log-list">
         <div v-for="log in recentLogs" :key="log.id" class="log-item" :class="`log-${log.type}`">
           <time>{{ log.time }}</time>
           <span class="log-content">{{ log.content }}</span>
@@ -78,14 +143,17 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import AgentAssistantPanel from '@/components/AgentAssistantPanel.vue'
-import { getAgentModelPresets, getConfigurableAgents, updateAgentModelConfig } from '@/api/agent'
+import { getAgentModelPresets, getConfigurableAgents, testAgentConnection, updateAgentModelConfig } from '@/api/agent'
 import type { AgentChatType } from '@/api/agent'
+import { superviseAgentTask, type SupervisorResult } from '@/api/agent-runtime'
 import type { Agent, AgentProviderPreset, AgentType } from '@/types'
 import type { OfficeAgent, OfficeAgentLog } from '@/types/office'
+import { suggestBaseUrls } from '@/constants/llm'
 
 interface AgentOpt {
   type: 'finance' | 'service' | 'legal' | 'admin'
   code: string
+  tabLabel: string
   name: string
   icon: string
   color: string
@@ -105,16 +173,22 @@ const emit = defineEmits<{
 }>()
 
 const agentOptions: AgentOpt[] = [
-  { type: 'finance', code: 'FIN', name: '财务 Agent', icon: 'Money', color: '#2f8f67', placeholder: '向财务 Copilot 提问…', suggestions: ['总结本月现金流', '检查异常发票'] },
-  { type: 'service', code: 'CUS', name: '客服 Agent', icon: 'Service', color: '#3b5bdb', placeholder: '向客服 Copilot 提问…', suggestions: ['优先处理哪些工单？'] },
-  { type: 'legal', code: 'LAW', name: '法务 Agent', icon: 'DocumentChecked', color: '#c8772e', placeholder: '向法务 Copilot 提问…', suggestions: ['列出合同高风险点'] },
-  { type: 'admin', code: 'ADM', name: '行政 Agent', icon: 'OfficeBuilding', color: '#c44a3f', placeholder: '向行政 Copilot 提问…', suggestions: ['拆解今日待办'] },
+  { type: 'finance', code: 'FIN', tabLabel: '财务', name: '财务 Agent', icon: 'Money', color: '#2f8f67', placeholder: '向财务 Copilot 提问…', suggestions: ['总结本月现金流', '检查异常发票'] },
+  { type: 'service', code: 'CUS', tabLabel: '客服', name: '客服 Agent', icon: 'Service', color: '#3b5bdb', placeholder: '向客服 Copilot 提问…', suggestions: ['优先处理哪些工单？'] },
+  { type: 'legal', code: 'LAW', tabLabel: '法务', name: '法务 Agent', icon: 'DocumentChecked', color: '#c8772e', placeholder: '向法务 Copilot 提问…', suggestions: ['列出合同高风险点'] },
+  { type: 'admin', code: 'ADM', tabLabel: '行政', name: '行政 Agent', icon: 'OfficeBuilding', color: '#c44a3f', placeholder: '向行政 Copilot 提问…', suggestions: ['拆解今日待办'] },
 ]
 
 const activeType = ref<'finance' | 'service' | 'legal' | 'admin'>('finance')
 const configuredAgents = ref<Agent[]>([])
 const providerPresets = ref<AgentProviderPreset[]>([])
 const modelSaving = ref(false)
+const testing = ref(false)
+const testResult = ref<{ ok: boolean; latencyMs: number; reply?: string; error?: string } | null>(null)
+const supervising = ref(false)
+const supervisorMessage = ref('分析客户合作风险')
+const supervisorResult = ref<SupervisorResult | null>(null)
+const logCollapsed = ref(true)
 
 // Sync initial active from selected agent when provided
 watch(() => props.selectedAgentId, (id) => {
@@ -135,6 +209,17 @@ const currentModelInPreset = computed(() => {
   const model = currentConfiguredAgent.value?.config?.model
   return Boolean(model && currentModelOptions.value.some((item) => item.value === model))
 })
+const currentBaseUrl = computed(() => {
+  const config = currentConfiguredAgent.value?.config
+  return config?.baseUrl || currentProviderPreset.value?.defaultBaseUrl || ''
+})
+const commonBaseUrls = computed(() =>
+  suggestBaseUrls(
+    currentConfiguredAgent.value?.config?.provider,
+    currentProviderPreset.value?.defaultBaseUrl,
+    currentBaseUrl.value,
+  ),
+)
 const currentModelInfo = computed(() => {
   const config = currentConfiguredAgent.value?.config
   const preset = currentProviderPreset.value
@@ -169,18 +254,74 @@ async function handleProviderSelect(event: Event) {
   const provider = (event.target as HTMLSelectElement).value
   const preset = providerPresets.value.find((item) => item.value === provider)
   if (!preset) return
+  const previousProvider = currentConfiguredAgent.value?.config?.provider
+  const providerChanged = !!previousProvider && previousProvider !== preset.value
   await saveCurrentModelConfig({
     provider: preset.value,
     model: preset.defaultModel || currentConfiguredAgent.value?.config?.model || '',
     baseUrl: preset.defaultBaseUrl,
     apiKeyRequired: preset.apiKeyRequired,
+    apiKey: providerChanged ? '' : undefined,
   })
+  if (providerChanged) testResult.value = null
 }
 
 async function handleModelSelect(event: Event) {
   const model = (event.target as HTMLSelectElement).value
   if (!model) return
+  testResult.value = null
   await saveCurrentModelConfig({ model })
+}
+
+async function handleBaseUrlChange(event: Event) {
+  const input = event.target as HTMLInputElement
+  const next = input.value.trim()
+  const agent = currentConfiguredAgent.value
+  if (!agent) return
+  if ((agent.config.baseUrl ?? '') === next) return
+  testResult.value = null
+  await saveCurrentModelConfig({ baseUrl: next })
+}
+
+async function handleBaseUrlPresetSelect(event: Event) {
+  const select = event.target as HTMLSelectElement
+  const url = select.value
+  if (!url) return
+  testResult.value = null
+  await saveCurrentModelConfig({ baseUrl: url })
+  select.value = ''
+}
+
+async function handleTestConnection() {
+  const agent = currentConfiguredAgent.value
+  const config = agent?.config
+  if (!agent || !config) return
+  testing.value = true
+  testResult.value = null
+  try {
+    const res = await testAgentConnection({
+      provider: config.provider,
+      model: config.model || currentProviderPreset.value?.defaultModel || '',
+      apiKey: config.apiKey || undefined,
+      baseUrl: config.baseUrl || currentProviderPreset.value?.defaultBaseUrl || undefined,
+      maxTokens: 1,
+      temperature: 0,
+    })
+    testResult.value = {
+      ok: res.data.ok,
+      latencyMs: res.data.latencyMs,
+      reply: res.data.reply,
+      error: res.data.error,
+    }
+  } catch (err) {
+    testResult.value = {
+      ok: false,
+      latencyMs: 0,
+      error: err instanceof Error ? err.message : String(err),
+    }
+  } finally {
+    testing.value = false
+  }
 }
 
 async function saveCurrentModelConfig(
@@ -191,7 +332,7 @@ async function saveCurrentModelConfig(
   const nextConfig = {
     ...agent.config,
     ...patch,
-    apiKey: agent.config.apiKey || '',
+    apiKey: patch.apiKey ?? agent.config.apiKey ?? '',
     baseUrl: patch.baseUrl ?? agent.config.baseUrl ?? '',
     systemPrompt: agent.config.systemPrompt || '',
   }
@@ -202,6 +343,22 @@ async function saveCurrentModelConfig(
     if (index >= 0) configuredAgents.value[index] = res.data
   } finally {
     modelSaving.value = false
+  }
+}
+
+async function runSupervisor() {
+  const message = supervisorMessage.value.trim()
+  if (!message || supervising.value) return
+  supervising.value = true
+  try {
+    const res = await superviseAgentTask({
+      message,
+      sessionId: 'office-supervisor',
+      metadata: { source: 'office' },
+    })
+    supervisorResult.value = res.data
+  } finally {
+    supervising.value = false
   }
 }
 
@@ -251,7 +408,7 @@ watch(configuredAgents, (agents) => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  min-height: 520px;
+  min-height: 0;
   background: rgb(var(--surface));
   border: 1px solid rgb(var(--line) / 0.6);
   border-radius: 12px;
@@ -262,10 +419,11 @@ watch(configuredAgents, (agents) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 10px;
+  padding: 6px 10px;
   background: rgb(var(--elev) / 0.5);
   border-bottom: 1px solid rgb(var(--line) / 0.4);
   font-size: 12px;
+  flex: 0 0 auto;
 }
 
 .head-title {
@@ -275,41 +433,28 @@ watch(configuredAgents, (agents) => {
 
 .agent-switch {
   display: flex;
-  gap: 2px;
+  gap: 6px;
 }
 
 .model-strip {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
-  padding: 8px 10px;
+  padding: 6px 10px;
   background: #f7f3e8;
   border-bottom: 1px solid rgb(var(--line) / 0.35);
   font-size: 11px;
+  flex: 0 0 auto;
+}
 
-  div {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-  }
-
-  strong,
-  small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  strong {
-    color: #082558;
-  }
-
-  small {
-    color: #6e6b61;
-    font-family: var(--font-mono);
-  }
+.model-strip-main {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .model-label {
@@ -322,7 +467,8 @@ watch(configuredAgents, (agents) => {
   text-transform: uppercase;
 }
 
-.model-select {
+.model-select,
+.model-input {
   min-width: 0;
   max-width: 180px;
   height: 22px;
@@ -335,13 +481,47 @@ watch(configuredAgents, (agents) => {
   outline: none;
 }
 
+.model-input {
+  flex: 1 1 180px;
+  max-width: none;
+  padding: 0 8px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
 .provider-select {
   max-width: 132px;
   font-weight: 700;
 }
 
+.baseurl-presets {
+  max-width: 128px;
+  color: #6e6b61;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+
+.test-connection-btn {
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid rgba(47, 143, 103, 0.3);
+  border-radius: 7px;
+  color: #fff;
+  background: linear-gradient(135deg, #2f8f67, #1f6f52);
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
 .key-pill {
   flex-shrink: 0;
+  max-width: 190px;
   padding: 2px 6px;
   border: 1px solid rgba(47, 143, 103, 0.28);
   border-radius: 999px;
@@ -350,6 +530,21 @@ watch(configuredAgents, (agents) => {
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.key-pill.is-ok {
+  color: #2f8f67;
+  border-color: rgba(47, 143, 103, 0.48);
+  background: rgba(47, 143, 103, 0.12);
+}
+
+.key-pill.is-fail {
+  color: #c44a3f;
+  border-color: rgba(196, 74, 63, 0.42);
+  background: rgba(196, 74, 63, 0.1);
 }
 
 .model-strip.needs-key .key-pill {
@@ -358,11 +553,83 @@ watch(configuredAgents, (agents) => {
   background: rgba(200, 119, 46, 0.1);
 }
 
-.switch-btn {
+.office-supervisor-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #fbfaf6;
+  border-bottom: 1px solid rgb(var(--line) / 0.35);
+  flex: 0 0 auto;
+}
+
+.supervisor-field {
+  min-width: 0;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(141, 112, 74, 0.22);
+  border-radius: 8px;
+  color: #3a3630;
+  background: rgba(255, 255, 255, 0.8);
+  font-size: 11px;
+  outline: none;
+}
+
+.supervisor-btn {
+  height: 24px;
+  padding: 0 10px;
+  border: 1px solid rgba(47, 143, 103, 0.28);
+  border-radius: 8px;
+  color: #fff;
+  background: #2f8f67;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+}
+
+.office-supervisor-result {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px 10px 6px;
+  background: #fbfaf6;
+  border-bottom: 1px solid rgb(var(--line) / 0.35);
+  flex: 0 0 auto;
+}
+
+.intent,
+.agent-pill {
+  padding: 2px 7px;
+  border-radius: 999px;
   font-family: var(--font-mono);
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.intent {
+  color: #fff;
+  background: #082558;
+}
+
+.agent-pill {
+  color: #2f5c89;
+  background: rgba(59, 91, 219, 0.08);
+  border: 1px solid rgba(59, 91, 219, 0.16);
+}
+
+.switch-btn {
+  min-width: 46px;
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 4px 10px;
   border: 1px solid rgb(var(--line) / 0.5);
+  border-radius: 999px;
   background: rgb(var(--surface));
   cursor: pointer;
   color: #3a3630;
@@ -376,15 +643,15 @@ watch(configuredAgents, (agents) => {
 }
 
 .chat-wrap {
-  flex: 1;
-  min-height: 280px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 
 .log-stream {
+  flex: 0 0 auto;
   border-top: 1px solid #e6e0d2;
   background: #faf8f1;
-  padding: 6px 10px;
   font-size: 11px;
 }
 
@@ -392,11 +659,41 @@ watch(configuredAgents, (agents) => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4px;
+  padding: 5px 10px;
   font-family: var(--font-mono);
   font-size: 9px;
   text-transform: uppercase;
   color: #6e6b61;
+  cursor: pointer;
+  user-select: none;
+
+  &:hover { background: rgb(var(--elev) / 0.4); }
+}
+
+.log-head-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  .caret {
+    display: inline-block;
+    transition: transform 0.18s ease;
+    color: #8d704a;
+  }
+
+  em {
+    font-style: normal;
+    color: #a39b8a;
+    font-weight: 600;
+  }
+}
+
+.log-stream.is-collapsed .log-head-title .caret {
+  transform: rotate(0deg);
+}
+
+.log-stream:not(.is-collapsed) .log-head-title .caret {
+  transform: rotate(90deg);
 }
 
 .mini-btn {
@@ -409,7 +706,8 @@ watch(configuredAgents, (agents) => {
 }
 
 .log-list {
-  max-height: 92px;
+  max-height: 140px;
+  padding: 0 10px 6px;
   overflow: auto;
   font-family: var(--font-mono);
   font-size: 10px;
