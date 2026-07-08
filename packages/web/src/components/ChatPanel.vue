@@ -2,6 +2,17 @@
   <div class="chat-panel" :style="{ '--agent-accent': accent }">
     <!-- 消息列表 -->
     <div class="chat-messages" ref="messagesContainerRef">
+      <div v-if="!messages.length && !typing" class="message-skeleton" aria-hidden="true">
+        <div class="skeleton-bubble skeleton-agent">
+          <span class="skeleton-line w-70"></span>
+          <span class="skeleton-line w-90"></span>
+          <span class="skeleton-line w-50"></span>
+        </div>
+        <div class="skeleton-bubble skeleton-agent">
+          <span class="skeleton-line w-85"></span>
+          <span class="skeleton-line w-60"></span>
+        </div>
+      </div>
       <div
         v-for="msg in messages"
         :key="msg.id"
@@ -588,6 +599,50 @@ onMounted(scrollToBottom)
   font-size: 12px;
   color: $text-secondary;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+.message-skeleton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0 0;
+}
+
+.skeleton-bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 14px;
+  max-width: 78%;
+  border-radius: 12px 12px 12px 4px;
+  background: rgba(8, 37, 88, 0.06);
+  border: 1px solid rgba(8, 37, 88, 0.05);
+}
+
+.skeleton-line {
+  display: block;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(8, 37, 88, 0.08) 0%,
+    rgba(8, 37, 88, 0.16) 50%,
+    rgba(8, 37, 88, 0.08) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s linear infinite;
+}
+
+.skeleton-line.w-50 { width: 50%; }
+.skeleton-line.w-60 { width: 60%; }
+.skeleton-line.w-70 { width: 70%; }
+.skeleton-line.w-85 { width: 85%; }
+.skeleton-line.w-90 { width: 90%; }
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .typing-indicator {

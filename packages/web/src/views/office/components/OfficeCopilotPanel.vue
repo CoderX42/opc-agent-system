@@ -16,7 +16,7 @@
       </div>
     </div>
 
-    <div class="model-strip" :class="{ 'needs-key': currentModelInfo.needsApiKey }">
+    <div class="model-strip" :class="{ 'needs-key': currentModelInfo.needsApiKey, 'is-expanded': modelSettingsOpen }">
       <div class="model-strip-main">
         <span class="model-label">模型接入</span>
         <select
@@ -42,49 +42,69 @@
             {{ currentModelInfo.model }}
           </option>
         </select>
-        <select
-          class="model-select baseurl-presets"
-          :value="''"
-          :disabled="!currentProviderPreset"
-          title="常用 Base URL"
-          @change="handleBaseUrlPresetSelect"
+        <span
+          class="key-pill"
+          :class="{
+            'is-ok': !!testResult && testResult.ok,
+            'is-fail': !!testResult && !testResult.ok,
+          }"
+          :title="testResult && !testResult.ok ? (testResult.error || '连接失败') : ''"
         >
-          <option value="">常用 URL…</option>
-          <option v-for="url in commonBaseUrls" :key="url" :value="url">{{ url }}</option>
-        </select>
-        <input
-          type="text"
-          class="model-input"
-          placeholder="Base URL"
-          :value="currentBaseUrl"
-          :disabled="modelSaving || !currentConfiguredAgent"
-          @blur="handleBaseUrlChange"
-        />
+          <template v-if="testing">测试中…</template>
+          <template v-else-if="testResult">
+            {{ testResult.ok
+              ? `✓ ${testResult.latencyMs}ms${testResult.reply ? ` · ${testResult.reply.slice(0, 18)}` : ''}`
+              : `✗ ${testResult.error || '连接失败'}` }}
+          </template>
+          <template v-else>{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</template>
+          <i
+            v-if="testResult && !testResult.ok && testResult.error"
+            class="error-info"
+            :title="testResult.error"
+            aria-hidden="true"
+          >ⓘ</i>
+        </span>
         <button
           type="button"
-          class="test-connection-btn"
-          :disabled="testing || !currentConfiguredAgent"
-          @click="handleTestConnection"
+          class="settings-toggle"
+          :class="{ 'is-open': modelSettingsOpen }"
+          :aria-expanded="modelSettingsOpen"
+          :title="modelSettingsOpen ? '收起模型设置' : '展开模型设置'"
+          @click="modelSettingsOpen = !modelSettingsOpen"
         >
-          {{ testing ? '测试中…' : '测试连接' }}
+          <span class="gear" aria-hidden="true">⚙</span>
         </button>
       </div>
-      <span
-        class="key-pill"
-        :class="{
-          'is-ok': !!testResult && testResult.ok,
-          'is-fail': !!testResult && !testResult.ok,
-        }"
-        :title="testResult?.error || ''"
-      >
-        <template v-if="testing">测试中…</template>
-        <template v-else-if="testResult">
-          {{ testResult.ok
-            ? `✓ ${testResult.latencyMs}ms${testResult.reply ? ` · ${testResult.reply.slice(0, 18)}` : ''}`
-            : `✗ ${testResult.error || '连接失败'}` }}
-        </template>
-        <template v-else>{{ modelSaving ? '保存中…' : currentModelInfo.keyStatus }}</template>
-      </span>
+      <transition name="model-settings">
+        <div v-if="modelSettingsOpen" class="model-settings-panel">
+          <select
+            class="model-select baseurl-presets"
+            :value="''"
+            :disabled="!currentProviderPreset"
+            title="常用 Base URL"
+            @change="handleBaseUrlPresetSelect"
+          >
+            <option value="">常用 URL…</option>
+            <option v-for="url in commonBaseUrls" :key="url" :value="url">{{ url }}</option>
+          </select>
+          <input
+            type="text"
+            class="model-input"
+            placeholder="Base URL"
+            :value="currentBaseUrl"
+            :disabled="modelSaving || !currentConfiguredAgent"
+            @blur="handleBaseUrlChange"
+          />
+          <button
+            type="button"
+            class="test-connection-btn"
+            :disabled="testing || !currentConfiguredAgent"
+            @click="handleTestConnection"
+          >
+            {{ testing ? '测试中…' : '测试连接' }}
+          </button>
+        </div>
+      </transition>
     </div>
 
     <div class="office-supervisor-bar">
@@ -100,10 +120,41 @@
     </div>
 
     <div v-if="supervisorResult" class="office-supervisor-result">
-      <span class="intent">{{ supervisorResult.plan.intent }}</span>
-      <span v-for="agent in supervisorResult.plan.agents" :key="agent" class="agent-pill">
-        {{ agent }}
-      </span>
+      <div class="supervisor-head">
+        <span class="intent-tag">意图</span>
+        <span class="intent-text">{{ supervisorResult.plan.intent }}</span>
+        <button
+          type="button"
+          class="supervisor-dismiss"
+          aria-label="关闭"
+          @click="supervisorResult = null"
+        >×</button>
+      </div>
+      <ol class="supervisor-timeline">
+        <li
+          v-for="(step, idx) in supervisorResult.plan.steps"
+          :key="`${step.agentType}-${idx}`"
+          class="supervisor-step"
+          :class="{ 'is-expanded': expandedStep === idx }"
+        >
+          <button
+            type="button"
+            class="step-row"
+            :aria-expanded="expandedStep === idx"
+            @click="toggleStep(idx)"
+          >
+            <span class="step-marker" :class="`is-${step.agentType.toLowerCase()}`">
+              {{ idx + 1 }}
+            </span>
+            <span class="step-name">{{ agentTypeLabel(step.agentType) }}</span>
+            <span class="step-task">{{ step.taskType }}</span>
+            <span class="step-caret" aria-hidden="true">▾</span>
+          </button>
+          <transition name="step-detail">
+            <p v-if="expandedStep === idx" class="step-reason">{{ step.reason }}</p>
+          </transition>
+        </li>
+      </ol>
     </div>
 
     <div class="chat-wrap">
@@ -183,11 +234,13 @@ const activeType = ref<'finance' | 'service' | 'legal' | 'admin'>('finance')
 const configuredAgents = ref<Agent[]>([])
 const providerPresets = ref<AgentProviderPreset[]>([])
 const modelSaving = ref(false)
+const modelSettingsOpen = ref(false)
 const testing = ref(false)
 const testResult = ref<{ ok: boolean; latencyMs: number; reply?: string; error?: string } | null>(null)
 const supervising = ref(false)
 const supervisorMessage = ref('分析客户合作风险')
 const supervisorResult = ref<SupervisorResult | null>(null)
+const expandedStep = ref<number | null>(null)
 const logCollapsed = ref(true)
 
 // Sync initial active from selected agent when provided
@@ -362,6 +415,21 @@ async function runSupervisor() {
   }
 }
 
+function toggleStep(idx: number) {
+  expandedStep.value = expandedStep.value === idx ? null : idx
+}
+
+const AGENT_TYPE_LABELS: Record<AgentType, string> = {
+  FINANCE: '财务',
+  CUSTOMER_SERVICE: '客服',
+  LEGAL: '法务',
+  ADMIN: '行政',
+}
+
+function agentTypeLabel(type: AgentType): string {
+  return AGENT_TYPE_LABELS[type] || type
+}
+
 function setActiveType(type: AgentOpt['type']) {
   activeType.value = type
   const activeAgent = props.agents.find((agent) => agent.type === type)
@@ -521,7 +589,7 @@ watch(configuredAgents, (agents) => {
 
 .key-pill {
   flex-shrink: 0;
-  max-width: 190px;
+  max-width: 220px;
   padding: 2px 6px;
   border: 1px solid rgba(47, 143, 103, 0.28);
   border-radius: 999px;
@@ -533,6 +601,17 @@ watch(configuredAgents, (agents) => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+}
+
+.key-pill .error-info {
+  font-style: normal;
+  font-size: 10px;
+  cursor: help;
+  opacity: 0.85;
 }
 
 .key-pill.is-ok {
@@ -551,6 +630,68 @@ watch(configuredAgents, (agents) => {
   color: #c8772e;
   border-color: rgba(200, 119, 46, 0.32);
   background: rgba(200, 119, 46, 0.1);
+}
+
+.settings-toggle {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(141, 112, 74, 0.22);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.74);
+  color: #6e6b61;
+  cursor: pointer;
+  font-size: 12px;
+  transition: transform 0.18s ease, color 0.18s ease;
+}
+
+.settings-toggle:hover { color: #2f8f67; }
+
+.settings-toggle.is-open {
+  color: #2f8f67;
+  background: rgba(47, 143, 103, 0.12);
+  border-color: rgba(47, 143, 103, 0.32);
+}
+
+.settings-toggle .gear {
+  display: inline-block;
+  transition: transform 0.4s ease;
+}
+
+.settings-toggle.is-open .gear {
+  transform: rotate(60deg);
+}
+
+.model-settings-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding-top: 6px;
+  margin-top: 2px;
+  border-top: 1px dashed rgba(141, 112, 74, 0.22);
+}
+
+.model-settings-enter-active,
+.model-settings-leave-active {
+  transition: opacity 0.18s ease, max-height 0.22s ease, transform 0.22s ease;
+  overflow: hidden;
+}
+
+.model-settings-enter-from,
+.model-settings-leave-to {
+  opacity: 0;
+  max-height: 0;
+  transform: translateY(-4px);
+}
+
+.model-settings-enter-to,
+.model-settings-leave-from {
+  max-height: 80px;
 }
 
 .office-supervisor-bar {
@@ -593,33 +734,173 @@ watch(configuredAgents, (agents) => {
 }
 
 .office-supervisor-result {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-  padding: 4px 10px 6px;
+  padding: 6px 10px 8px;
   background: #fbfaf6;
   border-bottom: 1px solid rgb(var(--line) / 0.35);
   flex: 0 0 auto;
 }
 
-.intent,
-.agent-pill {
-  padding: 2px 7px;
-  border-radius: 999px;
+.supervisor-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.intent-tag {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #fff;
+  background: #082558;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.intent-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #082558;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.supervisor-dismiss {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #8d704a;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+
+  &:hover { background: rgba(141, 112, 74, 0.12); color: #c44a3f; }
+}
+
+.supervisor-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 6px;
+  border-left: 1px dashed rgba(47, 143, 103, 0.32);
+}
+
+.supervisor-step {
+  position: relative;
+  margin-left: -1px;
+  padding-left: 14px;
+}
+
+.supervisor-step::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 6px;
+  height: 1px;
+  background: rgba(47, 143, 103, 0.32);
+}
+
+.step-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 18px auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  color: #3a3630;
+  font-size: 11px;
+
+  &:hover .step-name { color: #2f8f67; }
+}
+
+.step-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(47, 143, 103, 0.12);
+  border: 1px solid rgba(47, 143, 103, 0.32);
+  color: #2f8f67;
   font-family: var(--font-mono);
   font-size: 9px;
   font-weight: 800;
 }
 
-.intent {
-  color: #fff;
-  background: #082558;
+.step-marker.is-finance { color: #2f8f67; border-color: rgba(47, 143, 103, 0.32); background: rgba(47, 143, 103, 0.1); }
+.step-marker.is-customer_service { color: #3b5bdb; border-color: rgba(59, 91, 219, 0.32); background: rgba(59, 91, 219, 0.1); }
+.step-marker.is-legal { color: #c8772e; border-color: rgba(200, 119, 46, 0.32); background: rgba(200, 119, 46, 0.1); }
+.step-marker.is-admin { color: #c44a3f; border-color: rgba(196, 74, 63, 0.32); background: rgba(196, 74, 63, 0.1); }
+
+.step-name {
+  font-weight: 700;
+  color: #082558;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
-.agent-pill {
-  color: #2f5c89;
-  background: rgba(59, 91, 219, 0.08);
-  border: 1px solid rgba(59, 91, 219, 0.16);
+.step-task {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #8d704a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-caret {
+  font-size: 9px;
+  color: #8d704a;
+  transition: transform 0.18s ease;
+}
+
+.supervisor-step.is-expanded .step-caret {
+  transform: rotate(180deg);
+  color: #2f8f67;
+}
+
+.step-reason {
+  margin: 0 0 6px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  background: rgba(47, 143, 103, 0.06);
+  color: #3a3630;
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+
+.step-detail-enter-active,
+.step-detail-leave-active {
+  transition: opacity 0.18s ease, transform 0.22s ease, max-height 0.22s ease;
+  overflow: hidden;
+}
+
+.step-detail-enter-from,
+.step-detail-leave-to {
+  opacity: 0;
+  transform: translateY(-2px);
+  max-height: 0;
+}
+
+.step-detail-enter-to,
+.step-detail-leave-from {
+  max-height: 200px;
 }
 
 .switch-btn {
@@ -732,5 +1013,48 @@ watch(configuredAgents, (agents) => {
 .log-empty {
   color: #a39b8a;
   font-size: 10px;
+}
+
+@media (max-width: 768px) {
+  .office-copilot-panel {
+    border-radius: 0;
+  }
+
+  .panel-head {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    order: 99;
+    padding: 6px 8px calc(env(safe-area-inset-bottom, 0) + 6px);
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid rgb(var(--line) / 0.5);
+    border-bottom: none;
+    box-shadow: 0 -8px 18px -12px rgba(8, 37, 88, 0.18);
+  }
+
+  .head-title { display: none; }
+
+  .agent-switch {
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+  }
+
+  .switch-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 6px 4px;
+    font-size: 11px;
+  }
+
+  .chat-wrap {
+    padding-bottom: 4px;
+  }
+
+  .log-stream {
+    max-height: 30vh;
+  }
 }
 </style>
