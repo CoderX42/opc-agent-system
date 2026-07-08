@@ -12,23 +12,6 @@
         </div>
       </div>
 
-      <div class="hero-radar" aria-label="Agent 运行概览">
-        <div class="radar-orbit orbit-outer"></div>
-        <div class="radar-orbit orbit-inner"></div>
-        <div class="radar-core">
-          <strong>{{ activeAgentCount }}</strong>
-          <span>AGENTS ONLINE</span>
-        </div>
-        <div class="radar-node node-finance"><el-icon><Money /></el-icon></div>
-        <div class="radar-node node-service"><el-icon><Service /></el-icon></div>
-        <div class="radar-node node-legal"><el-icon><DocumentChecked /></el-icon></div>
-        <div class="radar-node node-admin"><el-icon><OfficeBuilding /></el-icon></div>
-        <div class="radar-caption">
-          <span class="live-dot"></span>
-          <span>运行稳定</span>
-          <strong>99.8%</strong>
-        </div>
-      </div>
     </section>
 
     <section class="section-block agent-section">
@@ -179,8 +162,6 @@ const agentList = computed(() => [
   { name: '行政 Agent', icon: 'OfficeBuilding', description: '日程、任务与会议行动项管理', path: '/admin', taskCount: adminStats.pendingTasks || 0, color: '#d95951' },
 ])
 
-const activeAgentCount = computed(() => 4)
-
 const totalPending = computed(() =>
   (serviceStats.pendingTickets || 0) + (legalStats.pendingReviews || 0) +
   (adminStats.pendingTasks || 0) + (financeSummary.pendingInvoices || 0)
@@ -309,10 +290,8 @@ onMounted(() => {
 
 .command-hero {
   min-height: 280px;
-  display: grid;
-  grid-template-columns: 1.3fr 0.7fr;
+  display: flex;
   align-items: center;
-  gap: 40px;
   padding: 32px 40px;
   overflow: hidden;
   color: #fff;
@@ -394,100 +373,6 @@ onMounted(() => {
   transition: color 160ms ease;
   span { margin-left: 6px; color: #b9f4ff; }
   &:hover { color: #fff; }
-}
-
-.hero-radar {
-  position: relative;
-  width: 240px;
-  height: 240px;
-  justify-self: center;
-}
-
-.radar-orbit {
-  position: absolute;
-  inset: 0;
-  border: 1px solid rgb(255 255 255 / 0.22);
-  border-radius: 50%;
-}
-.orbit-outer::before, .orbit-inner::before { position: absolute; inset: 50% 0 auto; height: 1px; content: ''; background: rgb(255 255 255 / 0.18); }
-.orbit-outer::after, .orbit-inner::after { position: absolute; inset: 0 50% 0 auto; width: 1px; content: ''; background: rgb(255 255 255 / 0.18); }
-.orbit-inner { inset: 40px; }
-
-.radar-core {
-  position: absolute;
-  inset: 68px;
-  display: grid;
-  place-content: center;
-  text-align: center;
-  background: rgb(255 255 255 / 0.14);
-  border: 1px solid rgb(255 255 255 / 0.32);
-  border-radius: 50%;
-  box-shadow: 0 0 32px rgb(255 255 255 / 0.18);
-  animation: radar-breathe 3.6s ease-in-out infinite;
-  strong {
-    font-family: var(--font-body);
-    font-size: 38px;
-    font-weight: 700;
-    line-height: 1;
-    color: #fff;
-  }
-  span {
-    margin-top: 2px;
-    font-family: var(--font-mono);
-    font-size: 9px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: rgb(255 255 255 / 0.65);
-  }
-}
-
-@keyframes radar-breathe {
-  0%, 100% { box-shadow: 0 0 32px rgb(255 255 255 / 0.18); }
-  50% { box-shadow: 0 0 56px rgb(255 255 255 / 0.3); }
-}
-
-.radar-node {
-  position: absolute;
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  color: #fff;
-  background: var(--agent-color, #00b8ff);
-  border-radius: 50%;
-  border: 1px solid rgb(255 255 255 / 0.32);
-  box-shadow: 0 6px 18px -6px var(--agent-color, #00b8ff);
-}
-.node-finance { top: 0; left: 102px; --agent-color: #397bff; }
-.node-service { top: 100px; right: 0; --agent-color: #2f9e72; }
-.node-legal { bottom: 0; left: 102px; --agent-color: #e68a3f; }
-.node-admin { top: 100px; left: 0; --agent-color: #d95951; }
-
-.radar-caption {
-  position: absolute;
-  right: -6px;
-  bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  font-family: var(--font-mono);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: rgb(255 255 255 / 0.7);
-  background: rgb(13 71 161 / 0.45);
-  border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 999px;
-  backdrop-filter: blur(8px);
-  strong { color: #b9f4ff; }
-}
-.live-dot {
-  width: 5px;
-  height: 5px;
-  background: #b9f4ff;
-  border-radius: 50%;
-  animation: status-blink 1.2s steps(2, jump-none) infinite;
 }
 
 @keyframes status-blink { 50% { opacity: 0.35; } }
@@ -817,13 +702,11 @@ onMounted(() => {
 }
 
 @media (max-width: 1200px) {
-  .command-hero { grid-template-columns: 1fr 260px; padding: 32px; }
+  .command-hero { padding: 32px; }
   .agent-grid, .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 900px) {
-  .command-hero { grid-template-columns: 1fr; }
-  .hero-radar { display: none; }
   .workspace-grid { grid-template-columns: 1fr; }
 }
 
