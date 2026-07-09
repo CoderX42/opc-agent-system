@@ -20,7 +20,7 @@ export class Knowledge {
   @Column({ type: 'varchar', length: 50 })
   category: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   tags: string[];
 
   @Column({ type: 'text', nullable: true })

@@ -34,16 +34,16 @@ export class Contract {
   @Column({ type: 'varchar', length: 200 })
   title: string;
 
-  @Column({ type: 'enum', enum: ContractType })
+  @Column({ type: 'simple-enum', enum: ContractType })
   type: ContractType;
 
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'enum', enum: ContractStatus, default: ContractStatus.DRAFT })
+  @Column({ type: 'simple-enum', enum: ContractStatus, default: ContractStatus.DRAFT })
   status: ContractStatus;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   reviewResult: Record<string, unknown>;
 
   @Column({ type:'decimal', precision:12, scale:2, nullable:true })

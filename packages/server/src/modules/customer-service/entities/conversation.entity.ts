@@ -26,13 +26,13 @@ export class Conversation {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', enum: ConversationChannel })
+  @Column({ type: 'simple-enum', enum: ConversationChannel })
   channel: ConversationChannel;
 
   @Column({ type: 'varchar', length: 100 })
   customerName: string;
 
-  @Column({ type: 'enum', enum: ConversationStatus, default: ConversationStatus.ACTIVE })
+  @Column({ type: 'simple-enum', enum: ConversationStatus, default: ConversationStatus.ACTIVE })
   status: ConversationStatus;
 
   @Column({ type: 'text', nullable: true })

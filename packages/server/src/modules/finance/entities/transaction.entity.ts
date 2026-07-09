@@ -21,7 +21,7 @@ export class Transaction {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'enum', enum: TransactionType })
+  @Column({ type: 'simple-enum', enum: TransactionType })
   type: TransactionType;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })
@@ -42,7 +42,7 @@ export class Transaction {
   @Column({ type: 'varchar', length: 200, nullable: true })
   counterparty: string | null;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   attachments: string[] | null;
 
   @ManyToOne(() => Invoice, { nullable: true, onDelete: 'SET NULL' })

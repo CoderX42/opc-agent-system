@@ -33,13 +33,13 @@ export class User {
   @Column({ type: 'varchar', length: 100, unique: true })
   email: string;
 
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
+  @Column({ type: 'simple-enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
   avatar: string;
 
-  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.ACTIVE })
+  @Column({ type: 'simple-enum', enum: UserStatus, default: UserStatus.ACTIVE })
   status: UserStatus;
 
   @ApiHideProperty()

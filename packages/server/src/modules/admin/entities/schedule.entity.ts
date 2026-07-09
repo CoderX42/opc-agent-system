@@ -17,10 +17,10 @@ export class Schedule {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   startTime: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   endTime: Date;
 
   @Column({ type: 'varchar', length: 50, default: 'PERSONAL' })

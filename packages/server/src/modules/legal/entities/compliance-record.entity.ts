@@ -30,7 +30,7 @@ export class ComplianceRecord {
   @Column({ type: 'varchar', length: 100, nullable: true })
   responsiblePerson: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   result: Record<string, unknown>;
 
   @Column({type:'uuid',name:'owner_id'})

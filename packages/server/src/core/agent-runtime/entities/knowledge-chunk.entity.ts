@@ -32,18 +32,21 @@ export class KnowledgeChunk {
   @Column({ name: 'token_count', type: 'int', default: 0 })
   tokenCount: number;
 
-  @Column({ type: 'vector', length: 1536, nullable: true })
+  // 桌面端用 SQLite 时 embedding 退化为 simple-json（向量压缩为字符串数组）；
+  // PG 端用 pgvector 的 vector(length) 类型通过同一个实体的两种持久化方案。
+  // 这里统一用 simple-json 存储以便 desktop/web 都能跑（如需向量检索请切回 PG + vector）。
+  @Column({ type: 'simple-json', nullable: true })
   embedding: number[] | null;
 
   @Column({
     name: 'vector_status',
-    type: 'enum',
+    type: 'simple-enum',
     enum: KnowledgeChunkVectorStatus,
     default: KnowledgeChunkVectorStatus.PENDING,
   })
   vectorStatus: KnowledgeChunkVectorStatus;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   metadata: Record<string, unknown> | null;
 
   @CreateDateColumn({ name: 'created_at' })

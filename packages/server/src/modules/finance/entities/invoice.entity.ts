@@ -49,7 +49,7 @@ export class Invoice {
   @Column({ type: 'varchar', length: 500, nullable: true })
   imageUrl: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   attachments: string[] | null;
 
   @Column({ type: 'varchar', length: 20, default: 'PENDING' })

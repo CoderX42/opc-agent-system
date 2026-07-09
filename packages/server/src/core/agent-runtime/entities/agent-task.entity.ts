@@ -33,19 +33,19 @@ export class AgentTask {
   @Column({ name: 'task_type', type: 'varchar', length: 80 })
   taskType: string;
 
-  @Column({ type: 'enum', enum: AgentTaskStatus, default: AgentTaskStatus.WAITING })
+  @Column({ type: 'simple-enum', enum: AgentTaskStatus, default: AgentTaskStatus.WAITING })
   status: AgentTaskStatus;
 
-  @Column({ name: 'agent_type', type: 'enum', enum: AgentType, nullable: true })
+  @Column({ name: 'agent_type', type: 'simple-enum', enum: AgentType, nullable: true })
   agentType: AgentType | null;
 
-  @Column({ type: 'jsonb' })
+  @Column({ type: 'simple-json' })
   input: Record<string, unknown>;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   plan: Record<string, unknown> | null;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   result: Record<string, unknown> | null;
 
   @Column({ type: 'text', nullable: true })

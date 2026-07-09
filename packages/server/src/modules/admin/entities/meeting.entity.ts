@@ -17,10 +17,10 @@ export class Meeting {
   @Column({ type: 'text', nullable: true })
   agenda: string;
 
-  @Column({ type: 'timestamp' })
+  @Column({ type: 'datetime' })
   startTime: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   endTime: Date;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
@@ -29,7 +29,7 @@ export class Meeting {
   @Column({ type: 'varchar', length: 50, nullable: true })
   meetingLink: string;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   participants: string[];
 
   @Column({ type: 'text', nullable: true })

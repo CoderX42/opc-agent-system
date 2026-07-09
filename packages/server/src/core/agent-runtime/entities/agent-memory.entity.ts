@@ -28,7 +28,7 @@ export class AgentMemory {
   @Column({ name: 'agent_id', type: 'uuid', nullable: true })
   agentId: string | null;
 
-  @Column({ name: 'memory_type', type: 'enum', enum: AgentMemoryType })
+  @Column({ name: 'memory_type', type: 'simple-enum', enum: AgentMemoryType })
   memoryType: AgentMemoryType;
 
   @Column({ type: 'varchar', length: 80, default: 'default' })
@@ -40,13 +40,13 @@ export class AgentMemory {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'jsonb', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   metadata: Record<string, unknown> | null;
 
   @Column({ type: 'int', default: 1 })
   importance: number;
 
-  @Column({ name: 'last_accessed_at', type: 'timestamptz', nullable: true })
+  @Column({ name: 'last_accessed_at', type: 'datetime', nullable: true })
   lastAccessedAt: Date | null;
 
   @CreateDateColumn({ name: 'created_at' })

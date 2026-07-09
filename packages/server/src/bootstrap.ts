@@ -3,8 +3,34 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { configureApp } from './configure-app';
+import { ensureDesktopDataStarter } from './database/datasource.factory';
+
+/**
+ * 桌面端启动前的环境准备：
+ * - 调用 ensureDesktopDataStarter 生成 OPC_AGENT_README.txt 帮助用户了解数据目录用途；
+ * - 此处不抛错，所有失败均降级为日志，避免阻塞 Nest 启动。
+ */
+function prepareDesktopRuntime() {
+  if (process.env.OPC_DESKTOP !== 'true') return;
+
+  process.env.JWT_SECRET ??= 'opc-agent-desktop-local-jwt-secret';
+  process.env.JWT_REFRESH_SECRET ??= 'opc-agent-desktop-local-refresh-secret';
+  process.env.JWT_EXPIRES_IN ??= '7d';
+  process.env.JWT_REFRESH_EXPIRES_IN ??= '30d';
+
+  const userData = process.env.OPC_USER_DATA_DIR;
+  if (!userData) return;
+  try {
+    ensureDesktopDataStarter(userData);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    // eslint-disable-next-line no-console
+    console.warn(`[server] prepareDesktopRuntime failed: ${message}`);
+  }
+}
 
 export async function createServerApp(): Promise<INestApplication> {
+  prepareDesktopRuntime();
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({

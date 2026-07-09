@@ -36,10 +36,10 @@ export class Ticket {
   @Column({ type: 'text' })
   content: string;
 
-  @Column({ type: 'enum', enum: TicketPriority, default: TicketPriority.MEDIUM })
+  @Column({ type: 'simple-enum', enum: TicketPriority, default: TicketPriority.MEDIUM })
   priority: TicketPriority;
 
-  @Column({ type: 'enum', enum: TicketStatus, default: TicketStatus.OPEN })
+  @Column({ type: 'simple-enum', enum: TicketStatus, default: TicketStatus.OPEN })
   status: TicketStatus;
 
   @Column({ type: 'varchar', length: 100, nullable: true })
@@ -48,7 +48,7 @@ export class Ticket {
   @Column({ type: 'text', nullable: true })
   resolution: string | null;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   resolvedAt: Date | null;
 
   @ManyToOne(() => Conversation, { nullable: true, onDelete: 'SET NULL' })

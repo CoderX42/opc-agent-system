@@ -27,13 +27,13 @@ export class Agent {
   @Column({ type: 'varchar', length: 100 })
   name: string;
 
-  @Column({ type: 'enum', enum: AgentType })
+  @Column({ type: 'simple-enum', enum: AgentType })
   type: AgentType;
 
-  @Column({ type: 'enum', enum: AgentStatus, default: AgentStatus.ACTIVE })
+  @Column({ type: 'simple-enum', enum: AgentStatus, default: AgentStatus.ACTIVE })
   status: AgentStatus;
 
-  @Column({ type: 'json', nullable: true })
+  @Column({ type: 'simple-json', nullable: true })
   config: Record<string, unknown>;
 
   @CreateDateColumn({ name: 'created_at' })
