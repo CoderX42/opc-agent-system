@@ -2,6 +2,7 @@ import axios, { type AxiosInstance, type AxiosRequestConfig, type AxiosResponse,
 import { ElMessage } from 'element-plus'
 import { getRefreshToken, getToken, removeToken, setRefreshToken, setToken } from '@/utils'
 import router from '@/router'
+import { useDesktopStore } from '@/stores/desktop'
 
 interface RetryableRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean
@@ -17,6 +18,26 @@ interface ApiEnvelope<T> {
 interface RefreshSession {
   token: string
   refreshToken: string
+}
+
+/**
+ * 把 axios 错误归一化为带 code 的可桥接对象。
+ * 在桌面端，错误会带有 code = 'DESKTOP_BACKEND_DOWN' / 'DESKTOP_TIMEOUT' 等前缀，
+ * 便于 request.ts 拦截后转为可重试提示。
+ */
+function describeAxiosError(error: unknown): { code: string; message: string } {
+  if (!error || typeof error !== 'object') return { code: 'UNKNOWN', message: '未知错误' }
+  const err = error as { code?: string; message?: string; response?: { status?: number } }
+  if (err.code === 'ECONNABORTED' || (typeof err.message === 'string' && err.message.includes('timeout'))) {
+    return { code: 'DESKTOP_TIMEOUT', message: '请求超时，请稍后重试' }
+  }
+  if (err.code === 'ERR_NETWORK' || (typeof err.message === 'string' && err.message.includes('Network Error'))) {
+    return { code: 'DESKTOP_BACKEND_DOWN', message: '后端连接失败' }
+  }
+  if (!err.response) {
+    return { code: 'DESKTOP_BACKEND_DOWN', message: '后端不可用' }
+  }
+  return { code: `HTTP_${err.response.status ?? 'ERR'}`, message: err.message || '请求失败' }
 }
 
 const desktopApiBaseUrl = window.opcDesktop?.apiBaseUrl
@@ -139,6 +160,17 @@ service.interceptors.response.use(
       ElMessage.error('网络错误，请检查网络连接')
     }
 
+    // 桌面端错误码桥接：通知 desktop store
+    try {
+      const desktopStore = useDesktopStore()
+      const info = describeAxiosError(error)
+      if (info.code === 'DESKTOP_BACKEND_DOWN' || info.code === 'DESKTOP_TIMEOUT') {
+        desktopStore.markBackendUnreachable(info.message)
+      }
+    } catch (_err) {
+      // 非桌面端环境 / store 未初始化时静默忽略
+    }
+
     return Promise.reject(error)
   }
 )
@@ -158,6 +190,37 @@ export function put<T = unknown>(url: string, data?: unknown, config?: AxiosRequ
 
 export function del<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
   return service.delete(url, config)
+}
+
+/**
+ * 启动桌面端后端心跳。
+ * 仅在 window.opcDesktop 可用时生效，每 5 秒调用一次 backend:get-status。
+ * 该函数应当且仅当由 main.ts 在 app 挂载完成后调用一次。
+ */
+let heartbeatTimer: ReturnType<typeof setInterval> | null = null
+
+export function startDesktopBackendHeartbeat(intervalMs = 5000) {
+  if (typeof window === 'undefined' || !window.opcDesktop) return () => {}
+  if (heartbeatTimer) return () => stopDesktopBackendHeartbeat()
+  const tick = async () => {
+    try {
+      const desktopStore = useDesktopStore()
+      const status = await window.opcDesktop!.getBackendStatus()
+      desktopStore.applyBackendStatus(status)
+    } catch (_err) {
+      // 心跳失败时静默；用户行为触发的失败会走 axios 拦截器
+    }
+  }
+  void tick()
+  heartbeatTimer = setInterval(tick, intervalMs)
+  return () => stopDesktopBackendHeartbeat()
+}
+
+export function stopDesktopBackendHeartbeat() {
+  if (heartbeatTimer) {
+    clearInterval(heartbeatTimer)
+    heartbeatTimer = null
+  }
 }
 
 export default service

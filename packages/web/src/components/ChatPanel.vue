@@ -145,6 +145,7 @@
 
 <script setup lang="ts">
 import { ref, nextTick, watch, onMounted, computed, onBeforeUnmount } from 'vue'
+import { renderMarkdown } from '@/utils/markdown'
 
 interface ChatMessage {
   id: string
@@ -205,138 +206,7 @@ function getSenderName(role: string) {
 }
 
 function formatContent(content: string) {
-  return renderMarkdownCard(content)
-}
-
-function renderMarkdownCard(content: string) {
-  const lines = content.replace(/\r\n/g, '\n').split('\n')
-  const blocks: string[] = []
-  let paragraph: string[] = []
-
-  function flushParagraph() {
-    if (!paragraph.length) return
-    blocks.push(`<p class="md-p">${paragraph.map(inlineMarkdown).join('<br/>')}</p>`)
-    paragraph = []
-  }
-
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index]
-    const trimmed = line.trim()
-
-    if (!trimmed) {
-      flushParagraph()
-      continue
-    }
-
-    const heading = /^(#{1,4})\s+(.+)$/.exec(trimmed)
-    if (heading) {
-      flushParagraph()
-      const level = Math.min(heading[1].length, 4)
-      blocks.push(`<h${level} class="md-h md-h${level}">${inlineMarkdown(heading[2])}</h${level}>`)
-      continue
-    }
-
-    if (/^---+$/.test(trimmed)) {
-      flushParagraph()
-      blocks.push('<hr class="md-hr"/>')
-      continue
-    }
-
-    if (isMarkdownTableStart(lines, index)) {
-      flushParagraph()
-      const tableLines: string[] = [lines[index], lines[index + 1]]
-      index += 2
-      while (index < lines.length && lines[index].trim().startsWith('|')) {
-        tableLines.push(lines[index])
-        index += 1
-      }
-      index -= 1
-      blocks.push(renderTable(tableLines))
-      continue
-    }
-
-    if (/^>\s?/.test(trimmed)) {
-      flushParagraph()
-      const quoteLines = [trimmed.replace(/^>\s?/, '')]
-      while (index + 1 < lines.length && /^>\s?/.test(lines[index + 1].trim())) {
-        index += 1
-        quoteLines.push(lines[index].trim().replace(/^>\s?/, ''))
-      }
-      blocks.push(`<blockquote class="md-quote">${quoteLines.map(inlineMarkdown).join('<br/>')}</blockquote>`)
-      continue
-    }
-
-    if (/^[-*]\s+/.test(trimmed) || /^\d+[.)]\s+/.test(trimmed)) {
-      flushParagraph()
-      const ordered = /^\d+[.)]\s+/.test(trimmed)
-      const items: string[] = []
-      while (index < lines.length) {
-        const item = lines[index].trim()
-        const match = ordered ? /^\d+[.)]\s+(.+)$/.exec(item) : /^[-*]\s+(.+)$/.exec(item)
-        if (!match) break
-        items.push(`<li>${inlineMarkdown(match[1])}</li>`)
-        index += 1
-      }
-      index -= 1
-      blocks.push(`<${ordered ? 'ol' : 'ul'} class="md-list">${items.join('')}</${ordered ? 'ol' : 'ul'}>`)
-      continue
-    }
-
-    paragraph.push(line)
-  }
-
-  flushParagraph()
-  return `<div class="atelier-md">${blocks.join('')}</div>`
-}
-
-function isMarkdownTableStart(lines: string[], index: number) {
-  const current = lines[index]?.trim()
-  const next = lines[index + 1]?.trim()
-  return Boolean(
-    current?.startsWith('|') &&
-    next?.startsWith('|') &&
-    /^\|?[\s:-]+(\|[\s:-]+)+\|?$/.test(next),
-  )
-}
-
-function renderTable(lines: string[]) {
-  const rows = lines.map(splitTableRow)
-  const header = rows[0] || []
-  const body = rows.slice(2)
-  return `
-    <div class="md-table-wrap">
-      <table class="md-table">
-        <thead><tr>${header.map((cell) => `<th>${inlineMarkdown(cell)}</th>`).join('')}</tr></thead>
-        <tbody>${body.map((row) => `<tr>${row.map((cell) => `<td>${inlineMarkdown(cell)}</td>`).join('')}</tr>`).join('')}</tbody>
-      </table>
-    </div>
-  `
-}
-
-function splitTableRow(line: string) {
-  return line
-    .trim()
-    .replace(/^\|/, '')
-    .replace(/\|$/, '')
-    .split('|')
-    .map((cell) => cell.trim())
-}
-
-function inlineMarkdown(value: string) {
-  return escapeHtml(value)
-    .replace(/`([^`]+)`/g, '<code class="md-code">$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
-    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
-    .replace(/(^|\s)\*([^*]+)\*/g, '$1<em>$2</em>')
-}
-
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
+  return renderMarkdown(content)
 }
 
 function scrollToBottom() {

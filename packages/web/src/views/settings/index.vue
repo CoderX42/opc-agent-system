@@ -197,6 +197,10 @@
           </div>
         </el-card>
       </el-tab-pane>
+
+      <el-tab-pane v-if="isDesktop" label="桌面端" name="desktop">
+        <DesktopSettings />
+      </el-tab-pane>
     </el-tabs>
 
     <el-dialog
@@ -400,6 +404,11 @@ import {
 } from '@/api/agent'
 import type { Agent, AgentModelConfig, AgentModelProvider, AgentProviderPreset, AgentType } from '@/types'
 import { suggestBaseUrls } from '@/constants/llm'
+import { useDesktopStore } from '@/stores/desktop'
+import DesktopSettings from './DesktopSettings.vue'
+
+const desktopStore = useDesktopStore()
+const isDesktop = computed(() => desktopStore.isDesktop)
 
 const userStore = useUserStore()
 const activeTab = ref('profile')

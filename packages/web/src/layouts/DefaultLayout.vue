@@ -156,27 +156,139 @@
 
       <!-- 主内容区 -->
       <el-main class="layout-main">
+        <transition name="backend-banner">
+          <div v-if="isDesktop && showBackendBanner" class="backend-banner" :class="bannerTone">
+            <div class="banner-copy">
+              <el-icon :size="16"><WarningFilled v-if="backendTone === 'danger'" /><Loading v-else-if="backendTone === 'pending'" /><CircleCheck v-else /></el-icon>
+              <div>
+                <strong>{{ bannerTitle }}</strong>
+                <span>{{ bannerMessage }}</span>
+              </div>
+            </div>
+            <div class="banner-actions">
+              <el-button size="small" :loading="restartingBackend" @click="handleManualRestart">重试启动</el-button>
+              <button class="banner-close" type="button" aria-label="关闭" @click="dismissBanner">×</button>
+            </div>
+          </div>
+        </transition>
         <router-view v-slot="{ Component }">
           <transition name="fade" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
       </el-main>
+
+      <!-- 桌面端 Toast 队列 -->
+      <div v-if="isDesktop && desktop.toasts.length" class="desktop-toast-stack">
+        <div v-for="t in desktop.toasts" :key="t.id" class="desktop-toast" :class="`toast-${t.type}`">
+          <strong>{{ t.title }}</strong>
+          <span v-if="t.message">{{ t.message }}</span>
+          <button type="button" aria-label="关闭" @click="desktop.dismissToast(t.id)">×</button>
+        </div>
+      </div>
     </el-container>
   </el-container>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAppStore } from '@/stores/app'
 import { useUserStore } from '@/stores/user'
-import { ElMessageBox } from 'element-plus'
+import { useDesktopStore } from '@/stores/desktop'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { startDesktopBackendHeartbeat } from '@/api/request'
 
 const route = useRoute()
 const router = useRouter()
 const appStore = useAppStore()
 const userStore = useUserStore()
+const desktop = useDesktopStore()
+const isDesktop = computed(() => desktop.isDesktop)
+
+const bannerDismissed = ref(false)
+const restartingBackend = ref(false)
+
+const backendTone = computed<'ok' | 'pending' | 'danger'>(() => {
+  if (desktop.backendUnreachable || !desktop.backend.running) return 'danger'
+  if (desktop.backendChecking) return 'pending'
+  return 'ok'
+})
+const bannerTone = computed(() => `tone-${backendTone.value}`)
+const showBackendBanner = computed(() => bannerTone.value !== 'ok' && !bannerDismissed.value)
+const bannerTitle = computed(() => {
+  if (desktop.backendUnreachable) return '后端不可达'
+  if (!desktop.backend.running) return '后端服务已退出'
+  if (desktop.backendChecking) return '正在连接后端…'
+  return '后端在线'
+})
+const bannerMessage = computed(() => {
+  if (desktop.backend.lastError) return desktop.backend.lastError
+  if (backendTone.value === 'pending') return `最近心跳：${desktop.backendLastCheckedAt ? new Date(desktop.backendLastCheckedAt).toLocaleTimeString() : '尚未检测'}`
+  return `API：${desktop.backend.apiBaseUrl || '等待响应'}`
+})
+
+function dismissBanner() {
+  bannerDismissed.value = true
+}
+
+async function handleManualRestart() {
+  if (!window.opcDesktop) return
+  restartingBackend.value = true
+  try {
+    const res = await window.opcDesktop.restartBackend()
+    if (res.success) {
+      ElMessage.success('后端已重启')
+      bannerDismissed.value = false
+    } else {
+      ElMessage.error(res.message || '重启失败')
+    }
+  } finally {
+    restartingBackend.value = false
+  }
+}
+
+// 桌面端事件订阅（仅 desktop 环境）
+let cleanupBackendCrashed = () => {}
+let cleanupUpdateDownloaded = () => {}
+let cleanupUpdateAvailable = () => {}
+let cleanupThemeChanged = () => {}
+let cleanupShortcutCommand = () => {}
+let cleanupMenuCommand = () => {}
+let cleanupDeepLink = () => {}
+let stopHeartbeat = () => {}
+
+onMounted(() => {
+  if (!isDesktop.value) return
+  stopHeartbeat = startDesktopBackendHeartbeat(5000) || (() => {})
+  if (window.opcDesktop) {
+    cleanupBackendCrashed = window.opcDesktop.onBackendCrashed((info) => desktop.markBackendCrashed(info))
+    cleanupUpdateAvailable = window.opcDesktop.onUpdateAvailable((info) => desktop.setUpdateAvailable(info))
+    cleanupUpdateDownloaded = window.opcDesktop.onUpdateDownloaded((info) => desktop.setUpdateDownloaded(info))
+    cleanupThemeChanged = window.opcDesktop.onThemeChanged((info) => desktop.setTheme(info))
+    cleanupShortcutCommand = window.opcDesktop.onShortcutCommand(() => {
+      // 业务可路由到具体页面，这里仅做示例提示
+      ElMessage.info('全局快捷键已触发')
+    })
+    cleanupMenuCommand = window.opcDesktop.onMenuCommand(() => {
+      ElMessage.info('菜单命令触发')
+    })
+    cleanupDeepLink = window.opcDesktop.onDeepLink((url) => {
+      ElMessage.info(`深链：${url}`)
+    })
+  }
+})
+
+onBeforeUnmount(() => {
+  cleanupBackendCrashed()
+  cleanupUpdateDownloaded()
+  cleanupUpdateAvailable()
+  cleanupThemeChanged()
+  cleanupShortcutCommand()
+  cleanupMenuCommand()
+  cleanupDeepLink()
+  stopHeartbeat()
+})
 
 const sidebarCollapsed = computed(() => appStore.sidebarCollapsed)
 
@@ -672,5 +784,127 @@ async function handleUserCommand(command: string) {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+// ── 桌面端 后端状态条 ─────────────────────────────────────────────────────
+.backend-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  background: rgb(var(--surface) / 0.96);
+  border: 1px solid rgb(var(--line) / 0.6);
+  border-radius: 0.875rem;
+  box-shadow: $shadow-sm;
+
+  strong { display: block; color: rgb(var(--text)); font-weight: 600; }
+  span { display: block; color: rgb(var(--muted)); font-size: 12px; line-height: 1.5; }
+}
+.banner-copy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.banner-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.banner-close {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  color: rgb(var(--muted));
+  font-size: 18px;
+  &:hover { background: rgb(var(--elev)); color: rgb(var(--text)); }
+}
+
+.tone-danger {
+  background: rgb(var(--danger) / 0.08);
+  border-color: rgb(var(--danger) / 0.4);
+  strong { color: rgb(var(--danger)); }
+}
+.tone-pending {
+  background: rgb(var(--warning) / 0.08);
+  border-color: rgb(var(--warning) / 0.4);
+  strong { color: rgb(var(--warning)); }
+}
+.tone-ok { display: none; }
+
+.backend-banner-enter-active,
+.backend-banner-leave-active {
+  transition: all 0.25s ease;
+}
+.backend-banner-enter-from,
+.backend-banner-leave-to {
+  transform: translateY(-6px);
+  opacity: 0;
+}
+
+// ── 桌面端 Toast ──────────────────────────────────────────────────────────
+.desktop-toast-stack {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.desktop-toast {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 12px 36px 12px 14px;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.92);
+  border-radius: 10px;
+  box-shadow: $shadow-lg;
+  pointer-events: auto;
+  animation: toast-in 0.25s ease;
+
+  strong { font-size: 13px; font-weight: 600; }
+  span { font-size: 12px; opacity: 0.8; line-height: 1.5; }
+
+  button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    opacity: 0.7;
+    font-size: 16px;
+    border-radius: 4px;
+    &:hover { opacity: 1; background: rgba(255,255,255,0.15); }
+  }
+
+  &.toast-success { background: linear-gradient(135deg, #16a34a, #15803d); }
+  &.toast-error { background: linear-gradient(135deg, #dc2626, #b91c1c); }
+  &.toast-warning { background: linear-gradient(135deg, #d97706, #b45309); }
+  &.toast-info { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

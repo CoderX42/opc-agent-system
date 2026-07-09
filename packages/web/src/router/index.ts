@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHashHistory, createWebHistory, type RouteRecordRaw } from 'vue-router'
 import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 import { getToken } from '@/utils'
@@ -177,7 +177,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: window.opcDesktop ? createWebHashHistory() : createWebHistory(),
   routes: constantRoutes,
   scrollBehavior: () => ({ left: 0, top: 0 }),
 })
