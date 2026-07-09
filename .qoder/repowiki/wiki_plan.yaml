@@ -1,0 +1,111 @@
+version: 1
+
+scope:
+  include:
+    - "packages/**"
+    - "opc-agent-assets/**"
+    - "videos/**"
+    - "docker-compose.yml"
+  exclude:
+    - "node_modules/**"
+    - "dist/**"
+    - "out/**"
+    - "release/**"
+    - "coverage/**"
+    - "**/*.log"
+    - ".trae/**"
+
+repowiki:
+  template: "architecture"
+
+  notes:
+    - text: "项目为 pnpm monorepo，根 package.json 仅定义工作空间脚本，实际代码在 packages/ 下。Node >= 20，pnpm >= 9。"
+      author: "qoder"
+    - text: "OPC（一人有限责任公司）AI Agent 数字员工系统，包含 4 个核心 Agent：财务记账、智能客服、法务合规、行政办公。"
+      author: "qoder"
+    - text: "后端 NestJS 10.x + TypeORM 0.3.x，数据库 PostgreSQL 16，缓存 Redis 7。AI 引擎支持 DeepSeek API 和 Ollama 本地模型双模式。"
+      author: "qoder"
+    - text: "前端 Vue 3 + Vite 5 + Element Plus + Pinia，通过 openapi-typescript 从后端 Swagger 自动生成 API 类型。"
+      author: "qoder"
+    - text: "桌面端基于 Electron 31，内嵌 web 前端和 server 后端，通过 electron-builder 打包为 macOS dmg。"
+      author: "qoder"
+    - text: "opc-agent-assets 是独立的 AI 像素风资产生成管线，使用 OpenAI API 生成角色/场景/UI 精灵图，经 PNG 处理和切片后输出。"
+      author: "qoder"
+    - text: "videos 包基于 Remotion 4.x + React 18，用于自动生成抖音宣传视频，与核心业务代码无关，属于营销工具。"
+      author: "qoder"
+
+  documents:
+    - title: "系统架构总览"
+      goal: "描述 monorepo 整体结构、各包职责边界、技术选型理由、包间依赖关系"
+      parent: ""
+      hints: "pnpm-workspace.yaml, package.json, docker-compose.yml"
+
+    - title: "后端核心架构"
+      goal: "描述 NestJS 模块组织、分层设计（modules/ai/core/common）、请求生命周期、中间件与守卫链"
+      parent: "系统架构总览"
+      hints: "packages/server/src/app.module.ts, packages/server/src/bootstrap.ts, packages/server/src/main.ts"
+
+    - title: "数据层设计"
+      goal: "描述 TypeORM 实体关系、数据库迁移策略、种子数据、Redis 缓存使用场景"
+      parent: "后端核心架构"
+      hints: "packages/server/src/database/, packages/server/src/config/"
+
+    - title: "AI 引擎与 Agent 运行时"
+      goal: "描述 AI 服务的 Provider 抽象、Prompt 管理、RAG 检索流程、Agent 运行时生命周期"
+      parent: "后端核心架构"
+      hints: "packages/server/src/ai/, packages/server/src/core/agent-runtime/"
+
+    - title: "认证与权限体系"
+      goal: "描述 JWT + Passport 认证流程、角色守卫、装饰器权限控制"
+      parent: "后端核心架构"
+      hints: "packages/server/src/modules/auth/, packages/server/src/common/guards/"
+
+    - title: "业务模块：财务记账 Agent"
+      goal: "描述财务模块的发票识别（Tesseract.js OCR）、自动记账、报表生成、税务提醒功能"
+      parent: "系统架构总览"
+      hints: "packages/server/src/modules/finance/"
+
+    - title: "业务模块：智能客服 Agent"
+      goal: "描述客服模块的多渠道接入、智能问答、工单管理功能"
+      parent: "系统架构总览"
+      hints: "packages/server/src/modules/customer-service/"
+
+    - title: "业务模块：法务合规 Agent"
+      goal: "描述法务模块的合同审查、模板生成、合规检查功能"
+      parent: "系统架构总览"
+      hints: "packages/server/src/modules/legal/"
+
+    - title: "业务模块：行政办公 Agent"
+      goal: "描述行政模块的日程管理、任务管理、会议纪要功能"
+      parent: "系统架构总览"
+      hints: "packages/server/src/modules/office/"
+
+    - title: "Web 前端架构"
+      goal: "描述 Vue 3 组件树、路由设计、Pinia 状态管理、API 层自动生成、Element Plus 组件使用"
+      parent: "系统架构总览"
+      hints: "packages/web/src/"
+
+    - title: "桌面端打包与分发"
+      goal: "描述 Electron 主进程、资源嵌入策略（web + server）、electron-builder 构建配置、macOS 签名"
+      parent: "系统架构总览"
+      hints: "packages/desktop/"
+
+    - title: "像素资产生成管线"
+      goal: "描述 AI 驱动的精灵图生成流程：Prompt 工程 → OpenAI 图像生成 → PNG 处理 → 切片 → 打包"
+      parent: "系统架构总览"
+      hints: "opc-agent-assets/scripts/, opc-agent-assets/prompts/"
+
+knowledgecard:
+  notes:
+    - text: "server/src/modules/ 下每个子目录为一个独立 NestJS module，包含 controller / service / dto / entity 四层。模块间通过 NestJS DI 注入，禁止循环依赖。"
+      author: "qoder"
+    - text: "server/src/common/ 为跨模块共享代码：decorators（自定义装饰器）、dto（通用 DTO）、filters（异常过滤器）、guards（权限守卫）、interceptors（拦截器）。"
+      author: "qoder"
+    - text: "server/src/core/ 为系统级核心能力：agent-runtime（Agent 生命周期管理）、voice（语音处理），与业务模块解耦。"
+      author: "qoder"
+    - text: "AI 模块通过 providers/ 抽象多模型接入：DeepSeek API（云端主力模型）和 Ollama（本地运行），通过统一接口切换。RAG 使用知识库模块的向量存储。"
+      author: "qoder"
+    - text: "Web 前端 views/ 按业务模块分目录，stores/ 按业务领域拆分 Pinia store，api/ 由 openapi-typescript 自动生成类型定义。"
+      author: "qoder"
+    - text: "docker-compose.yml 定义 3 个服务：postgres（数据持久化）、redis（缓存/Session）、pgadmin（数据库管理面板），共享 opc-network 桥接网络。"
+      author: "qoder"
