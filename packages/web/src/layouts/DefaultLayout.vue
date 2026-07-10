@@ -3,7 +3,7 @@
     <!-- 侧边栏 -->
     <el-aside :width="sidebarCollapsed ? '76px' : '248px'" class="layout-aside">
       <div class="logo-container">
-        <div class="logo-mark">O</div>
+        <div class="logo-mark"><img src="/brand/opc-cloud-logo.png" alt="OPC Agent 云端标识" /></div>
         <div v-show="!sidebarCollapsed" class="logo-copy">
           <span class="logo-text">OPC AGENT</span>
           <span class="logo-caption">Digital workforce</span>
@@ -906,5 +906,75 @@ async function handleUserCommand(command: string) {
 @keyframes toast-in {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Liquid Glass shell — desktop and browser share this exact frame. */
+.layout-container {
+  background: transparent;
+}
+
+.layout-aside {
+  margin: 12px 0 12px 12px;
+  border: 1px solid rgb(255 255 255 / .78);
+  border-radius: 26px;
+  background: linear-gradient(160deg, rgb(255 255 255 / .7), rgb(223 242 255 / .43));
+  box-shadow: $shadow-soft;
+  backdrop-filter: blur(28px) saturate(155%);
+}
+
+.logo-container {
+  height: 78px;
+  padding: 0 17px;
+  border-bottom: 1px solid rgb(var(--line) / .27);
+}
+
+.logo-mark {
+  width: 42px;
+  height: 42px;
+  flex-basis: 42px;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / .88);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 7px 18px rgb(0 104 214 / .16), inset 0 1px 0 #fff;
+}
+
+.logo-mark img { width: 100%; height: 100%; display: block; object-fit: cover; object-position: 50% 46%; transform: scale(1.18); }
+.logo-text { letter-spacing: -.02em; color: rgb(var(--text)); font-size: 15px; }
+.logo-caption { color: rgb(var(--accent-strong)); }
+.menu-label { color: rgb(var(--faint)); padding: 17px 18px 7px; }
+
+.sidebar-menu {
+  --el-menu-hover-bg-color: rgb(255 255 255 / .52);
+  --el-menu-text-color: rgb(var(--muted));
+}
+.sidebar-menu :deep(.el-menu-item), .sidebar-menu :deep(.el-sub-menu__title) { height: 46px; margin: 3px 10px; border: 1px solid transparent; border-radius: 15px; }
+.sidebar-menu :deep(.el-menu-item:hover), .sidebar-menu :deep(.el-sub-menu__title:hover) { color:rgb(var(--accent-strong)); border-color:rgb(255 255 255 / .65); background:rgb(255 255 255 / .5); }
+.sidebar-menu :deep(.el-menu-item.is-active) { color:#fff; border-color:rgb(255 255 255 / .38); background:linear-gradient(125deg, #0753e5, #0787fa 58%, #00c7e9); box-shadow:0 9px 20px rgb(0 113 231 / .2), inset 0 1px 0 rgb(255 255 255 / .37); }
+.sidebar-menu :deep(.el-menu--inline) { background:rgb(255 255 255 / .3); border:1px solid rgb(255 255 255 / .5); border-radius:15px; }
+.sidebar-menu :deep(.el-sub-menu .el-menu-item.is-active) { color:rgb(var(--accent-strong)); border-color:transparent; background:rgb(var(--accent) / .1); box-shadow:none; }
+
+.system-status { margin: 10px 12px 14px; color: rgb(var(--muted)); border: 1px solid rgb(255 255 255 / .7); border-radius:16px; background:rgb(255 255 255 / .4); box-shadow:inset 0 1px 0 rgb(255 255 255 / .8); }
+.status-copy span { color: rgb(var(--faint)); }
+
+.layout-main-container { padding: 12px 12px 12px 0; }
+.layout-header { min-height:76px; padding:0 22px; border:1px solid rgb(255 255 255 / .78); border-radius:26px; background:rgb(255 255 255 / .53); box-shadow:$shadow-sm; backdrop-filter:blur(28px) saturate(155%); }
+.collapse-btn, .header-icon { width:40px; height:40px; border:1px solid rgb(255 255 255 / .78); border-radius:14px; background:rgb(255 255 255 / .55); box-shadow:inset 0 1px 0 #fff, 0 5px 14px rgb(29 105 184 / .08); }
+.collapse-btn:hover, .header-icon:hover { color:rgb(var(--accent-strong)); border-color:rgb(255 255 255 / .95); background:rgb(255 255 255 / .75); }
+.route-heading strong { color:rgb(var(--text)); font-size:17px; letter-spacing:-.025em; }
+.route-eyebrow { color:rgb(var(--accent-strong)); font-size:9px; }
+.command-search { height:40px; border:1px solid rgb(255 255 255 / .78); border-radius:14px; background:rgb(255 255 255 / .55); box-shadow:inset 0 1px 0 #fff; }
+.command-search:hover { border-color:rgb(255 255 255 / .95); background:rgb(255 255 255 / .75); }
+.user-info { border:1px solid rgb(255 255 255 / .78); border-radius:15px; background:rgb(255 255 255 / .55); box-shadow:inset 0 1px 0 #fff; }
+.user-info :deep(.el-avatar) { background:linear-gradient(135deg, #0753e5, #00bfe7); }
+.layout-main { margin-top:12px; border:1px solid rgb(255 255 255 / .66); border-radius:26px; background:rgb(255 255 255 / .22); box-shadow:inset 0 1px 0 rgb(255 255 255 / .7); backdrop-filter:blur(12px); }
+.desktop-toast { border:1px solid rgb(255 255 255 / .35); border-radius:18px; background:rgb(8 73 170 / .84); box-shadow:$shadow-lg; backdrop-filter:blur(24px); }
+
+@media (max-width: 760px) {
+  .layout-aside { margin:0; border-radius:0; }
+  .layout-main-container { padding:0; }
+  .layout-header, .layout-main { border-radius:0; border-right:0; border-left:0; }
+  .layout-main { margin-top:0; }
+  .command-search, .user-copy, .user-arrow { display:none; }
 }
 </style>
