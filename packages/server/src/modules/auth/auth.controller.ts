@@ -12,6 +12,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { AuthRateLimitGuard } from '../../common/guards/rate-limit.guard';
 
@@ -68,5 +70,22 @@ export class AuthController {
       dto.newPassword,
     );
     return null;
+  }
+
+  @Post('forgot-password')
+  @UseGuards(AuthRateLimitGuard)
+  @ApiOperation({ summary: '忘记密码：发送密码重置邮件' })
+  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(dto);
+    // 无论邮箱是否存在均返回成功，避免账户枚举
+    return { sent: true };
+  }
+
+  @Post('reset-password')
+  @UseGuards(AuthRateLimitGuard)
+  @ApiOperation({ summary: '重置密码：使用一次性令牌设置新密码' })
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    await this.authService.resetPassword(dto);
+    return { reset: true };
   }
 }

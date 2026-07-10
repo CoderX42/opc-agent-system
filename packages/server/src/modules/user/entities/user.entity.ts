@@ -52,6 +52,27 @@ export class User {
   })
   refreshTokenHash: string | null;
 
+  /** 密码重置令牌的 bcrypt 哈希，仅在校验时被显式 select */
+  @ApiHideProperty()
+  @Column({
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    name: 'password_reset_token_hash',
+    select: false,
+  })
+  passwordResetTokenHash: string | null;
+
+  /** 密码重置令牌的过期时间（UTC） */
+  @ApiHideProperty()
+  @Column({
+    type: 'datetime',
+    nullable: true,
+    name: 'password_reset_expires',
+    select: false,
+  })
+  passwordResetExpires: Date | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

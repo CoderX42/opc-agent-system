@@ -105,4 +105,43 @@ export class UserService {
     const refreshTokenHash = token ? await bcrypt.hash(token, 10) : null;
     await this.userRepository.update(id, { refreshTokenHash });
   }
+
+  /** 查询用户并显式带出密码重置字段 */
+  async findWithPasswordReset(id: string): Promise<User | null> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordResetTokenHash')
+      .addSelect('user.passwordResetExpires')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
+  /** 按邮箱查询用户（用于忘记密码流程定位账户） */
+  async findActiveByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOne({
+      where: { email },
+      select: ['id', 'username', 'email', 'status'],
+    });
+  }
+
+  /** 设置密码重置令牌（哈希存储）与过期时间 */
+  async setPasswordResetToken(
+    id: string,
+    token: string | null,
+    expiresAt: Date | null,
+  ): Promise<void> {
+    const passwordResetTokenHash = token ? await bcrypt.hash(token, 10) : null;
+    await this.userRepository.update(id, {
+      passwordResetTokenHash,
+      passwordResetExpires: expiresAt,
+    });
+  }
+
+  /** 清除密码重置令牌，通常在重置成功后调用 */
+  async clearPasswordResetToken(id: string): Promise<void> {
+    await this.userRepository.update(id, {
+      passwordResetTokenHash: null,
+      passwordResetExpires: null,
+    });
+  }
 }
