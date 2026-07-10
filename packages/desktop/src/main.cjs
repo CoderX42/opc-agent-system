@@ -122,6 +122,7 @@ function saveWindowState(state) {
 
 function createTrayIcon() {
   const iconPaths = [
+    path.join(__dirname, '..', 'assets', 'brand', 'opc-cloud-logo.png'),
     resolveResourcePath('icon.png'),
     path.join(__dirname, '..', 'assets', 'icon.png'),
   ];
@@ -311,6 +312,8 @@ function createWindow(apiBaseUrl) {
     minWidth: 1100,
     minHeight: 760,
     title: 'OPC Agent System',
+    icon: path.join(__dirname, '..', 'assets', 'brand', 'opc-cloud-logo.png'),
+    backgroundColor: '#eaf5ff',
     show: false,
     webPreferences: {
       preload: path.join(__dirname, 'preload.cjs'),
@@ -320,6 +323,20 @@ function createWindow(apiBaseUrl) {
       spellcheck: false,
     },
   };
+
+  // Keep native window controls while giving macOS the same material depth as
+  // the web Liquid Glass shell. Other platforms retain their native chrome.
+  if (process.platform === 'darwin') {
+    windowOptions.titleBarStyle = 'hiddenInset';
+    windowOptions.vibrancy = 'under-window';
+    windowOptions.visualEffectState = 'active';
+  } else if (process.platform === 'win32') {
+    windowOptions.titleBarOverlay = {
+      color: '#eff8ff',
+      symbolColor: '#092d68',
+      height: 38,
+    };
+  }
 
   if (savedState?.x !== undefined && savedState?.y !== undefined) {
     windowOptions.x = savedState.x;
