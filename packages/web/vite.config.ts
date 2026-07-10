@@ -5,6 +5,8 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 import { resolve } from 'path'
 
+/// <reference types="vitest" />
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd())
 
@@ -57,6 +59,11 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
+    },
+    test: {
+      environment: 'jsdom',
+      globals: true,
+      include: ['src/**/*.spec.ts'],
     },
   }
 })
