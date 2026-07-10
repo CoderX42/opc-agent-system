@@ -1,21 +1,22 @@
 version: '3.8'
 
 services:
-  # PostgreSQL 16 数据库
-  postgres:
-    image: postgres:16-alpine
-    container_name: opc-postgres
+  # MySQL 主数据库
+  mysql:
+    image: mysql:8.4
+    container_name: opc-mysql
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "3306:3306"
     environment:
-      POSTGRES_USER: opc_user
-      POSTGRES_PASSWORD: opc_pass
-      POSTGRES_DB: opc_agent
+      MYSQL_DATABASE: agent-system
+      MYSQL_USER: agent-system
+      MYSQL_PASSWORD: change-me
+      MYSQL_ROOT_PASSWORD: change-me-root
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U opc_user -d opc_agent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,17 +24,18 @@ services:
     networks:
       - opc-network
 
-  # Redis 7 缓存
+  # Redis 8.0.5 缓存
   redis:
-    image: redis:7-alpine
+    image: redis:8.0.5-alpine
     container_name: opc-redis
     restart: unless-stopped
     ports:
       - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "change-me"]
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "change-me", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,23 +43,23 @@ services:
     networks:
       - opc-network
 
-  # pgAdmin 管理面板
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: opc-pgadmin
+  # phpMyAdmin 管理面板
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: opc-phpmyadmin
     restart: unless-stopped
     ports:
       - "5050:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@opc.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
+      PMA_HOST: mysql
+      PMA_PORT: 3306
     volumes:
-      - pgadmin_data:/var/lib/pgadmin
+      - /sessions
     depends_on:
-      postgres:
+      mysql:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:80/misc/ping || exit 1"]
+      test: ["CMD-SHELL", "wget -q --spider http://localhost/ || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -66,11 +68,9 @@ services:
       - opc-network
 
 volumes:
-  postgres_data:
+  mysql_data:
     driver: local
   redis_data:
-    driver: local
-  pgadmin_data:
     driver: local
 
 networks:

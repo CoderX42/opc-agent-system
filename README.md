@@ -6,7 +6,7 @@
 ## 技术栈
 
 - **前端**: Vue 3 + Vite + Element Plus + Pinia
-- **后端**: NestJS + TypeORM + PostgreSQL
+- **后端**: NestJS + TypeORM + MySQL
 - **移动端**: uni-app (Vue3)
 - **AI**: DeepSeek API + Ollama 本地模型 + RAG
 - **部署**: Docker Compose
@@ -30,7 +30,7 @@ opc-agent-system/
 # 安装依赖
 pnpm install
 
-# 启动基础设施（PostgreSQL, Redis）
+# 启动基础设施（MySQL, Redis 8.0.5）
 docker-compose up -d
 
 # 初始化数据库并写入开发种子数据
@@ -50,7 +50,7 @@ pnpm lint
 pnpm test:e2e
 ```
 
-E2E 测试会创建并销毁独立的 `opc_agent_e2e` 数据库，需要本地 PostgreSQL 已启动。
+E2E 测试会创建并销毁独立的 `opc_agent_e2e` 数据库，需要可创建数据库的 MySQL 服务。
 
 ## Agent 模块
 
