@@ -12,20 +12,34 @@ export class AddPasswordResetColumns1784010000000 implements MigrationInterface 
   name = 'AddPasswordResetColumns1784010000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query(
-      `ALTER TABLE \`users\` ADD COLUMN IF NOT EXISTS \`password_reset_token_hash\` varchar(255) NULL`,
+    // MySQL 不支持 ADD COLUMN IF NOT EXISTS，先查询列是否存在再添加
+    const columns = await queryRunner.query(
+      `SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS
+       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'users'
+       AND COLUMN_NAME IN ('password_reset_token_hash', 'password_reset_expires')`,
     );
-    await queryRunner.query(
-      `ALTER TABLE \`users\` ADD COLUMN IF NOT EXISTS \`password_reset_expires\` datetime(6) NULL`,
+    const existing = new Set<string>(
+      (columns as Array<{ COLUMN_NAME: string }>).map((c) => c.COLUMN_NAME),
     );
+
+    if (!existing.has('password_reset_token_hash')) {
+      await queryRunner.query(
+        `ALTER TABLE \`users\` ADD COLUMN \`password_reset_token_hash\` varchar(255) NULL`,
+      );
+    }
+    if (!existing.has('password_reset_expires')) {
+      await queryRunner.query(
+        `ALTER TABLE \`users\` ADD COLUMN \`password_reset_expires\` datetime(6) NULL`,
+      );
+    }
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(
-      `ALTER TABLE \`users\` DROP COLUMN IF EXISTS \`password_reset_expires\``,
+      `ALTER TABLE \`users\` DROP COLUMN \`password_reset_expires\``,
     );
     await queryRunner.query(
-      `ALTER TABLE \`users\` DROP COLUMN IF EXISTS \`password_reset_token_hash\``,
+      `ALTER TABLE \`users\` DROP COLUMN \`password_reset_token_hash\``,
     );
   }
 }
