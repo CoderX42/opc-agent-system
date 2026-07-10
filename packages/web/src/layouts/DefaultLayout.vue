@@ -586,15 +586,37 @@ async function handleUserCommand(command: string) {
 }
 
 .layout-header {
+  position: relative;
   background: rgb(var(--surface) / 0.96);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
   border-bottom: 1px solid rgb(var(--line) / 0.7);
-  backdrop-filter: blur(18px);
   z-index: 10;
   flex-shrink: 0;
+  /* Electron 桌面端隐藏原生标题栏后，用 web 内容作为窗口拖拽区 */
+  -webkit-app-region: drag;
+}
+
+/* backdrop-filter 与 -webkit-app-region:drag 同元素共存会触发 Chromium 拖拽失效 bug，
+   故将毛玻璃视觉效果下沉到伪元素，主元素保持纯拖拽语义 */
+.layout-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  backdrop-filter: blur(18px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 顶部栏内所有可交互元素必须排除拖拽，否则无法点击 */
+.layout-header .collapse-btn,
+.layout-header .command-search,
+.layout-header .header-icon,
+.layout-header .notification-badge,
+.layout-header .user-info {
+  -webkit-app-region: no-drag;
 }
 
 .header-left {
@@ -958,7 +980,9 @@ async function handleUserCommand(command: string) {
 .status-copy span { color: rgb(var(--faint)); }
 
 .layout-main-container { padding: 12px 12px 12px 0; }
-.layout-header { min-height:76px; padding:0 22px; border:1px solid rgb(255 255 255 / .78); border-radius:26px; background:rgb(255 255 255 / .53); box-shadow:$shadow-sm; backdrop-filter:blur(28px) saturate(155%); }
+.layout-header { min-height:76px; padding:0 22px; border:1px solid rgb(255 255 255 / .78); border-radius:26px; background:rgb(255 255 255 / .53); box-shadow:$shadow-sm; }
+/* Liquid Glass 毛玻璃效果同样下沉到伪元素，避免与 -webkit-app-region:drag 冲突 */
+.layout-header::before { border-radius:26px; backdrop-filter:blur(28px) saturate(155%); }
 .collapse-btn, .header-icon { width:40px; height:40px; border:1px solid rgb(255 255 255 / .78); border-radius:14px; background:rgb(255 255 255 / .55); box-shadow:inset 0 1px 0 #fff, 0 5px 14px rgb(29 105 184 / .08); }
 .collapse-btn:hover, .header-icon:hover { color:rgb(var(--accent-strong)); border-color:rgb(255 255 255 / .95); background:rgb(255 255 255 / .75); }
 .route-heading strong { color:rgb(var(--text)); font-size:17px; letter-spacing:-.025em; }
