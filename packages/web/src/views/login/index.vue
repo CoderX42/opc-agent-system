@@ -3,7 +3,7 @@
     <section class="login-story">
       <div class="story-grid"></div>
       <header class="story-brand">
-        <div class="brand-mark">O</div>
+        <div class="brand-mark"><img src="/brand/opc-cloud-logo.png" alt="OPC Agent 云端标识" /></div>
         <div><strong>OPC AGENT</strong><span>Digital workforce system</span></div>
       </header>
 
@@ -33,7 +33,7 @@
       </div>
 
       <div class="login-card">
-        <div class="mobile-brand"><div class="brand-mark">O</div><strong>OPC AGENT</strong></div>
+        <div class="mobile-brand"><div class="brand-mark"><img src="/brand/opc-cloud-logo.png" alt="OPC Agent 云端标识" /></div><strong>OPC AGENT</strong></div>
         <div class="login-header">
           <span class="login-index">SECURE WORKSPACE</span>
           <h2>欢迎回来</h2>
@@ -467,4 +467,45 @@ async function handleLogin() {
   }
   .entry-footer { margin-top: auto; }
 }
+
+/* Product landing material: luminous sky behind an elevated sign-in card. */
+.login-shell {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: transparent;
+}
+.login-shell::before, .login-shell::after { content:''; position:absolute; z-index:-1; border-radius:999px; pointer-events:none; filter:blur(2px); }
+.login-shell::before { width:62vw; height:62vw; top:-35vw; right:-17vw; background:radial-gradient(circle, rgb(69 190 255 / .5), transparent 67%); }
+.login-shell::after { width:50vw; height:50vw; bottom:-34vw; left:27vw; background:radial-gradient(circle, rgb(0 158 247 / .22), transparent 68%); }
+.login-story {
+  margin:16px 0 16px 16px;
+  min-height:calc(100vh - 32px);
+  border:1px solid rgb(255 255 255 / .52);
+  border-radius:30px;
+  background:
+    linear-gradient(138deg, rgb(4 62 201 / .96), rgb(6 128 243 / .89) 55%, rgb(0 198 229 / .77)),
+    url('/brand/opc-cloud-logo.png') center / cover;
+  box-shadow:0 30px 70px rgb(0 92 190 / .25), inset 0 1px 0 rgb(255 255 255 / .32);
+}
+.login-story::after { content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; background:radial-gradient(circle at 80% 70%, rgb(255 255 255 / .26), transparent 20%), linear-gradient(120deg, transparent 30%, rgb(255 255 255 / .1) 50%, transparent 70%); }
+.story-grid { opacity:.18; mix-blend-mode:screen; }
+.brand-mark { overflow:hidden; border:1px solid rgb(255 255 255 / .58); border-radius:15px; background:#fff; box-shadow:0 10px 22px rgb(0 41 141 / .22); }
+.brand-mark img { display:block; width:100%; height:100%; object-fit:cover; object-position:50% 46%; transform:scale(1.18); }
+.story-brand strong { letter-spacing:-.01em; }
+.story-brand span, .story-kicker, .story-content > p, .story-footer { color:rgb(255 255 255 / .68); }
+.story-kicker i { background:#baf4ff; box-shadow:0 0 14px rgb(186 244 255 / .64); }
+.story-content h1 { font-style:normal; text-shadow:0 6px 26px rgb(0 54 165 / .18); }
+.story-content h1 em { color:#d9fbff; }
+.story-agent { border:1px solid rgb(255 255 255 / .2); border-radius:16px; background:rgb(255 255 255 / .11); padding:10px; backdrop-filter:blur(13px); }
+.story-agent span { box-shadow:inset 0 1px 0 rgb(255 255 255 / .45); }
+.login-entry { position:relative; }
+.login-card { padding:34px; border:1px solid rgb(255 255 255 / .78); border-radius:28px; background:linear-gradient(145deg, rgb(255 255 255 / .76), rgb(233 247 255 / .48)); box-shadow:$shadow-lg; backdrop-filter:blur(28px) saturate(145%); }
+.login-index { border:0; border-radius:999px; color:rgb(var(--accent-strong)); background:rgb(var(--accent) / .1); }
+.login-header h2 { color:rgb(var(--text)); font-family:var(--font-display); font-style:normal; font-weight:700; letter-spacing:-.045em; }
+.login-header p { color:rgb(var(--muted)); font-style:normal; }
+.login-btn { background:linear-gradient(135deg, #0750df, #087fff 52%, #00c9eb); border-color:rgb(255 255 255 / .35); box-shadow:0 14px 28px rgb(0 105 237 / .24), inset 0 1px 0 rgb(255 255 255 / .45); }
+.login-btn :deep(span) { color:#fff; }
+.entry-top :deep(.el-button) { border-color:rgb(255 255 255 / .82); color:rgb(var(--accent-strong)); background:rgb(255 255 255 / .48); }
+@media (max-width: 780px) { .login-entry { min-height:100dvh; background:transparent; } .login-card { padding:26px; } }
 </style>
