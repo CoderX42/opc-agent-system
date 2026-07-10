@@ -28,9 +28,8 @@ Electron shell for the OPC Agent System desktop app (macOS / Windows / Linux).
 The desktop bundle embeds both the web build (`packages/web/dist/`) and the NestJS server build (`packages/server/dist/`) under `process.resourcesPath/{web,server}/`.
 
 1. **Process model.** Main process (`src/main.cjs`) starts a child Node process via `ELECTRON_RUN_AS_NODE=1` running the compiled NestJS server on a random free localhost port.
-2. **Database.** When `OPC_DESKTOP=true` the server switches its TypeORM datasource to `better-sqlite3`, writing to `app.getPath('userData')/opc-agent.db`. PostgreSQL remains the default for the web-only deployment.
+2. **Database.** The server uses the shared MySQL + Redis datasources configured in `packages/server/.env` — both desktop and web deployments share the same data source.
 3. **User data layout** (under `app.getPath('userData')`):
-   - `opc-agent.db` – SQLite database
    - `window-state.json` – last window bounds / maximized state
    - `recent-files.json` – recent file list cache
    - `update-channel.json` – persisted update channel (latest/beta/alpha)
@@ -91,7 +90,7 @@ When the variables are absent the build still completes but skips signing. CI mu
 
 ### Native modules
 
-`better-sqlite3` is declared in `asarUnpack` so the native binding remains on disk under `app.asar.unpacked/node_modules/better-sqlite3/`.
+`electron-updater` is declared in `asarUnpack` so the native binding remains on disk under `app.asar.unpacked/node_modules/electron-updater/`.
 
 ## Architecture
 

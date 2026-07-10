@@ -135,8 +135,6 @@ function createBackend(ctx) {
       APP_PORT: String(port),
       PORT: String(port),
       CORS_ORIGIN: '*',
-      // 透传 OPC_DESKTOP_DB_FILE 供 server 侧 datasource.factory.ts 覆盖默认文件名
-      OPC_DESKTOP_DB_FILE: process.env.OPC_DESKTOP_DB_FILE || 'opc-agent.db',
     };
 
     const stdio = appRef.isPackaged ? 'ignore' : 'inherit';
