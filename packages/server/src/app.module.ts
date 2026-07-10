@@ -6,7 +6,6 @@ import { redisStore } from "cache-manager-redis-store";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { ConfigModule as AppConfigModule } from "./config/config.module";
-import { resolveDesktopDatabasePath } from "./database/datasource.factory";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
 import { AgentModule } from "./modules/agent/agent.module";
@@ -31,45 +30,25 @@ import { MailModule } from "./common/services/mail.module";
       envFilePath: [".env.local", ".env"],
     }),
 
-    // TypeORM 数据库：Electron 桌面模式自动切换为 SQLite，Web/生产环境使用 MySQL。
+    // TypeORM 数据库：统一使用 MySQL（Web 与桌面端共享同一数据源）。
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        if (process.env.OPC_DESKTOP === "true") {
-          const dbFile = resolveDesktopDatabasePath(
-            process.env.OPC_USER_DATA_DIR,
-          );
-          // eslint-disable-next-line no-console
-          console.log(
-            `[server] desktop mode detected, using SQLite at ${dbFile}`,
-          );
-          return {
-            type: "better-sqlite3",
-            database: dbFile,
-            entities: [__dirname + "/**/*.entity{.ts,.js}"],
-            synchronize: true, // 桌面端首次启动自助建表
-            logging: false,
-          } as const;
-        }
-
-        return {
-          type: "mysql",
-          host: configService.get("DATABASE_HOST", "localhost"),
-          port: configService.get<number>("DATABASE_PORT", 3306),
-          username: configService.get("DATABASE_USER", "agent-system"),
-          password: configService.get("DATABASE_PASSWORD"),
-          database: configService.get("DATABASE_NAME", "agent-system"),
-          charset: "utf8mb4",
-          entities: [__dirname + "/**/*.entity{.ts,.js}"],
-          synchronize:
-            configService.get<string>("DATABASE_SYNCHRONIZE", "false") ===
-            "true",
-          logging:
-            configService.get("NODE_ENV", configService.get("APP_ENV")) ===
-            "development",
-        } as const;
-      },
+      useFactory: (configService: ConfigService) => ({
+        type: "mysql",
+        host: configService.get("DATABASE_HOST", "localhost"),
+        port: configService.get<number>("DATABASE_PORT", 3306),
+        username: configService.get("DATABASE_USER", "agent-system"),
+        password: configService.get("DATABASE_PASSWORD"),
+        database: configService.get("DATABASE_NAME", "agent-system"),
+        charset: "utf8mb4",
+        entities: [__dirname + "/**/*.entity{.ts,.js}"],
+        synchronize:
+          configService.get<string>("DATABASE_SYNCHRONIZE", "false") === "true",
+        logging:
+          configService.get("NODE_ENV", configService.get("APP_ENV")) ===
+          "development",
+      }),
     }),
 
     // Redis 缓存
