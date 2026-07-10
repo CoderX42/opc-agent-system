@@ -4,7 +4,6 @@ packages:
 allowBuilds:
   '@nestjs/core': true
   '@parcel/watcher': true
-  better-sqlite3: true
   electron: true
   esbuild: true
   lzma-native: true
