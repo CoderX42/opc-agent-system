@@ -29,7 +29,7 @@
     <section class="login-entry">
       <div class="entry-top">
         <span>首次使用？</span>
-        <el-button plain>创建账户</el-button>
+        <el-button plain @click="goRegister">创建账户</el-button>
       </div>
 
       <div class="login-card">
@@ -70,7 +70,7 @@
 
           <div class="login-options">
             <el-checkbox v-model="rememberMe">保持登录</el-checkbox>
-            <el-link type="primary" :underline="false">忘记密码？</el-link>
+            <el-link type="primary" :underline="false" @click="goForgotPassword">忘记密码？</el-link>
           </div>
 
           <el-button
@@ -96,10 +96,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { ElMessage, type FormInstance, type FormRules } from 'element-plus'
+import { getRememberMe, setRememberMe } from '@/utils'
 
 const router = useRouter()
 const route = useRoute()
@@ -107,6 +108,7 @@ const userStore = useUserStore()
 
 const loginFormRef = ref<FormInstance>()
 const loading = ref(false)
+// "保持登录"：从 localStorage 恢复用户上次选择，默认关闭
 const rememberMe = ref(false)
 
 const storyAgents = [
@@ -132,6 +134,18 @@ const loginRules: FormRules = {
   ],
 }
 
+onMounted(() => {
+  rememberMe.value = getRememberMe()
+})
+
+function goRegister() {
+  router.push('/register')
+}
+
+function goForgotPassword() {
+  router.push('/forgot-password')
+}
+
 async function handleLogin() {
   if (!loginFormRef.value) return
 
@@ -140,9 +154,12 @@ async function handleLogin() {
 
     loading.value = true
     try {
+      // 持久化"保持登录"偏好，并传入登录接口控制 refresh token 有效期
+      setRememberMe(rememberMe.value)
       await userStore.login({
         username: loginForm.username,
         password: loginForm.password,
+        rememberMe: rememberMe.value,
       })
       ElMessage.success('登录成功')
       const redirect = (route.query.redirect as string) || '/'

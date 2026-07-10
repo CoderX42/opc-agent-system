@@ -15,6 +15,24 @@ export const constantRoutes: RouteRecordRaw[] = [
     meta: { title: '登录', hidden: true },
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('@/views/register/index.vue'),
+    meta: { title: '创建账户', hidden: true },
+  },
+  {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/forgot-password/index.vue'),
+    meta: { title: '忘记密码', hidden: true },
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/reset-password/index.vue'),
+    meta: { title: '重置密码', hidden: true },
+  },
+  {
     path: '/office/:agentType?',
     name: 'Office',
     component: () => import('@/views/office/index.vue'),
@@ -184,7 +202,11 @@ const router = createRouter({
 
 // ==================== 路由守卫 ====================
 
-const whiteList = ['/login']
+/** 公开路由白名单：无需登录即可访问 */
+const whiteList = ['/login', '/register', '/forgot-password', '/reset-password']
+
+/** 认证相关路由：已登录用户访问会被引导到首页 */
+const authRoutes = ['/login', '/register']
 
 router.beforeEach(async (to, _from, next) => {
   NProgress.start()
@@ -197,8 +219,8 @@ router.beforeEach(async (to, _from, next) => {
   const token = getToken()
 
   if (token) {
-    if (to.path === '/login') {
-      // 已登录，跳转到首页
+    if (authRoutes.includes(to.path)) {
+      // 已登录时访问登录/注册页，跳转到首页
       next({ path: '/' })
       NProgress.done()
     } else {
