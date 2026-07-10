@@ -1,7 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Knowledge } from '../../modules/knowledge/entities/knowledge.entity';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Knowledge } from "../../modules/knowledge/entities/knowledge.entity";
 
 @Injectable()
 export class RagService {
@@ -15,7 +15,10 @@ export class RagService {
   /**
    * 根据查询内容检索相关知识
    */
-  async retrieve(query: string, topK = 5): Promise<{
+  async retrieve(
+    query: string,
+    topK = 5,
+  ): Promise<{
     documents: {
       id: string;
       title: string;
@@ -35,14 +38,14 @@ export class RagService {
       }
 
       const queryBuilder = this.knowledgeRepository
-        .createQueryBuilder('knowledge')
-        .where('knowledge.status = :status', { status: 'PUBLISHED' });
+        .createQueryBuilder("knowledge")
+        .where("knowledge.status = :status", { status: "PUBLISHED" });
 
       // 为每个关键词构建 OR 条件
       const conditions = keywords.map((_, index) => {
-        return `(knowledge.title ILIKE :kw${index} OR knowledge.content ILIKE :kw${index})`;
+        return `(knowledge.title LIKE :kw${index} OR knowledge.content LIKE :kw${index})`;
       });
-      queryBuilder.andWhere(`(${conditions.join(' OR ')})`);
+      queryBuilder.andWhere(`(${conditions.join(" OR ")})`);
 
       const params: Record<string, string> = {};
       keywords.forEach((keyword, index) => {
@@ -52,7 +55,7 @@ export class RagService {
       queryBuilder.setParameters(params);
 
       queryBuilder
-        .orderBy('knowledge.viewCount', 'DESC')
+        .orderBy("knowledge.viewCount", "DESC")
         .limit(Math.min(100, Math.max(topK * 5, topK)));
 
       const results = await queryBuilder.getMany();
@@ -91,7 +94,7 @@ export class RagService {
         (doc, index) =>
           `[参考资料 ${index + 1}] 标题: ${doc.title}\n内容: ${doc.content}`,
       )
-      .join('\n\n');
+      .join("\n\n");
 
     return `基于以下参考资料回答用户的问题。如果参考资料中没有相关信息，请根据你的知识进行回答，并说明哪些内容不是来自参考资料。
 
@@ -104,10 +107,7 @@ ${context}
   /**
    * 计算简单的相关性分数
    */
-  private calculateRelevanceScore(
-    query: string,
-    document: Knowledge,
-  ): number {
+  private calculateRelevanceScore(query: string, document: Knowledge): number {
     let score = 0;
     const queryLower = query.toLowerCase();
     const titleLower = document.title.toLowerCase();
