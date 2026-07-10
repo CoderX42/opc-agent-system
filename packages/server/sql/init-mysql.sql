@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `avatar` varchar(500) DEFAULT NULL,
   `status` enum('ACTIVE','INACTIVE','BANNED') NOT NULL DEFAULT 'ACTIVE',
   `refresh_token_hash` varchar(255) DEFAULT NULL,
+  `password_reset_token_hash` varchar(255) DEFAULT NULL,
+  `password_reset_expires` datetime(6) DEFAULT NULL,
   `created_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `updated_at` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
   PRIMARY KEY (`id`),
