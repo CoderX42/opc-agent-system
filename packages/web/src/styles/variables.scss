@@ -1,90 +1,90 @@
-// Exact match to yzy-official-website design system
-// https://github.com style: 科技蓝 + 智慧蓝 + 云海蓝 + 未来青 + 云雾白
-// No retro line/outline style. Large rounded, glassmorphism, soft shadows.
-
+// OPC Liquid Glass design tokens — sampled from the supplied cloud mark.
 :root {
   color-scheme: light;
+  --opc-ink: #092d68;
+  --opc-blue: #0866f7;
+  --opc-electric: #008cff;
+  --opc-cyan: #00c9eb;
+  --opc-ice: #eaf5ff;
+  --opc-sky: #d8ecff;
+  --opc-glass: 255 255 255;
+  --opc-text: 9 45 104;
+  --opc-muted: 73 111 159;
+  --opc-line: 182 214 246;
+  --opc-shadow: 19 92 184;
 
-  --bg: 245 248 253;           /* #F5F8FD 云雾白 */
+  --bg: 239 247 255;
   --surface: 255 255 255;
-  --elev: 236 246 255;
-  --text: 8 37 88;
-  --muted: 60 85 120;
-  --faint: 111 134 166;
-  --line: 198 222 246;
-  --shadow: 13 71 161;
-  --accent: 22 119 255;        /* #1677FF 智慧蓝 */
-  --accent-strong: 13 71 161;  /* #0D47A1 科技蓝 */
-  --accent-2: 0 184 255;       /* #00B8FF 云海蓝 */
-  --accent-3: 0 224 198;       /* #00E0C6 未来青 */
+  --elev: 224 241 255;
+  --text: 9 45 104;
+  --muted: 73 111 159;
+  --faint: 115 145 181;
+  --line: 182 214 246;
+  --shadow: 19 92 184;
+  --accent: 8 102 247;
+  --accent-strong: 8 61 204;
+  --accent-2: 0 156 244;
+  --accent-3: 0 201 235;
   --on-accent: 255 255 255;
-  --ring: 0 184 255;
-
-  --success: 0 168 132;
-  --warn: 217 119 6;
-  --danger: 220 38 38;
+  --ring: 0 156 244;
+  --success: 38 163 112;
+  --warn: 230 151 47;
+  --danger: 232 87 101;
+  --glass-border: rgb(255 255 255 / 0.78);
+  --glass-fill: rgb(255 255 255 / 0.58);
+  --glass-fill-strong: rgb(255 255 255 / 0.78);
+  --glass-shadow: 0 24px 72px rgb(25 100 183 / 0.15), 0 6px 18px rgb(16 91 179 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.92);
+  --font-display: 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  --font-body: 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
 }
 
-// SCSS fallbacks (for existing $var usage)
-$page-bg: #f5f8fd;
-$page-bg-deep: #ecf2fa;
+$page-bg: #eff7ff;
+$page-bg-deep: #d8ecff;
 $cream: #ffffff;
-$cream-warm: #f8fbff;
-$ink: #082558;
-$forest: #1677ff;
-$forest-soft: #0d47a1;
-$brass: #00b8ff;
-$brass-deep: #0099cc;
-
-$rule: rgba(13, 71, 161, 0.12);
-$rule-strong: rgba(13, 71, 161, 0.22);
-
-$primary-color: #1677ff;
-$primary-light: #3a8cff;
-$primary-dark: #0d47a1;
-$accent-color: #00e0c6;
-
-$success-color: #00a884;
-$warning-color: #d97706;
-$danger-color: #dc2626;
-$info-color: #1677ff;
-
-$text-primary: #082558;
-$text-regular: #2f4568;
-$text-secondary: #3c5578;
-$text-placeholder: #6f86a6;
-
-$bg-color: #f5f8fd;
+$cream-warm: #f8fcff;
+$ink: #092d68;
+$forest: #0866f7;
+$forest-soft: #083dcc;
+$brass: #00c9eb;
+$brass-deep: #0085cf;
+$rule: rgb(124 180 233 / 0.42);
+$rule-strong: rgb(63 143 220 / 0.46);
+$primary-color: #0866f7;
+$primary-light: #2195ff;
+$primary-dark: #083dcc;
+$accent-color: #00c9eb;
+$success-color: #26a370;
+$warning-color: #e6972f;
+$danger-color: #e85765;
+$info-color: #0866f7;
+$text-primary: #092d68;
+$text-regular: #28528a;
+$text-secondary: #496f9f;
+$text-placeholder: #7391b5;
+$bg-color: #eff7ff;
 $bg-white: #ffffff;
-$bg-page: #f5f8fd;
-$bg-sidebar: #0a2540;
-
-$border-color: #c6def6;
-$border-light: #d8e8f7;
-$border-lighter: #e8f1fa;
-
-$sidebar-width: 248px;
-$sidebar-collapsed-width: 76px;
-$header-height: 72px;
+$bg-page: #eff7ff;
+$bg-sidebar: #edf7ff;
+$border-color: #b6d6f6;
+$border-light: #d5e9fb;
+$border-lighter: #e9f4ff;
+$sidebar-width: 264px;
+$sidebar-collapsed-width: 82px;
+$header-height: 76px;
 $footer-height: 48px;
-
-// YZY style: large rounded
-$border-radius-sm: 8px;
-$border-radius-md: 12px;
-$border-radius-lg: 16px;
-$border-radius-xl: 24px;
-$border-radius-2xl: 32px;
-
-// Soft shadows matching yzy
-$shadow-sm: 0 1px 2px rgb(13 71 161 / 0.06);
-$shadow-md: 0 6px 16px -4px rgb(13 71 161 / 0.12), 0 3px 6px -2px rgb(13 71 161 / 0.08);
-$shadow-lg: 0 18px 50px -20px rgb(13 71 161 / 0.18), 0 8px 16px -6px rgb(13 71 161 / 0.1);
-$shadow-soft: 0 18px 50px -28px rgb(13 71 161 / 0.5);
-$shadow-glow: 0 0 70px -18px rgb(0 184 255 / 0.55);
-
-$transition-duration: 0.2s;
-$transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
-
-$font-display: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', sans-serif;
-$font-body: 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, 'Segoe UI', 'Roboto', sans-serif;
-$font-mono: ui-monospace, 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+$border-radius-sm: 12px;
+$border-radius-md: 16px;
+$border-radius-lg: 22px;
+$border-radius-xl: 28px;
+$border-radius-2xl: 34px;
+$shadow-sm: 0 6px 18px rgb(26 102 181 / 0.08), inset 0 1px 0 rgb(255 255 255 / 0.9);
+$shadow-md: 0 14px 32px rgb(26 102 181 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.86);
+$shadow-lg: 0 26px 64px rgb(26 102 181 / 0.18), inset 0 1px 0 rgb(255 255 255 / 0.9);
+$shadow-soft: 0 20px 56px rgb(26 102 181 / 0.12), 0 4px 14px rgb(26 102 181 / 0.06), inset 0 1px 0 rgb(255 255 255 / 0.9);
+$shadow-glow: 0 20px 48px rgb(0 146 245 / 0.26), 0 0 0 1px rgb(255 255 255 / 0.58) inset;
+$transition-duration: 0.24s;
+$transition-timing: cubic-bezier(0.2, 0.75, 0.25, 1);
+$font-display: 'SF Pro Display', 'PingFang SC', 'Helvetica Neue', sans-serif;
+$font-body: 'SF Pro Text', 'PingFang SC', 'Helvetica Neue', sans-serif;
+$font-mono: 'SF Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
