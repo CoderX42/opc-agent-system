@@ -87,6 +87,24 @@ export function setRefreshToken(token: string): void {
   localStorage.setItem('refreshToken', token)
 }
 
+// ==================== 记住我（Remember Me） ====================
+const REMEMBER_ME_KEY = 'rememberMe'
+
+/** 读取"保持登录"选项（默认 false） */
+export function getRememberMe(): boolean {
+  return localStorage.getItem(REMEMBER_ME_KEY) === 'true'
+}
+
+/** 持久化"保持登录"选项 */
+export function setRememberMe(value: boolean): void {
+  localStorage.setItem(REMEMBER_ME_KEY, value ? 'true' : 'false')
+}
+
+/** 清除"保持登录"选项 */
+export function removeRememberMe(): void {
+  localStorage.removeItem(REMEMBER_ME_KEY)
+}
+
 /**
  * 日期工具
  */

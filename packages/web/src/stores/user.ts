@@ -1,7 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { User, LoginParams } from '@/types'
-import { login as loginApi, logout as logoutApi, getCurrentUser } from '@/api/auth'
+import type { User, LoginParams, RegisterParams } from '@/types'
+import {
+  login as loginApi,
+  register as registerApi,
+  logout as logoutApi,
+  getCurrentUser,
+} from '@/api/auth'
 import { setToken, setRefreshToken, removeToken } from '@/utils'
 
 export const useUserStore = defineStore('user', () => {
@@ -29,6 +34,17 @@ export const useUserStore = defineStore('user', () => {
   /** 登录 */
   async function login(params: LoginParams) {
     const res = await loginApi(params)
+    const { token: accessToken, refreshToken, user: userInfo } = res.data
+    token.value = accessToken
+    user.value = userInfo
+    setToken(accessToken)
+    setRefreshToken(refreshToken)
+    return userInfo
+  }
+
+  /** 注册（注册成功后自动登录） */
+  async function register(params: RegisterParams) {
+    const res = await registerApi(params)
     const { token: accessToken, refreshToken, user: userInfo } = res.data
     token.value = accessToken
     user.value = userInfo
@@ -74,6 +90,7 @@ export const useUserStore = defineStore('user', () => {
     permissions,
     hasPermission,
     login,
+    register,
     fetchUserInfo,
     logout,
     resetState,

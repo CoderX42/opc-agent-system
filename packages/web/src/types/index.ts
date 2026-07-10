@@ -17,6 +17,7 @@ export type UserRole = 'ADMIN' | 'USER'
 export interface LoginParams {
   username: string
   password: string
+  rememberMe?: boolean
 }
 
 /** 登录响应 */
@@ -24,6 +25,24 @@ export interface LoginResult {
   token: string
   refreshToken: string
   user: User
+}
+
+/** 注册参数 */
+export interface RegisterParams {
+  username: string
+  password: string
+  email: string
+}
+
+/** 忘记密码参数 */
+export interface ForgotPasswordParams {
+  email: string
+}
+
+/** 重置密码参数 */
+export interface ResetPasswordParams {
+  token: string
+  newPassword: string
 }
 
 /** Agent 信息 */
