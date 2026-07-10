@@ -12,3 +12,6 @@ package-lock.json
 pnpm-debug.log*
 # 服务端运行时产物：用户上传文件、Tesseract OCR 缓存
 packages/server/uploads/**
+
+# Electron 桌面端构建产物
+opc-agent-desktop-*.tgz
