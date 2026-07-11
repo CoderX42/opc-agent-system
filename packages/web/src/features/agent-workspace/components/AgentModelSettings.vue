@@ -4,7 +4,7 @@
     <span>{{ modelInfo.label }}</span>
   </button>
 
-  <el-drawer v-model="drawerOpen" title="模型设置" direction="rtl" size="min(460px, 100vw)" class="agent-model-drawer">
+  <el-drawer v-model="drawerOpen" title="模型设置" direction="rtl" size="min(460px, 100vw)" :teleported="true" :modal="true" :z-index="2050" class="agent-model-drawer">
     <div class="model-settings">
       <header>
         <p>当前 Agent</p>
@@ -182,4 +182,11 @@ onMounted(() => { void load() })
 .test-result, .model-error { margin: 0; padding: 10px 12px; border-radius: 7px; font-size: 13px; line-height: 1.5; }
 .test-result.is-ok { color: #1f775a; background: #eaf5ef; }
 .test-result.is-failed, .model-error { color: #96392e; background: #fff1ef; }
+</style>
+
+<style lang="scss">
+/* 非 scoped：作用域 teleport 到 body 的 drawer 根节点 */
+.agent-model-drawer { border-radius: 18px 0 0 18px; }
+.agent-model-drawer .el-drawer__header { margin-bottom: 0; }
+.agent-model-drawer .el-drawer__body { padding: 20px 22px; }
 </style>
