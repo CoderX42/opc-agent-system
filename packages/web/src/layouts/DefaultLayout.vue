@@ -313,18 +313,10 @@ watch(
 )
 
 function handleMenuSelect(index: string) {
-  if (index === '/office') {
-    const officeRoute = router.resolve({ path: '/office' })
-    window.open(officeRoute.href, '_blank', 'noopener,noreferrer')
-    return
-  }
-
-  if (index === '/agents/copilot') {
-    const copilotRoute = router.resolve({ path: '/agents/copilot', query: route.query })
-    window.open(copilotRoute.href, '_blank', 'noopener,noreferrer')
-    return
-  }
-
+  // 办公区 / Copilot 是 standalone 路由（不在 DefaultLayout 内），
+  // 直接走内部路由跳转即可，无需新开窗口。
+  // 之前用 window.open 会被桌面端 setWindowOpenHandler 拦截，
+  // 且新窗口没有 token 共享会强制重新登录。
   if (index !== route.path) void router.push(index)
 }
 

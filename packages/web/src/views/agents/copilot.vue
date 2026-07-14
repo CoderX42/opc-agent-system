@@ -6,11 +6,11 @@
         <span>AGENT WORKSPACE</span>
       </div>
       <nav class="workspace-nav" aria-label="工作区导航">
+        <RouterLink to="/dashboard">工作台</RouterLink>
         <RouterLink to="/office">办公区</RouterLink>
         <span class="is-active">Copilot</span>
       </nav>
       <div class="workspace-actions">
-        <AgentModelSettings :agent-type="activeAgent.type" />
         <button type="button" class="text-action" @click="collaborationOpen = true">协作编排</button>
         <button type="button" class="primary-action" @click="reset">新建会话</button>
       </div>
@@ -136,7 +136,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { superviseAgentTask, type SupervisorResult } from '@/api/agent-runtime'
 import { renderMarkdown } from '@/utils/markdown'
 import AgentChatWorkspace from '@/features/agent-workspace/components/AgentChatWorkspace.vue'
-import AgentModelSettings from '@/features/agent-workspace/components/AgentModelSettings.vue'
 import { AGENT_CATALOG, getAgentPresentation } from '@/features/agent-workspace/domain/agentCatalog'
 import { useAgentConversation } from '@/features/agent-workspace/composables/useAgentConversation'
 import type { AgentChatType } from '@/api/agent'

@@ -17,7 +17,15 @@
       >
         ≡
       </button>
-      <button type="button" class="topbar-btn" title="新窗口打开" @click="openNewWindow">⛶</button>
+      <button
+        v-if="!isDesktop"
+        type="button"
+        class="topbar-btn"
+        title="新窗口打开"
+        @click="openNewWindow"
+      >
+        ⛶
+      </button>
     </div>
   </header>
 </template>
@@ -36,6 +44,7 @@ defineEmits<{
 }>()
 
 const clock = ref(formatClock())
+const isDesktop = typeof window !== 'undefined' && !!window.opcDesktop
 
 let timer: ReturnType<typeof setInterval> | undefined
 

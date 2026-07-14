@@ -7,6 +7,7 @@
         <small>状态快照</small>
       </div>
       <div class="office-header-actions">
+        <RouterLink to="/dashboard" class="outline-action">返回工作台</RouterLink>
         <RouterLink to="/agents/copilot" class="outline-action">完整 Copilot</RouterLink>
         <button type="button" class="primary-action" @click="openCopilot">委派任务</button>
       </div>
@@ -153,7 +154,6 @@
             <span>当前上下文</span>
             <strong>{{ selectedTask?.name || '新任务委派' }}</strong>
           </div>
-          <AgentModelSettings :agent-type="chatAgent.type" />
         </div>
         <AgentChatWorkspace
           v-model="chatDraft"
@@ -175,7 +175,6 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import AgentChatWorkspace from '@/features/agent-workspace/components/AgentChatWorkspace.vue'
-import AgentModelSettings from '@/features/agent-workspace/components/AgentModelSettings.vue'
 import { getAgentPresentation, toAgentChatType } from '@/features/agent-workspace/domain/agentCatalog'
 import { useAgentConversation } from '@/features/agent-workspace/composables/useAgentConversation'
 import { useAgentOfficeStore } from '@/stores/agentOffice'
