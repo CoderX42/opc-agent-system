@@ -36,6 +36,9 @@
         </label>
       </div>
 
+      <p v-if="testResult" class="test-result" :class="testResult.ok ? 'is-ok' : 'is-failed'">
+        {{ testResult.ok ? `连接正常 · ${testResult.latencyMs}ms` : testResult.error || '连接失败' }}
+      </p>
       <div class="model-actions">
         <button class="secondary-action" type="button" :disabled="testing || !currentAgent" @click="testConnection">
           {{ testing ? '测试中…' : '测试连接' }}
@@ -44,9 +47,6 @@
           {{ saving ? '保存中…' : '保存设置' }}
         </button>
       </div>
-      <p v-if="testResult" class="test-result" :class="testResult.ok ? 'is-ok' : 'is-failed'">
-        {{ testResult.ok ? `连接正常 · ${testResult.latencyMs}ms` : testResult.error || '连接失败' }}
-      </p>
     </div>
   </el-drawer>
 </template>
@@ -164,7 +164,7 @@ onMounted(() => { void load() })
 .model-health.needs-attention { color: #8a5814; border-color: #e6c78d; background: #fff8e8; }
 .health-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #287a58; }
 .needs-attention .health-dot { background: #bd7b19; }
-.model-settings { display: grid; gap: 24px; padding: 4px 6px; color: #17201c; font-family: 'IBM Plex Sans', 'Noto Sans SC', sans-serif; }
+.model-settings { display: grid; width: 100%; min-height: 100%; gap: 24px; padding: 4px 6px; color: #17201c; font-family: 'IBM Plex Sans', 'Noto Sans SC', sans-serif; }
 .model-settings header { padding-bottom: 20px; border-bottom: 1px solid #d8ded9; }
 .model-settings header p { margin: 0 0 6px; color: #68736d; font: 700 10px/1 'IBM Plex Mono', monospace; letter-spacing: .12em; text-transform: uppercase; }
 .model-settings header h2 { margin: 0; font-size: 22px; letter-spacing: -.025em; }
@@ -174,7 +174,7 @@ onMounted(() => { void load() })
 .form-grid label > span { color: #68736d; font: 700 11px/1 'IBM Plex Mono', monospace; letter-spacing: .08em; text-transform: uppercase; }
 .form-grid input, .form-grid select { width: 100%; min-height: 42px; padding: 0 11px; color: #17201c; border: 1px solid #d8ded9; border-radius: 7px; background: #fbfcfa; font: 14px/1 'IBM Plex Sans', 'Noto Sans SC', sans-serif; outline: none; }
 .form-grid input:focus, .form-grid select:focus { border-color: #1f775a; box-shadow: 0 0 0 3px rgb(31 119 90 / .13); }
-.model-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.model-actions { position: sticky; bottom: -20px; display: flex; justify-content: flex-end; gap: 8px; margin: 0 -6px -4px; padding: 14px 6px 4px; border-top: 1px solid #d8ded9; background: #f9fcfa; }
 .model-actions button { min-height: 40px; padding: 0 13px; border-radius: 6px; cursor: pointer; font: 650 13px/1 'IBM Plex Sans', 'Noto Sans SC', sans-serif; }
 .secondary-action { color: #17201c; border: 1px solid #d8ded9; background: #fff; }
 .primary-action { color: #fff; border: 1px solid #c7462b; background: #c7462b; }
@@ -186,7 +186,7 @@ onMounted(() => { void load() })
 
 <style lang="scss">
 /* 非 scoped：作用域 teleport 到 body 的 drawer 根节点 */
-.agent-model-drawer { border-radius: 18px 0 0 18px; }
+.agent-model-drawer { height: 100dvh !important; max-height: 100dvh !important; border-radius: 18px 0 0 18px; }
 .agent-model-drawer .el-drawer__header { margin-bottom: 0; }
-.agent-model-drawer .el-drawer__body { padding: 20px 22px; }
+.agent-model-drawer .el-drawer__body { display: flex; min-height: 0; padding: 20px 22px; overflow-y: auto; overscroll-behavior: contain; }
 </style>
