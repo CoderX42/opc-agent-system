@@ -94,9 +94,9 @@
           <el-form-item prop="agreement" class="agreement-item">
             <el-checkbox v-model="form.agreement">
               我已阅读并同意
-              <el-link type="primary" :underline="false" @click.stop>服务条款</el-link>
+              <el-link type="primary" underline="never" @click.stop>服务条款</el-link>
               与
-              <el-link type="primary" :underline="false" @click.stop>隐私政策</el-link>
+              <el-link type="primary" underline="never" @click.stop>隐私政策</el-link>
             </el-checkbox>
           </el-form-item>
 

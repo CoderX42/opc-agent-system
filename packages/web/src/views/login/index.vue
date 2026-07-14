@@ -70,7 +70,7 @@
 
           <div class="login-options">
             <el-checkbox v-model="rememberMe">保持登录</el-checkbox>
-            <el-link type="primary" :underline="false" @click="goForgotPassword">忘记密码？</el-link>
+            <el-link type="primary" underline="never" @click="goForgotPassword">忘记密码？</el-link>
           </div>
 
           <el-button
