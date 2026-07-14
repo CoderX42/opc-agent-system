@@ -1,5 +1,11 @@
 'use strict';
 
+// Dev 模式下 Vite HMR 依赖 unsafe-eval，会触发 Electron CSP 安全警告。
+// 该警告仅在开发期出现（打包后不会显示），在此显式关闭以保持控制台整洁。
+if (process.env.NODE_ENV !== 'production') {
+  process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
+
 /**
  * OPC Agent Desktop main process entry.
  *

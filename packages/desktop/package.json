@@ -39,13 +39,14 @@
       "!**/node_modules/*.d.ts",
       "!**/node_modules/.bin"
     ],
+    "beforePack": "scripts/prepare-server-runtime.cjs",
     "extraResources": [
       {
         "from": "../web/dist",
         "to": "web"
       },
       {
-        "from": "../server/dist",
+        "from": ".server-runtime",
         "to": "server"
       }
     ],

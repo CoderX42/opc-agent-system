@@ -2,6 +2,7 @@ node_modules/
 dist/
 .env
 .env.local
+packages/desktop/.server-runtime/
 *.log
 .DS_Store
 coverage/
